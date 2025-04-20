@@ -35,7 +35,7 @@
     <ul id="playerList"></ul>
   </main>
   <script>
-    fetch('https://raw.githubusercontent.com/CMPtechnik/TheLeague/main/data/leaguedata.xlsx?v=' + Date.now())
+    fetch('https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=' + Date.now())
       .then(res => res.arrayBuffer())
       .then(buffer => {
         const wb = XLSX.read(buffer, { type:'array' });

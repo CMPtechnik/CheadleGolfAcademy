@@ -40,11 +40,7 @@
 
     @media screen and (max-width:768px) {
       header { padding: 0.5rem; }
-      /* keep nav links inline on mobile */
-      nav a {
-        display: inline-block;
-        margin: 0 0.5rem;
-      }
+      nav a { display: inline-block; margin: 0 0.5rem; }
       h1 { margin-top: 0.5rem; }
       table { display: block; overflow-x: auto; }
     }
@@ -54,12 +50,11 @@
   <header>
     <nav>
       <a href="index.html">Home</a> |
-      <a href="logic.html">Logic</a> |
-      <a href="rules.html">Rules</a> |
+      <a href="profiles.html">Player Performance</a> |
       Results History
     </nav>
     <h1>Results History</h1>
-      <br><center>⬅️➡️ Scroll to view full table</center>
+    <br><center>⬅️➡️ Scroll to view full table</center>
   </header>
 
   <main id="content">
@@ -76,7 +71,7 @@
       return new Date(s);
     }
 
-    fetch('https://raw.githubusercontent.com/CMPtechnik/TheLeague/main/data/leaguedata.xlsx?v=' + Date.now())
+    fetch('https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=' + Date.now())
       .then(res => res.arrayBuffer())
       .then(buf => {
         const wb = XLSX.read(buf, { type: 'array' });
@@ -85,6 +80,7 @@
 
         const hasSFcol = rows.length && rows[0].hasOwnProperty('Stableford Points');
 
+        // Group by section title (Title or Competition) for display
         const groups = {};
         rows.forEach(r => {
           const key = r.Title || r.Competition || 'Unknown';
@@ -92,6 +88,7 @@
           groups[key].push(r);
         });
 
+        // Build competition sections
         const comps = Object.keys(groups).map(key => {
           const recs = groups[key];
           const date = parseDateStr(recs[0].Date);
@@ -111,28 +108,35 @@
 
           const table = document.createElement('table');
           const thead = document.createElement('thead');
-          const cols = ['Position', 'Name', isStable ? 'Stableford' : 'Net Score', 'Points', 'Winnings'];
+          const cols = ['Competition', 'Position', 'Name', isStable ? 'Stableford' : 'Net Score', 'Points', 'Trophy'];
           thead.innerHTML = `<tr>${cols.map(col => `<th>${col}</th>`).join('')}</tr>`;
           table.appendChild(thead);
 
           const tbody = document.createElement('tbody');
           c.records.sort((a, b) => parseInt(a.Position) - parseInt(b.Position));
           c.records.forEach(r => {
-            const win = isNaN(parseFloat(r.Winnings)) ? 0 : parseFloat(r.Winnings);
+            const pos = parseInt(r.Position, 10);
+            let trophy = '';
+            if (pos === 1) trophy = '🏆';
+            else if (pos === 2) trophy = '🥈';
+            else if (pos === 3) trophy = '🥉';
+
             const sf = isNaN(parseInt(r['Stableford Points'])) ? 0 : parseInt(r['Stableford Points']);
             const tdValues = [
+              r.Competition || '',
               r.Position,
               r.Name || '',
               isStable ? sf : r.Score || '',
               r.Points || '',
-              `£${win.toFixed(2)}`
+              trophy
             ];
+
             const tr = document.createElement('tr');
             tr.innerHTML = tdValues.map(v => `<td>${v}</td>`).join('');
             tbody.appendChild(tr);
           });
-          table.appendChild(tbody);
 
+          table.appendChild(tbody);
           section.appendChild(table);
           container.appendChild(section);
         });
