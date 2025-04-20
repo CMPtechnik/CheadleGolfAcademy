@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cheadle Golf Junior Academy - Results History</title>
+  <title>Cheadle Golf League - Results History</title>
   <link rel="icon" href="favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
   <meta name="theme-color" content="#005c41" />
@@ -49,6 +49,7 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    .logo { display: none; }
     @media screen and (max-width:768px) {
       header { padding: 0.5rem; }
       nav a { display: inline-block; margin: 0 0.5rem; }
@@ -64,6 +65,8 @@
       .print-target { position: absolute; top: 0; left: 0; width: 100%; }
       /* Hide print buttons */
       .print-btn { display: none !important; }
+      /* Show logo in print */
+      .logo { display: block !important; max-width: 200px; margin: 0 auto 1rem; }
       @page { size: auto; margin: 1cm; }
     }
   </style>
@@ -75,7 +78,6 @@
       <a href="profiles.html">Player Performance</a> |
       Results History
     </nav>
-        <img src="logo.png" alt="League Logo" />
     <h1>Results History</h1>
     <br><center>⬅️➡️ Scroll to view full table</center>
   </header>
@@ -123,6 +125,14 @@
           const isStable = c.title.toLowerCase().includes('stableford') && hasSFcol;
 
           const section = document.createElement('section');
+
+          // Logo for print
+          const logo = document.createElement('img');
+          logo.src = 'logo.png';
+          logo.alt = 'League Logo';
+          logo.className = 'logo';
+          section.appendChild(logo);
+
           const header = document.createElement('h2');
           header.textContent = `${c.title} — ${c.date.toLocaleDateString()}`;
           section.appendChild(header);
@@ -132,9 +142,7 @@
           printBtn.textContent = 'Print PDF';
           printBtn.className = 'print-btn';
           printBtn.addEventListener('click', () => {
-            // Remove existing targets
             document.querySelectorAll('.print-target').forEach(el => el.classList.remove('print-target'));
-            // Mark this section and print
             section.classList.add('print-target');
             window.print();
           });
@@ -142,7 +150,7 @@
 
           const table = document.createElement('table');
           const thead = document.createElement('thead');
-          const cols = ['Competition', 'Position', 'Name', isStable ? 'Stableford' : 'Net Score', 'Points', 'Trophy'];
+          const cols = ['Competition', 'Position', 'Name', isStable ? 'Stableford' : 'Score', 'Points', 'Trophy'];
           thead.innerHTML = `<tr>${cols.map(col => `<th>${col}</th>`).join('')}</tr>`;
           table.appendChild(thead);
 
