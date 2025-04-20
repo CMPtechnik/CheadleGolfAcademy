@@ -1,0 +1,529 @@
+<!<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cheadle Golf League</title>
+
+  <!-- Favicon & Apple Icons -->
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cheadle Golf League">
+  <meta name="theme-color" content="#005c41" />
+
+  <!-- Chart.js & XLSX -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #005c41;
+      --accent: #e6f2ef;
+      --text: #1e1e1e;
+      --bg: #fdfdfd;
+      --border: #ccc;
+      --hover: #f1f1f1;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .dark-mode {
+      --bg: #121212;
+      --text: #f5f5f5;
+      --accent: #1f2b27;
+      --border: #444;
+      --hover: #1e1e1e;
+    }
+
+    .dark-mode table,
+    .dark-mode th,
+    .dark-mode td,
+    .dark-mode .modal-content {
+      background-color: #1e1e1e;
+      color: var(--text);
+    }
+
+    .dark-mode th {
+      background-color: #2a2a2a;
+    }
+
+    .dark-mode .tooltip-bubble {
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    .dark-mode a {
+      color: #80ffd3;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      position: relative;
+    }
+
+    header img {
+      max-height: 150px;
+    }
+
+    header h1 {
+      margin: 0.5rem 0 0;
+    }
+
+    #darkModeToggle {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    /* Link to logic page under dark mode icon */
+       #logicLink {
+         position: absolute;
+         top: 45px;
+         right: 15px;
+         font-size: 0.9rem;
+         color: white;
+         text-decoration: none;
+         background: rgba(0,0,0,0.2);
+         padding: 2px 6px;
+         border-radius: 4px;
+       }
+       /* Link to rules page under logic link */
+       #rulesLink {
+         position: absolute;
+         top: 75px;
+         right: 15px;
+         font-size: 0.9rem;
+         color: white;
+         text-decoration: none;
+         background: rgba(0,0,0,0.2);
+         padding: 2px 6px;
+         border-radius: 4px;
+       }
+       /* Link to rules page under rules link */
+       #resultsLink {
+         position: absolute;
+         top: 105px;
+         right: 15px;
+         font-size: 0.9rem;
+         color: white;
+         text-decoration: none;
+         background: rgba(0,0,0,0.2);
+         padding: 2px 6px;
+         border-radius: 4px;
+       }
+
+    .info-bar {
+      background: var(--accent);
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: var(--accent);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    tbody tr:hover {
+      background: var(--hover);
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .trophy {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .tooltip-bubble {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      z-index: 1000;
+    }
+
+    .trophy.show-tooltip .tooltip-bubble {
+      display: block;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .close-btn {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .tabs {
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    .tabs button {
+      padding: 0.5rem 1rem;
+      margin: 0 0.25rem;
+      border: none;
+      border-radius: 4px;
+      background: var(--accent);
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    #scoreChart, #positionChart {
+      margin-bottom: 1rem;
+    }
+
+    #nextCompetition {
+      text-align: center;
+      padding: 1rem;
+      font-size: 1rem;
+      background: var(--accent);
+      margin: 1rem auto;
+      max-width: 1100px;
+      border-radius: 5px;
+    }
+
+    @media screen and (max-width: 768px) {
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .tabs {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div id="darkModeToggle" onclick="toggleDarkMode()">🌙</div>
+    <a id="resultsLink" href="results.html">View Results</a>
+    <img src="logo.png" alt="League Logo" />
+    <h1>Cheadle Golf League</h1>
+  </header>
+
+  <div class="info-bar">
+    <h4><font color="#FF0000">Loading update...</font></h4>
+    <h4>League Champions Pot <u>£Loading...</u></h4>
+    <center>SS = Single Stableford | MM = Monthly Medal</center>
+    <center>BC = Board Comp</center>
+    <br><center>⬅️➡️ Scroll to view full table</center>
+  </div>
+
+  <main>
+    <table id="league-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Name</th>
+          <th>Games</th>
+          <th>Net Win %</th>
+          <th>Total Points</th>
+          <th>Trophies</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <div id="nextCompetition">
+    Next Competition: <span id="nextCompetitionText">TBD</span>
+  </div>
+
+  <div class="modal" id="scoreModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <div class="tabs">
+        <button id="tabNet" onclick="showTab('net')" class="active">Net Scores</button>
+        <button id="tabPositions" onclick="showTab('positions')">Competition History</button>
+        <button id="tabHistory" onclick="showTab('history')">Results History</button>
+      </div>
+      <canvas id="scoreChart" height="200"></canvas>
+      <canvas id="positionChart" height="200" style="display:none;"></canvas>
+      <ul id="scoreList"></ul>
+      <ul id="positionList" style="display:none;"></ul>
+    </div>
+  </div>
+
+  <script>
+    let history = [];
+
+    function parseDateStr(dateStr) {
+      if (typeof dateStr === 'string' && dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+      } else {
+        return new Date(dateStr);
+      }
+    }
+
+    fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + new Date().getTime())
+      .then(res => res.arrayBuffer())
+      .then(buffer => {
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const settingsSheet = workbook.Sheets['Settings'];
+        if (settingsSheet) {
+          const settingsData = XLSX.utils.sheet_to_json(settingsSheet, { header: 1 });
+          let championsPot, nextCompetition;
+          settingsData.forEach(row => {
+            if (row[0]) {
+              const key = row[0].toString().toLowerCase();
+              if (key.includes('league champions pot')) {
+                championsPot = row[1];
+              } else if (key.includes('next competition')) {
+                nextCompetition = row[1];
+              }
+            }
+          });
+          if (championsPot) {
+            document.querySelector(".info-bar h4:nth-of-type(2)").innerHTML =
+              `League Champions Pot <u>£${championsPot}</u>`;
+          }
+          if (nextCompetition) {
+            document.getElementById('nextCompetitionText').innerText = nextCompetition;
+          }
+        }
+
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        history = XLSX.utils.sheet_to_json(sheet);
+
+        const lastCompetitionEntry = history.reduce((latest, entry) =>
+          parseDateStr(entry.Date) > parseDateStr(latest.Date) ? entry : latest
+        , history[0]);
+
+        const lastCompetition = lastCompetitionEntry.Competition;
+        const lastUpdate = parseDateStr(lastCompetitionEntry.Date).toLocaleDateString();
+        document.querySelector(".info-bar h4").innerHTML =
+          `<font color="#FF0000">Last Update - ${lastUpdate}</font> | Last Competition: ${lastCompetition}`;
+
+        updateLeague(history);
+      });
+
+    function updateLeague(data) {
+      const netScores = {}, netWins = {}, totalPoints = {}, totalWinnings = {}, rounds = {};
+
+      data.forEach(entry => {
+        const { Name, Score, Position, Points, Winnings, Competition } = entry;
+        const net = parseFloat(Score);
+        if (isNaN(net)) return;
+        netScores[Name] = netScores[Name]||[];
+        rounds[Competition] = rounds[Competition]||[];
+        netScores[Name].push(net);
+        rounds[Competition].push({ name: Name, position: parseInt(Position) });
+        totalPoints[Name] = (totalPoints[Name]||0) + (parseFloat(Points)||0);
+        totalWinnings[Name] = (totalWinnings[Name]||0) + (parseFloat(Winnings)||0);
+      });
+
+      Object.values(rounds).forEach(players =>
+        players.filter(p => p.position===1).forEach(p =>
+          netWins[p.name] = (netWins[p.name]||0) +1
+        )
+      );
+
+      const players = Object.keys(netScores).map(name => {
+        const games = netScores[name].length;
+        const wins = netWins[name]||0;
+        const winPct = ((wins/games)*100).toFixed(1);
+        return { name, games, winPct, points: totalPoints[name], winnings: totalWinnings[name], trophies: wins };
+      }).sort((a,b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.trophies !== a.trophies) return b.trophies - a.trophies;
+        if (parseFloat(b.winPct) !== parseFloat(a.winPct))
+          return parseFloat(b.winPct) - parseFloat(a.winPct);
+        if (b.winnings !== a.winnings) return b.winnings - a.winnings;
+        return a.name.localeCompare(b.name);
+      });
+
+      renderTable(players);
+    }
+
+    function renderTable(data) {
+      const tbody = document.querySelector("#league-table tbody");
+      tbody.innerHTML = '';
+      data.forEach((p,i) => {
+        const won = history.filter(e=>e.Name===p.name&&parseInt(e.Position)===1)
+                           .map(e=>e.Competition);
+        const span = won.length
+          ? `<span class="trophy" onclick="toggleTooltip(this)">
+               ${'🏆'.repeat(won.length)}
+               <span class="tooltip-bubble">${won.join(', ')}</span>
+             </span>`
+          : '';
+        tbody.innerHTML += `
+          <tr>
+            <td>${i+1}</td>
+            <td><a href="#" onclick="showPlayerModal('${p.name}')">${p.name}</a></td>
+            <td>${p.games}</td>
+            <td>${p.winPct}%</td>
+            <td>${p.points}</td>
+            <td>${span}</td>
+          </tr>`;
+      });
+    }
+
+    function toggleTooltip(el){
+      document.querySelectorAll('.trophy.show-tooltip').forEach(t=>{
+        if(t!==el) t.classList.remove('show-tooltip');
+      });
+      el.classList.toggle('show-tooltip');
+    }
+    document.addEventListener('click',e=>{
+      if(!e.target.closest('.trophy'))
+        document.querySelectorAll('.trophy.show-tooltip').forEach(t=>t.classList.remove('show-tooltip'));
+    });
+
+    function showPlayerModal(name){
+      const scores = history.filter(e=>e.Name===name)
+        .map(e=>({competition:e.Competition,score:parseFloat(e.Score),
+                 position:e.Position,points:parseFloat(e.Points)||0,
+                 winnings:parseFloat(e.Winnings)||0,date:e.Date}))
+        .sort((a,b)=>parseDateStr(a.date)-parseDateStr(b.date));
+
+      document.getElementById('modalTitle').innerText = `${name}'s Score History`;
+      const scoreList = document.getElementById('scoreList');
+      const posList   = document.getElementById('positionList');
+      scoreList.innerHTML = '';
+      posList.innerHTML = '';
+
+      scores.forEach(s=>{
+        const trophy = s.position==1?' 🏆':'';
+        scoreList.innerHTML   += `<li>${s.competition}: Net ${s.score}, Position ${s.position}, Winnings £${s.winnings.toFixed(2)}${trophy}</li>`;
+        posList.innerHTML     += `<li>${s.competition}: Finished ${s.position}, Points ${s.points}, Winnings £${s.winnings.toFixed(2)}${trophy}</li>`;
+      });
+
+      const labels = scores.map(s=>s.competition);
+      const netData = scores.map(s=>s.score);
+      const posData = scores.map(s=>s.position);
+
+      const ctxNet = document.getElementById('scoreChart').getContext('2d');
+      if(window.scoreChart instanceof Chart) window.scoreChart.destroy();
+      window.scoreChart = new Chart(ctxNet,{
+        type:'line',
+        data:{labels,datasets:[
+          {label:'Net Score',data:netData,borderColor:'blue',fill:false},
+          {label:'Par 64',data:new Array(labels.length).fill(64),borderColor:'red',borderDash:[5,5],fill:false}
+        ]},
+        options:{responsive:true}
+      });
+
+      const ctxPos = document.getElementById('positionChart').getContext('2d');
+      if(window.positionChart instanceof Chart) window.positionChart.destroy();
+      window.positionChart = new Chart(ctxPos,{
+        type:'line',
+        data:{labels,datasets:[
+          {label:'Results',data:posData,borderColor:'green',fill:false}
+        ]},
+        options:{scales:{y:{reverse:true,title:{display:true,text:'Finishing Position'}}}}
+      });
+
+      showTab('net');
+      document.getElementById('scoreModal').style.display='flex';
+    }
+
+    function showTab(tab){
+      ['tabNet','tabPositions','tabHistory'].forEach(id=>document.getElementById(id).classList.remove('active'));
+      document.getElementById('tab'+(tab==='net'?'Net':tab==='positions'?'Positions':'History')).classList.add('active');
+      document.getElementById('scoreList').style.display = tab==='net'?'block':'none';
+      document.getElementById('positionList').style.display = tab==='positions'?'block':'none';
+      document.getElementById('scoreChart').style.display  = tab==='net'?'block':'none';
+      document.getElementById('positionChart').style.display = tab==='history'?'block':'none';
+    }
+
+    function closeModal(){
+      document.getElementById('scoreModal').style.display='none';
+    }
+
+    function toggleDarkMode(){
+      document.body.classList.toggle('dark-mode');
+    }
+  </script>
+
+  <br>
+  <center><img src="cheadlegolf.png" alt="League Logo" /></center>
+  <center><img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="cgc Logo" width="100" height="100"/></center>
+  <br>
+  <center>Build v6.0.0 | Table Ranking Logic & Rules Pages</center>
+  <br>
+  <center><a href="https://www.theapplegeek.co.uk" target="_blank">The Apple Geek Data Solutions</a></center>
+</body>
+</html>

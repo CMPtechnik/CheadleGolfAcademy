@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Player Profiles</title>
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180" />
+  <meta name="theme-color" content="#005c41" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root { --primary: #005c41; --accent: #e6f2ef; --text: #1e1e1e; --bg: #fdfdfd; }
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); }
+    header { background:var(--primary); color:#fff; padding:1rem; text-align:center; }
+    header nav a { color:#fff; text-decoration:none; margin:0 0.5rem; }
+    main { max-width:600px; margin:2rem auto; padding:0 1rem; }
+    ul { list-style:none; padding:0; }
+    li { margin:0.5rem 0; }
+    a.profile-link { color: var(--primary); text-decoration: none; font-size:1.1rem; }
+    a.profile-link:hover { text-decoration: underline; }
+    .loading { text-align:center; margin-top:2rem; color:#666; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Home</a> |
+      <a href="rules.html">Rules</a> |
+      <strong>All Players</strong>
+    </nav>
+  </header>
+  <main>
+    <h1>All Player Profiles</h1>
+    <div id="loading" class="loading">Loading players...</div>
+    <ul id="playerList"></ul>
+  </main>
+  <script>
+    fetch('https://raw.githubusercontent.com/CMPtechnik/TheLeague/main/data/leaguedata.xlsx?v=' + Date.now())
+      .then(res => res.arrayBuffer())
+      .then(buffer => {
+        const wb = XLSX.read(buffer, { type:'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+        const names = [...new Set(rows.map(r => r.Name).filter(n => n))];
+        names.sort((a,b) => a.localeCompare(b));
+
+        const list = document.getElementById('playerList');
+        list.innerHTML = names.map(name => {
+          const url = `profile.html?name=${encodeURIComponent(name)}`;
+          return `<li><a class="profile-link" href="${url}">${name}</a></li>`;
+        }).join('');
+        document.getElementById('loading').style.display = 'none';
+      })
+      .catch(err => {
+        document.getElementById('loading').textContent = 'Failed to load players.';
+        console.error(err);
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Profile</title>
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180" />
+  <meta name="theme-color" content="#005c41" />
+  <!-- Chart.js & XLSX -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root { --primary: #005c41; --accent: #e6f2ef; --text: #1e1e1e; --bg: #fdfdfd; --border: #ccc; }
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); }
+    header { background:var(--primary); color:#fff; padding:1rem; text-align:center; }
+    header nav a { color:#fff; text-decoration:none; margin:0 0.5rem; font-size:0.9rem; }
+    #profileHeader { max-width:800px; margin:2rem auto; text-align:center; }
+    #profileHeader .avatar { width:100px; height:100px; border-radius:50%; object-fit:cover; }
+    #profileHeader h1 { margin:0.5rem 0; }
+    #profileHeader ul { list-style:none; padding:0; margin:0.5rem 0; display:flex; justify-content:center; gap:1rem; }
+    #charts { max-width:800px; margin:2rem auto; display:grid; gap:2rem; }
+    canvas { width:100% !important; height:300px !important; }
+    #historySection { max-width:800px; margin:2rem auto; }
+    #historyTable { width:100%; border-collapse:collapse; }
+    #historyTable th, #historyTable td { border:1px solid var(--border); padding:8px; text-align:center; }
+    #historyTable th { background:var(--accent); }
+    .no-data { text-align:center; margin:2rem auto; font-size:1.2rem; color:#666; }
+    @media screen and (max-width:768px) {
+      #charts { display:block; }
+      #charts canvas { height:200px !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Home</a> |
+      <a href="profiles.html">All Players</a> |
+      <a href="rules.html">Rules</a>
+    </nav>
+  </header>
+
+  <div id="profileHeader"></div>
+
+  <div id="charts" style="display:none;">
+    <canvas id="chartScore"></canvas>
+    <canvas id="chartPosition"></canvas>
+    <canvas id="chartSF"></canvas>
+  </div>
+
+  <section id="historySection" style="display:none;">
+    <h2>Competition History</h2>
+    <table id="historyTable">
+      <thead>
+        <tr><th>Date</th><th>Competition</th><th>Score</th><th>Stableford</th><th>Points</th><th>Winnings</th><th>Trophy</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <div id="noData" class="no-data" style="display:none;">No data found for this player.</div>
+
+  <script>
+    function parseDateStr(s) {
+      if (typeof s === 'string' && s.includes('/')) {
+        const [d, m, y] = s.split('/');
+        return new Date(y, m - 1, d);
+      }
+      return new Date(s);
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const playerName = decodeURIComponent(params.get('name') || '');
+
+    fetch('https://raw.githubusercontent.com/CMPtechnik/TheLeague/main/data/leaguedata.xlsx?v=' + Date.now())
+      .then(res => res.arrayBuffer())
+      .then(buffer => {
+        const wb = XLSX.read(buffer, { type:'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const history = XLSX.utils.sheet_to_json(sheet);
+
+        // Filter records for player (case-insensitive)
+        const recs = history.filter(r => r.Name && r.Name.toLowerCase() === playerName.toLowerCase());
+
+        if (!recs.length) {
+          document.getElementById('noData').style.display = 'block';
+          return;
+        }
+
+        document.getElementById('charts').style.display = '';
+        document.getElementById('historySection').style.display = '';
+
+        // Compute stats
+        const games = recs.length;
+        const totalPoints = recs.reduce((sum, r) => sum + (parseFloat(r.Points) || 0), 0);
+        const totalWinnings = recs.reduce((sum, r) => sum + (parseFloat(r.Winnings) || 0), 0);
+        const trophies = recs.filter(r => parseInt(r.Position) === 1).length;
+        const winPct = games ? ((trophies / games) * 100).toFixed(1) : 0;
+
+        // Render header without AvatarURL
+        document.getElementById('profileHeader').innerHTML = `
+          <img class="avatar" src="default.png" alt="${playerName}" />
+          <h1>${playerName}</h1>
+          <ul class="stats">
+            <li>Games: ${games}</li>
+            <li>Total Points: ${totalPoints}</li>
+            <li>Win %: ${winPct}%</li>
+            <li>Trophies: ${trophies}</li>
+            <li>Winnings: £${totalWinnings.toFixed(2)}</li>
+          </ul>
+        `;
+
+        // Prepare chart data
+        const dates = recs.map(r => parseDateStr(r.Date).toLocaleDateString());
+        const scores = recs.map(r => parseFloat(r.Score) || 0);
+        const positions = recs.map(r => parseInt(r.Position) || 0);
+        const sfs = recs.map(r => parseInt(r['Stableford Points']) || 0);
+
+        // Net Score Chart with Par 64 baseline
+        const ctxScore = document.getElementById('chartScore').getContext('2d');
+        new Chart(ctxScore, {
+          type: 'line',
+          data: {
+            labels: dates,
+            datasets: [
+              { label: 'Net Score', data: scores, fill: false },
+              { label: 'Par 64', data: new Array(dates.length).fill(64), borderDash: [5,5], fill: false }
+            ]
+          },
+          options: { responsive: true }
+        });
+
+        // Position Chart
+        const ctxPos = document.getElementById('chartPosition').getContext('2d');
+        new Chart(ctxPos, {
+          type: 'line',
+          data: { labels: dates, datasets: [{ label: 'Position', data: positions, fill: false }] },
+          options: { responsive: true, scales: { y: { reverse: true } } }
+        });
+
+        // Stableford Chart
+        const ctxSF = document.getElementById('chartSF').getContext('2d');
+        new Chart(ctxSF, {
+          type: 'bar',
+          data: { labels: dates, datasets: [{ label: 'Stableford Points', data: sfs }] },
+          options: { responsive: true }
+        });
+
+        // Populate history table
+        const tbody = document.querySelector('#historyTable tbody');
+        recs.sort((a,b) => parseDateStr(b.Date) - parseDateStr(a.Date)).forEach(r => {
+          const trophy = parseInt(r.Position) === 1 ? '🏆' : '';
+          const win = isNaN(parseFloat(r.Winnings)) ? 0 : parseFloat(r.Winnings);
+          const sf = isNaN(parseInt(r['Stableford Points'])) ? 0 : parseInt(r['Stableford Points']);
+          tbody.innerHTML += `
+            <tr>
+              <td>${parseDateStr(r.Date).toLocaleDateString()}</td>
+              <td>${r.Title||r.Competition}</td>
+              <td>${r.Score||''}</td>
+              <td>${sf}</td>
+              <td>${r.Points||''}</td>
+              <td>£${win.toFixed(2)}</td>
+              <td>${trophy}</td>
+            </tr>
+          `;
+        });
+      })
+      .catch(err => console.error('Error loading profile data:', err));
+  </script>
+</body>
+</html>
