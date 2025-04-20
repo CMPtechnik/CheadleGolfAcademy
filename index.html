@@ -1,4 +1,4 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -246,7 +246,6 @@
     <center>Competition is 9 Holes from Reds | Junior Sixes 6 Hole short Course</center>
     <br><center>⬅️➡️ Scroll to view full table</center>
     <br><a href="results.html">Past Competition Results</a> | <a href="."> Competition Calendar</a>
-
   </div>
 
   <main>
@@ -304,21 +303,15 @@
         const settingsSheet = workbook.Sheets['Settings'];
         if (settingsSheet) {
           const settingsData = XLSX.utils.sheet_to_json(settingsSheet, { header: 1 });
-          let championsPot, nextCompetition;
+          let nextCompetition;
           settingsData.forEach(row => {
             if (row[0]) {
               const key = row[0].toString().toLowerCase();
-              if (key.includes('league champions pot')) {
-                championsPot = row[1];
-              } else if (key.includes('next competition')) {
+              if (key.includes('next competition')) {
                 nextCompetition = row[1];
               }
             }
           });
-          if (championsPot) {
-            document.querySelector(".info-bar h4:nth-of-type(2)").innerHTML =
-              `League Champions Pot <u>£${championsPot}</u>`;
-          }
           if (nextCompetition) {
             document.getElementById('nextCompetitionText').innerText = nextCompetition;
           }
@@ -340,10 +333,10 @@
       });
 
     function updateLeague(data) {
-      const netScores = {}, netWins = {}, totalPoints = {}, totalWinnings = {}, rounds = {};
+      const netScores = {}, netWins = {}, totalPoints = {}, rounds = {};
 
       data.forEach(entry => {
-        const { Name, Score, Position, Points, Winnings, Competition } = entry;
+        const { Name, Score, Position, Points, Competition } = entry;
         const net = parseFloat(Score);
         if (isNaN(net)) return;
         netScores[Name] = netScores[Name]||[];
@@ -351,7 +344,6 @@
         netScores[Name].push(net);
         rounds[Competition].push({ name: Name, position: parseInt(Position) });
         totalPoints[Name] = (totalPoints[Name]||0) + (parseFloat(Points)||0);
-        totalWinnings[Name] = (totalWinnings[Name]||0) + (parseFloat(Winnings)||0);
       });
 
       Object.values(rounds).forEach(players =>
@@ -364,13 +356,12 @@
         const games = netScores[name].length;
         const wins = netWins[name]||0;
         const winPct = ((wins/games)*100).toFixed(1);
-        return { name, games, winPct, points: totalPoints[name], winnings: totalWinnings[name], trophies: wins };
+        return { name, games, winPct, points: totalPoints[name], trophies: wins };
       }).sort((a,b) => {
         if (b.points !== a.points) return b.points - a.points;
         if (b.trophies !== a.trophies) return b.trophies - a.trophies;
         if (parseFloat(b.winPct) !== parseFloat(a.winPct))
           return parseFloat(b.winPct) - parseFloat(a.winPct);
-        if (b.winnings !== a.winnings) return b.winnings - a.winnings;
         return a.name.localeCompare(b.name);
       });
 
@@ -415,8 +406,7 @@
     function showPlayerModal(name){
       const scores = history.filter(e=>e.Name===name)
         .map(e=>({competition:e.Competition,score:parseFloat(e.Score),
-                 position:e.Position,points:parseFloat(e.Points)||0,
-                 winnings:parseFloat(e.Winnings)||0,date:e.Date}))
+                 position:e.Position, points:parseFloat(e.Points)||0, date:e.Date}))
         .sort((a,b)=>parseDateStr(a.date)-parseDateStr(b.date));
 
       document.getElementById('modalTitle').innerText = `${name}'s Score History`;
@@ -427,8 +417,8 @@
 
       scores.forEach(s=>{
         const trophy = s.position==1?' 🏆':'';
-        scoreList.innerHTML   += `<li>${s.competition}: Net ${s.score}, Position ${s.position}, Winnings £${s.winnings.toFixed(2)}${trophy}</li>`;
-        posList.innerHTML     += `<li>${s.competition}: Finished ${s.position}, Points ${s.points}, Winnings £${s.winnings.toFixed(2)}${trophy}</li>`;
+        scoreList.innerHTML   += `<li>${s.competition}: Net ${s.score}, Position ${s.position}${trophy}</li>`;
+        posList.innerHTML     += `<li>${s.competition}: Finished ${s.position}, Points ${s.points}${trophy}</li>`;
       });
 
       const labels = scores.map(s=>s.competition);
@@ -437,24 +427,16 @@
 
       const ctxNet = document.getElementById('scoreChart').getContext('2d');
       if(window.scoreChart instanceof Chart) window.scoreChart.destroy();
-      window.scoreChart = new Chart(ctxNet,{
-        type:'line',
-        data:{labels,datasets:[
-          {label:'Net Score',data:netData,borderColor:'blue',fill:false},
-          {label:'Par 64',data:new Array(labels.length).fill(64),borderColor:'red',borderDash:[5,5],fill:false}
-        ]},
-        options:{responsive:true}
-      });
+      window.scoreChart = new Chart(ctxNet,{ type:'line', data:{labels,datasets:[
+          {label:'Net Score',data:netData,fill:false},
+          {label:'Par 64',data:new Array(labels.length).fill(64),borderDash:[5,5],fill:false}
+        ]}, options:{responsive:true} });
 
       const ctxPos = document.getElementById('positionChart').getContext('2d');
       if(window.positionChart instanceof Chart) window.positionChart.destroy();
-      window.positionChart = new Chart(ctxPos,{
-        type:'line',
-        data:{labels,datasets:[
-          {label:'Results',data:posData,borderColor:'green',fill:false}
-        ]},
-        options:{scales:{y:{reverse:true,title:{display:true,text:'Finishing Position'}}}}
-      });
+      window.positionChart = new Chart(ctxPos,{ type:'line', data:{labels,datasets:[
+          {label:'Results',data:posData,fill:false}
+        ]}, options:{scales:{y:{reversetrue:true,title:{display:true,text:'Finishing Position'}}}} });
 
       showTab('net');
       document.getElementById('scoreModal').style.display='flex';
