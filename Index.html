@@ -18,7 +18,7 @@
 
   <style>
     :root {
-      --primary: #005c41;
+      --primary: #DE3C09;
       --accent: #e6f2ef;
       --text: #1e1e1e;
       --bg: #fdfdfd;
@@ -86,44 +86,6 @@
       cursor: pointer;
       font-size: 1.5rem;
     }
-
-    /* Link to logic page under dark mode icon */
-       #logicLink {
-         position: absolute;
-         top: 45px;
-         right: 15px;
-         font-size: 0.9rem;
-         color: white;
-         text-decoration: none;
-         background: rgba(0,0,0,0.2);
-         padding: 2px 6px;
-         border-radius: 4px;
-       }
-       /* Link to rules page under logic link */
-       #rulesLink {
-         position: absolute;
-         top: 75px;
-         right: 15px;
-         font-size: 0.9rem;
-         color: white;
-         text-decoration: none;
-         background: rgba(0,0,0,0.2);
-         padding: 2px 6px;
-         border-radius: 4px;
-       }
-       /* Link to rules page under rules link */
-       #resultsLink {
-         position: absolute;
-         top: 105px;
-         right: 15px;
-         font-size: 0.9rem;
-         color: white;
-         text-decoration: none;
-         background: rgba(0,0,0,0.2);
-         padding: 2px 6px;
-         border-radius: 4px;
-       }
-
     .info-bar {
       background: var(--accent);
       text-align: center;
@@ -276,7 +238,6 @@
 <body>
   <header>
     <img src="cheadlegolf.png" alt="League Logo" />
-    <h1>Cheadle Juniors</h1>
      <a id="darkModeToggle" onclick="toggleDarkMode()">🌗</a>
   </header>
 
@@ -284,7 +245,7 @@
     <h4><font color="#FF0000">Loading update...</font></h4>
     <center>Competition is 9 Holes from Reds | Junior Sixes 6 Hole short Course</center>
     <br><center>⬅️➡️ Scroll to view full table</center>
-    <br><a href="results.html">Past Competition Results</a> |
+    <br><a href="results.html">Past Competition Results</a> | <a href="."> Competition Calendar</a>
 
   </div>
 
@@ -313,7 +274,7 @@
       <span class="close-btn" onclick="closeModal()">&times;</span>
       <h2 id="modalTitle"></h2>
       <div class="tabs">
-        <button id="tabNet" onclick="showTab('net')" class="active">Net Scores</button>
+        <button id="tabNet" onclick="showTab('net')" class="active">Scores</button>
         <button id="tabPositions" onclick="showTab('positions')">Competition History</button>
         <button id="tabHistory" onclick="showTab('history')">Results History</button>
       </div>
