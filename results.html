@@ -3,53 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cheadle Golf League - Results History</title>
+  <title>Cheadle Juniors - Results History</title>
   <link rel="icon" href="favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
   <meta name="theme-color" content="#005c41" />
   <style>
     :root { --primary: #005c41; --accent: #e6f2ef; --text: #1e1e1e; --bg: #fdfdfd; --border: #ccc; }
     body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
-    header {
-      background: var(--primary);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 1rem;
-    }
-    nav {
-      margin-bottom: 0.5rem;
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    nav a {
-      color: #fff;
-      text-decoration: none;
-      margin: 0 0.5rem;
-      font-size: 0.9rem;
-    }
+    header { background: var(--primary); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 1rem; }
+    nav { margin-bottom: 0.5rem; display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; }
+    nav a { color: #fff; text-decoration: none; margin: 0 0.5rem; font-size: 0.9rem; }
     h1 { margin: 0; font-size: 1.5rem; }
     main { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
     section { margin-bottom: 2rem; position: relative; }
     table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
     th, td { border: 1px solid var(--border); padding: 8px; text-align: center; }
     th { background: var(--accent); }
-    .print-btn {
-      position: absolute;
-      top: 0;
-      right: 0;
-      margin: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+    .print-btn { position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.5rem 1rem; background: var(--primary); color: #fff; border: none; border-radius: 4px; cursor: pointer; }
     .logo { display: none; }
+    .print-domain { display: none; }
     @media screen and (max-width:768px) {
       header { padding: 0.5rem; }
       nav a { display: inline-block; margin: 0 0.5rem; }
@@ -59,14 +31,15 @@
     @media print {
       /* Hide everything by default */
       body * { visibility: hidden !important; }
-      /* Show only the target section */
+      /* Show only the target section and its contents */
       .print-target, .print-target * { visibility: visible !important; }
-      /* Position the target section correctly */
-      .print-target { position: absolute; top: 0; left: 0; width: 100%; }
+      /* Reset positioning so content flows normally */
+      .print-target { position: static !important; width: auto !important; }
       /* Hide print buttons */
       .print-btn { display: none !important; }
-      /* Show logo in print */
-      .logo { display: block !important; max-width: 200px; margin: 0 auto 1rem; }
+      /* Show and style logo and domain */
+      .logo { display: block !important; max-width: 300px; margin: 0 auto 0.5rem; }
+      .print-domain { display: block !important; text-align: center; font-size: 0.9rem; margin-bottom: 1rem; }
       @page { size: auto; margin: 1cm; }
     }
   </style>
@@ -81,11 +54,9 @@
     <h1>Results History</h1>
     <br><center>⬅️➡️ Scroll to view full table</center>
   </header>
-
   <main id="content">
     <!-- Competition sections injected here -->
   </main>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     function parseDateStr(s) {
@@ -123,7 +94,6 @@
         const container = document.getElementById('content');
         comps.forEach(c => {
           const isStable = c.title.toLowerCase().includes('stableford') && hasSFcol;
-
           const section = document.createElement('section');
 
           // Logo for print
@@ -133,11 +103,16 @@
           logo.className = 'logo';
           section.appendChild(logo);
 
+          // Web address for print
+          const domain = document.createElement('div');
+          domain.textContent = 'www.cheadlegolfacademy.co.uk';
+          domain.className = 'print-domain';
+          section.appendChild(domain);
+
           const header = document.createElement('h2');
           header.textContent = `${c.title} — ${c.date.toLocaleDateString()}`;
           section.appendChild(header);
 
-          // Create Print PDF button
           const printBtn = document.createElement('button');
           printBtn.textContent = 'Print PDF';
           printBtn.className = 'print-btn';
@@ -150,7 +125,7 @@
 
           const table = document.createElement('table');
           const thead = document.createElement('thead');
-          const cols = ['Competition', 'Position', 'Name', isStable ? 'Stableford' : 'Score', 'Points', 'Trophy'];
+          const cols = ['Competition', 'Position', 'Name', isStable ? 'Stableford' : 'Net Score', 'Points', 'Trophy'];
           thead.innerHTML = `<tr>${cols.map(col => `<th>${col}</th>`).join('')}</tr>`;
           table.appendChild(thead);
 
@@ -162,7 +137,6 @@
             if (pos === 1) trophy = '🏆';
             else if (pos === 2) trophy = '🥈';
             else if (pos === 3) trophy = '🥉';
-
             const sf = isNaN(parseInt(r['Stableford Points'])) ? 0 : parseInt(r['Stableford Points']);
             const tdValues = [
               r.Competition || '',
@@ -172,12 +146,10 @@
               r.Points || '',
               trophy
             ];
-
             const tr = document.createElement('tr');
             tr.innerHTML = tdValues.map(v => `<td>${v}</td>`).join('');
             tbody.appendChild(tr);
           });
-
           table.appendChild(tbody);
           section.appendChild(table);
           container.appendChild(section);
