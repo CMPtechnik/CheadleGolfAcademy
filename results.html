@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cheadle Golf League - Results History</title>
+  <title>Cheadle Golf Junior Academy - Results History</title>
   <link rel="icon" href="favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
   <meta name="theme-color" content="#005c41" />
@@ -33,16 +33,38 @@
     }
     h1 { margin: 0; font-size: 1.5rem; }
     main { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
-    section { margin-bottom: 2rem; }
+    section { margin-bottom: 2rem; position: relative; }
     table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
     th, td { border: 1px solid var(--border); padding: 8px; text-align: center; }
     th { background: var(--accent); }
-
+    .print-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      margin: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
     @media screen and (max-width:768px) {
       header { padding: 0.5rem; }
       nav a { display: inline-block; margin: 0 0.5rem; }
       h1 { margin-top: 0.5rem; }
       table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      /* Hide everything by default */
+      body * { visibility: hidden !important; }
+      /* Show only the target section */
+      .print-target, .print-target * { visibility: visible !important; }
+      /* Position the target section correctly */
+      .print-target { position: absolute; top: 0; left: 0; width: 100%; }
+      /* Hide print buttons */
+      .print-btn { display: none !important; }
+      @page { size: auto; margin: 1cm; }
     }
   </style>
 </head>
@@ -53,6 +75,7 @@
       <a href="profiles.html">Player Performance</a> |
       Results History
     </nav>
+        <img src="logo.png" alt="League Logo" />
     <h1>Results History</h1>
     <br><center>⬅️➡️ Scroll to view full table</center>
   </header>
@@ -80,7 +103,6 @@
 
         const hasSFcol = rows.length && rows[0].hasOwnProperty('Stableford Points');
 
-        // Group by section title (Title or Competition) for display
         const groups = {};
         rows.forEach(r => {
           const key = r.Title || r.Competition || 'Unknown';
@@ -88,7 +110,6 @@
           groups[key].push(r);
         });
 
-        // Build competition sections
         const comps = Object.keys(groups).map(key => {
           const recs = groups[key];
           const date = parseDateStr(recs[0].Date);
@@ -105,6 +126,19 @@
           const header = document.createElement('h2');
           header.textContent = `${c.title} — ${c.date.toLocaleDateString()}`;
           section.appendChild(header);
+
+          // Create Print PDF button
+          const printBtn = document.createElement('button');
+          printBtn.textContent = 'Print PDF';
+          printBtn.className = 'print-btn';
+          printBtn.addEventListener('click', () => {
+            // Remove existing targets
+            document.querySelectorAll('.print-target').forEach(el => el.classList.remove('print-target'));
+            // Mark this section and print
+            section.classList.add('print-target');
+            window.print();
+          });
+          section.appendChild(printBtn);
 
           const table = document.createElement('table');
           const thead = document.createElement('thead');
