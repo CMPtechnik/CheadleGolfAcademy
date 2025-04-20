@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Competition Calendar - Cheadle Juniors</title>
+
+  <!-- Favicon & Theme -->
+  <link rel="icon" href="favicon.png" type="image/png">
+  <meta name="theme-color" content="#005c41" />
+
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+
+  <style>
+    :root {
+      --primary: #DE3C09;
+      --accent: #e6f2ef;
+      --text: #1e1e1e;
+      --bg: #fdfdfd;
+      --border: #ccc;
+      --hover: #f1f1f1;
+    }
+    .dark-mode {
+      --bg: #121212;
+      --text: #f5f5f5;
+      --accent: #1f2b27;
+      --border: #444;
+      --hover: #1e1e1e;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      position: relative;
+    }
+    #darkModeToggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+    #calendar {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .fc-toolbar-title {
+      color: var(--primary);
+    }
+    .fc .fc-button {
+      background: var(--accent);
+      border: none;
+      color: var(--text);
+      margin: 0 0.25rem;
+    }
+    .fc .fc-button:hover {
+      background: var(--primary);
+      color: white;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Home</a>
+    </nav>
+    <h1>Competition Calendar</h1>
+    <a id="darkModeToggle" onclick="toggleDarkMode()">🌗</a>
+  </header>
+
+  <div id="calendar"></div>
+
+  <footer>
+    <a href="index.html">&larr; Back to League Table</a>
+  </footer>
+
+  <!-- FullCalendar JS -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var calendarEl = document.getElementById('calendar');
+
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,listMonth,listWeek'
+        },
+        themeSystem: 'standard',
+        views: {
+          listMonth: { buttonText: 'List Month' }
+        },
+        events: [
+          { title: 'Junior Comp 1 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-04-13' },
+          { title: 'Junior Comp 2 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-05-11' },
+          { title: 'Junior Comp 3 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-06-08' },
+          { title: 'Junior Comp 4 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-07-13' },
+          { title: 'Junior Comp 5 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-08-10' },
+          { title: 'Junior Comp 6 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-09-14' },
+          { title: 'Junior Comp 7 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-10-19' },
+          { title: 'Junior Comp 8 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-11-09' }
+        ],
+        eventColor: 'var(--primary)',
+        eventTextColor: 'white'
+      });
+
+      calendar.render();
+    });
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+  </script>
+</body>
+</html>
