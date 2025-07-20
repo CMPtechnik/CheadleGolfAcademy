@@ -428,8 +428,9 @@
       const ctxNet = document.getElementById('scoreChart').getContext('2d');
       if(window.scoreChart instanceof Chart) window.scoreChart.destroy();
       window.scoreChart = new Chart(ctxNet,{ type:'line', data:{labels,datasets:[
-          {label:'Net Score',data:netData,fill:false},
-          {label:'Par 64',data:new Array(labels.length).fill(64),borderDash:[5,5],fill:false}
+          {label:'Score',data:netData,fill:false},
+          {label:'Par 64',data:new Array(labels.length).fill(64),borderDash:[5,5],fill:false},
+            {label:'Par 32',data:new Array(labels.length).fill(32),borderDash:[5,5],fill:false}
         ]}, options:{responsive:true} });
 
       const ctxPos = document.getElementById('positionChart').getContext('2d');
