@@ -3,43 +3,144 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cheadle Juniors Leaderboard</title>
-
+  <title>Cheadle Juniors Handicap Tracker</title>
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Cheadle Golf League" />
+  <meta name="theme-color" content="#005c41" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
   <style>
+    :root {
+      --primary: #DE3C09;
+      --accent: #e6f2ef;
+      --text: #1e1e1e;
+      --bg: #fdfdfd;
+      --border: #ccc;
+      --hover: #f1f1f1;
+    }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 20px;
-      background: #f9f9f9;
-      color: #222;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      --bg: #121212;
+      --text: #f5f5f5;
+      --accent: #1f2b27;
+      --border: #444;
+      --hover: #1e1e1e;
+    }
+    .dark-mode table,
+    .dark-mode th,
+    .dark-mode td,
+    .dark-mode .modal-content {
+      background-color: #1e1e1e;
+      color: var(--text);
+    }
+    .dark-mode th {
+      background-color: #2a2a2a;
+    }
+    .dark-mode .tooltip-bubble {
+      background: #f5f5f5;
+      color: #111;
+    }
+    .dark-mode a {
+      color: #80ffd3;
+    }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      position: relative;
+    }
+    header img {
+      max-height: 350px;
+    }
+    header h1 {
+      margin: 0.5rem 0 0;
+    }
+    #darkModeToggle {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+    .info-bar {
+      background: var(--accent);
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 0.95rem;
+    }
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 1rem;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 2rem;
       background: white;
-      box-shadow: 0 0 5px #ccc;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 10px;
       text-align: center;
     }
     th {
-      background: #eee;
+      background: var(--accent);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    tbody tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    tbody tr:hover {
+      background: var(--hover);
     }
     a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .trophy {
+      position: relative;
+      display: inline-block;
       cursor: pointer;
-      color: #007bff;
-      text-decoration: underline;
+    }
+    .tooltip-bubble {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      z-index: 1000;
+    }
+    .trophy.show-tooltip .tooltip-bubble {
+      display: block;
     }
     .modal {
       display: none;
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
       justify-content: center;
       align-items: center;
       z-index: 1000;
@@ -47,81 +148,361 @@
     .modal-content {
       background: white;
       padding: 20px;
-      max-width: 650px;
+      border-radius: 10px;
+      max-width: 600px;
       width: 90%;
       max-height: 90vh;
       overflow-y: auto;
-      border-radius: 8px;
-      position: relative;
     }
     .close-btn {
-      position: absolute;
-      right: 15px;
-      top: 15px;
-      font-size: 24px;
-      font-weight: bold;
+      float: right;
+      font-size: 20px;
       cursor: pointer;
     }
     .tabs {
-      margin-bottom: 1rem;
+      text-align: center;
+      margin: 1rem 0;
     }
     .tabs button {
-      margin-right: 10px;
-      padding: 6px 12px;
-      cursor: pointer;
+      padding: 0.5rem 1rem;
+      margin: 0 0.25rem;
       border: none;
-      background: #ddd;
       border-radius: 4px;
+      background: var(--accent);
+      color: var(--primary);
       font-weight: 600;
+      cursor: pointer;
     }
     .tabs button.active {
-      background: #007bff;
+      background: var(--primary);
       color: white;
     }
-    #scoreList, #handicapChart, #positionChart {
-      margin-top: 10px;
-    }
-    #scoreList table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    #scoreList th, #scoreList td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: center;
+    @media screen and (max-width: 768px) {
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .tabs {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
     }
   </style>
 </head>
 <body>
-
-<h1>Cheadle Juniors Leaderboard</h1>
-
-<table id="league-table">
-  <thead>
-    <tr>
-      <th>Rank</th>
-      <th>Name</th>
-      <th>Games</th>
-      <th>Net Win %</th>
-      <th>Total Points</th>
-      <th>Average Handicap</th>
-      <th>Trophies</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<div class="modal" id="scoreModal">
-  <div class="modal-content">
-    <span class="close-btn" onclick="closeModal()">&times;</span>
-    <h2 id="modalTitle"></h2>
-    <div class="tabs">
-      <button id="tabHistoryBtn" class="active" onclick="showTab('history')">Round History</button>
-      <button id="tabHandicapBtn" onclick="showTab('handicap')">Handicap Over Time</button>
-      <button id="tabPositionBtn" onclick="showTab('position')">Position Over Time</button>
+  <header>
+    <img src="cheadlegolf.png" alt="League Logo" />
+    <a id="darkModeToggle" onclick="toggleDarkMode()">🌗</a>
+  </header>
+  <div class="info-bar">
+    <h4><font color="#FF0000">Loading update...</font></h4>
+    <center>Competition is 9 Holes from Reds | Junior Sixes 6 Hole short Course</center>
+    <br /><center>⬅️➡️ Scroll to view full table</center>
+    <br /><a href="results.html">Past Competition Results</a> | <a href="calendar.html"> Competition Calendar</a>
+  </div>
+  <main>
+    <table id="league-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Name</th>
+          <th>Games</th>
+          <th>Net Win %</th>
+          <th>Total Points</th>
+          <th>HCP</th>
+          <th>Trophies</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+  <div class="modal" id="scoreModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <div class="tabs">
+        <button id="tabNet" onclick="showTab('net')" class="active">Scores</button>
+        <button id="tabPositions" onclick="showTab('positions')">Competition History</button>
+        <button id="tabHistory" onclick="showTab('history')">Results History</button>
+      </div>
+      <canvas id="scoreChart" height="200"></canvas>
+      <canvas id="positionChart" height="200" style="display:none;"></canvas>
+      <canvas id="handicapChart" height="200" style="display:none;"></canvas>
+      <ul id="scoreList"></ul>
+      <ul id="positionList" style="display:none;"></ul>
     </div>
+  </div>
+  <div
+    id="nextCompetition"
+    style="
+      text-align: center;
+      padding: 1rem;
+      background: var(--accent);
+      margin: 1rem auto;
+      max-width: 1100px;
+      border-radius: 5px;
+    "
+  >
+    Next Competition: <span id="nextCompetitionText">TBD</span>
+  </div>
 
-    <div id="scoreList" style="display:block;">
-      <table>
-        <thead>
-          <tr><th>Date</th><th>Competi
+  <script>
+    // Pars per competition
+    const parLookup = {
+      'Junior Competition': 32,
+      'Junior Competition Sixes': 22
+    };
+
+    let history = [];
+
+    function parseDateStr(dateStr) {
+      if (typeof dateStr === 'string' && dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+      } else return new Date(dateStr);
+    }
+
+    fetch(
+      'https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=' +
+        new Date().getTime()
+    )
+      .then((res) => res.arrayBuffer())
+      .then((buffer) => {
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const settingsSheet = workbook.Sheets['Settings'];
+        if (settingsSheet) {
+          const settingsData = XLSX.utils.sheet_to_json(settingsSheet, { header: 1 });
+          settingsData.forEach((row) => {
+            if (row[0] && row[0].toString().toLowerCase().includes('next competition'))
+              document.getElementById('nextCompetitionText').innerText = row[1];
+          });
+        }
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        history = XLSX.utils.sheet_to_json(sheet);
+        const lastCompetitionEntry = history.reduce((latest, entry) =>
+          parseDateStr(entry.Date) > parseDateStr(latest.Date) ? entry : latest
+        , history[0]);
+        const lastCompetition = lastCompetitionEntry.Competition;
+        const lastUpdate = parseDateStr(lastCompetitionEntry.Date).toLocaleDateString();
+        document.querySelector('.info-bar h4').innerHTML =
+          `<font color="#FF0000">Last Update - ${lastUpdate}</font> | Last Competition: ${lastCompetition}`;
+        updateLeague(history);
+      });
+
+    function updateLeague(data) {
+      const netScores = {},
+        netWins = {},
+        totalPoints = {},
+        rounds = {};
+
+      data.forEach((entry) => {
+        const { Name, Score, Position, Points, Competition } = entry;
+        const net = parseFloat(Score);
+        if (isNaN(net)) return;
+        netScores[Name] = netScores[Name] || [];
+        rounds[Competition] = rounds[Competition] || [];
+        netScores[Name].push(net);
+        rounds[Competition].push({ name: Name, position: parseInt(Position) });
+        totalPoints[Name] = (totalPoints[Name] || 0) + (parseFloat(Points) || 0);
+      });
+
+      Object.values(rounds).forEach((players) =>
+        players
+          .filter((p) => p.position === 1)
+          .forEach((p) => (netWins[p.name] = (netWins[p.name] || 0) + 1))
+      );
+
+      const players = Object.keys(netScores)
+        .map((name) => {
+          const games = netScores[name].length;
+          const wins = netWins[name] || 0;
+          const winPct = ((wins / games) * 100).toFixed(1);
+
+          // Get all rounds for this player
+          const playerRounds = data.filter((e) => e.Name === name);
+
+          // Calculate handicap per round
+          const handicaps = playerRounds.map((r) => {
+            const roundPar = parLookup[r.Competition] || 32;
+            return (parseFloat(r.Score) - roundPar) * 0.93;
+          });
+
+          // Average handicap
+          const handicap = handicaps.length
+            ? (handicaps.reduce((a, b) => a + b, 0) / handicaps.length).toFixed(1)
+            : '-';
+
+          return {
+            name,
+            games,
+            winPct,
+            points: totalPoints[name],
+            trophies: wins,
+            handicap: isNaN(handicap) ? '-' : handicap
+          };
+        })
+        .sort(
+          (a, b) =>
+            b.points - a.points ||
+            b.trophies - a.trophies ||
+            parseFloat(b.winPct) - parseFloat(a.winPct) ||
+            a.name.localeCompare(b.name)
+        );
+
+      renderTable(players);
+    }
+
+    function renderTable(data) {
+      const tbody = document.querySelector('#league-table tbody');
+      tbody.innerHTML = '';
+      data.forEach((p, i) => {
+        const won = history
+          .filter((e) => e.Name === p.name && parseInt(e.Position) === 1)
+          .map((e) => e.Competition);
+        const span = won.length
+          ? `<span class="trophy" onclick="toggleTooltip(this)">${'🏆'.repeat(
+              won.length
+            )}<span class="tooltip-bubble">${won.join(', ')}</span></span>`
+          : '';
+        tbody.innerHTML += `<tr><td>${i + 1}</td><td><a href="#" onclick="showPlayerModal('${p.name}')">${p.name}</a></td><td>${p.games}</td><td>${p.winPct}%</td><td>${p.points}</td><td>${p.handicap}</td><td>${span}</td></tr>`;
+      });
+    }
+
+    function toggleTooltip(el) {
+      document.querySelectorAll('.trophy.show-tooltip').forEach((t) => {
+        if (t !== el) t.classList.remove('show-tooltip');
+      });
+      el.classList.toggle('show-tooltip');
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.trophy'))
+        document.querySelectorAll('.trophy.show-tooltip').forEach((t) => t.classList.remove('show-tooltip'));
+    });
+
+    function showPlayerModal(name) {
+      const scores = history
+        .filter((e) => e.Name === name)
+        .map((e) => ({
+          competition: e.Competition,
+          score: parseFloat(e.Score),
+          position: e.Position,
+          points: parseFloat(e.Points) || 0,
+          date: e.Date
+        }))
+        .sort((a, b) => parseDateStr(a.date) - parseDateStr(b.date));
+
+      document.getElementById('modalTitle').innerText = `${name}'s Score History`;
+      const scoreList = document.getElementById('scoreList');
+      const posList = document.getElementById('positionList');
+      scoreList.innerHTML = '';
+      posList.innerHTML = '';
+
+      const labels = scores.map((s) => s.competition);
+      const netData = scores.map((s) => s.score);
+      const posData = scores.map((s) => s.position);
+      const handicapData = scores.map((s) => {
+        const roundPar = parLookup[s.competition] || 32;
+        return parseFloat(((s.score - roundPar) * 0.93).toFixed(1));
+      });
+
+      scores.forEach((s) => {
+        const trophy = s.position == 1 ? ' 🏆' : '';
+        scoreList.innerHTML += `<li>${s.competition}: Net ${s.score}, Position ${s.position}${trophy}</li>`;
+        posList.innerHTML += `<li>${s.competition}: Finished ${s.position}, Points ${s.points}${trophy}</li>`;
+      });
+
+      // Score Chart
+      const ctxNet = document.getElementById('scoreChart').getContext('2d');
+      if (window.scoreChart instanceof Chart) window.scoreChart.destroy();
+      window.scoreChart = new Chart(ctxNet, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Score', data: netData, fill: false },
+            {
+              label: 'Par (varies)',
+              data: labels.map((c) => parLookup[c] || 32),
+              borderDash: [5, 5],
+              fill: false
+            }
+          ]
+        },
+        options: { responsive: true }
+      });
+
+      // Position Chart
+      const ctxPos = document.getElementById('positionChart').getContext('2d');
+      if (window.positionChart instanceof Chart) window.positionChart.destroy();
+      window.positionChart = new Chart(ctxPos, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{ label: 'Results', data: posData, fill: false }]
+        },
+        options: {
+          scales: {
+            y: {
+              reverse: true,
+              title: { display: true, text: 'Finishing Position' }
+            }
+          }
+        }
+      });
+
+      // Handicap Chart
+      const ctxHcp = document.getElementById('handicapChart').getContext('2d');
+      if (window.handicapChart instanceof Chart) window.handicapChart.destroy();
+      window.handicapChart = new Chart(ctxHcp, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Handicap Over Time',
+              data: handicapData,
+              fill: false,
+              borderColor: 'orange',
+              tension: 0.2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              title: { display: true, text: 'Handicap' },
+              reverse: true
+            }
+          }
+        }
+      });
+
+      showTab('net');
+      document.getElementById('scoreModal').style.display = 'flex';
+    }
+
+    function showTab(tab) {
+      ['tabNet', 'tabPositions', 'tabHistory'].forEach((id) =>
+        document.getElementById(id).classList.remove('active')
+      );
+      document.getElementById('tab' + (tab === 'net' ? 'Net' : tab === 'positions' ? 'Positions' : 'History')).classList.add('active');
+      document.getElementById('scoreList').style.display = tab === 'net' ? 'block' : 'none';
+      document.getElementById('positionList').style.display = tab === 'positions' ? 'block' : 'none';
+      document.getElementById('scoreChart').style.display = tab === 'net' ? 'block' : 'none';
+      document.getElementById('positionChart').style.display = tab === 'positions' ? 'block' : 'none';
+      document.getElementById('handicapChart').style.display = tab === 'history' ? 'block' : 'none';
+    }
+
+    function closeModal() {
+      document.getElementById('scoreModal').style.display = 'none';
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+  </script>
+</body>
+</html>
