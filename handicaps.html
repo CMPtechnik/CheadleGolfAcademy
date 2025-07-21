@@ -4,176 +4,185 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Junior Handicaps</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      background: #f5f5f5;
-      font-family: Arial, sans-serif;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      background: #fff;
       padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background-color: #f8f9fa;
     }
-    th, td {
-      text-align: center;
+    h1 {
+      margin-bottom: 2rem;
     }
-    .modal-body canvas {
-      max-width: 100%;
+    table {
+      background: white;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      padding-top: 60px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="mb-4 text-center">Cheadle Junior Handicaps</h1>
-    <table class="table table-striped" id="handicapTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Total Points</th>
-          <th>Handicap</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <h1>Junior Handicaps</h1>
+  <table class="table table-striped" id="playerTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Handicap</th>
+        <th>Rounds Played</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-  <!-- Modal -->
-  <div class="modal fade" id="scoreModal" tabindex="-1" aria-labelledby="scoreModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="scoreModalLabel">Player Details</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <h6 id="playerName"></h6>
-          <table class="table table-sm mt-3">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Score</th>
-                <th>Par</th>
-                <th>Calculated Handicap</th>
-              </tr>
-            </thead>
-            <tbody id="scoreDetails"></tbody>
-          </table>
-          <canvas id="handicapChart" height="100"></canvas>
-        </div>
-      </div>
+  <div id="scoreModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <canvas id="handicapChart"></canvas>
+      <table class="table mt-4">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Competition</th>
+            <th>Score</th>
+            <th>Handicap for Round</th>
+          </tr>
+        </thead>
+        <tbody id="modalScores"></tbody>
+      </table>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
-    const parLookup = {
-      'junior sixes': 22,
-      'junior competition': 32
-    };
+    let playerData = [];
+    let chart;
 
-    function getParForCompetition(name = '') {
+    function getParForCompetition(name) {
+      if (!name) return 32;
       name = name.toLowerCase();
       if (name.includes('sixes')) return 22;
       if (name.includes('junior competition')) return 32;
       return 32;
     }
 
-    fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx")
-      .then(res => res.arrayBuffer())
-      .then(ab => {
-        const wb = XLSX.read(ab, { type: "array" });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws);
-        updateLeague(data);
-      });
-
-    function updateLeague(data) {
-      const players = {};
-
-      data.forEach(row => {
-        const name = row.Name;
-        const score = parseInt(row.Score);
-        const competition = row.Competition || row.Title;
-        const date = row.Date;
-
-        if (!players[name]) players[name] = [];
-        const par = getParForCompetition(competition);
-        const handicap = ((score - par) * 0.93).toFixed(1);
-
-        players[name].push({ date, score, par, handicap });
-      });
-
-      const rows = Object.entries(players).map(([name, rounds]) => {
-        const totalPoints = rounds.length; // adjust if you want to use actual points
-        const avgHandicap = (rounds.reduce((sum, r) => sum + parseFloat(r.handicap), 0) / rounds.length).toFixed(1);
-        return { name, totalPoints, avgHandicap, rounds };
-      }).sort((a, b) => b.totalPoints - a.totalPoints);
-
-      const tbody = document.querySelector("#handicapTable tbody");
-      rows.forEach(player => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><a href="#" class="player-link">${player.name}</a></td>
-          <td>${player.totalPoints}</td>
-          <td>${player.avgHandicap}</td>
-        `;
-        tr.querySelector(".player-link").addEventListener("click", () => showPlayerModal(player));
-        tbody.appendChild(tr);
-      });
+    function closeModal() {
+      document.getElementById('scoreModal').style.display = 'none';
+      if (chart) {
+        chart.destroy();
+      }
     }
 
-    function showPlayerModal(player) {
-      document.getElementById("playerName").textContent = player.name;
-      const tbody = document.getElementById("scoreDetails");
-      tbody.innerHTML = "";
+    function showPlayerModal(name) {
+      const scores = playerData.filter((r) => r.Name === name);
+      document.getElementById('modalTitle').textContent = name;
+      const tbody = document.getElementById('modalScores');
+      tbody.innerHTML = '';
 
       const labels = [];
-      const data = [];
+      const handicapData = [];
 
-      player.rounds.forEach(round => {
-        const row = document.createElement("tr");
+      scores.forEach((s) => {
+        const par = getParForCompetition(s.Competition);
+        const roundHandicap = ((s.Score - par) * 0.93).toFixed(1);
+        labels.push(s.Date);
+        handicapData.push(parseFloat(roundHandicap));
+
+        const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${round.date}</td>
-          <td>${round.score}</td>
-          <td>${round.par}</td>
-          <td>${round.handicap}</td>
+          <td>${s.Date}</td>
+          <td>${s.Competition}</td>
+          <td>${s.Score}</td>
+          <td>${roundHandicap}</td>
         `;
         tbody.appendChild(row);
-
-        labels.push(round.date);
-        data.push(round.handicap);
       });
 
-      new Chart(document.getElementById("handicapChart"), {
-        type: "line",
+      const ctx = document.getElementById('handicapChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
         data: {
-          labels,
+          labels: labels,
           datasets: [{
-            label: "Handicap Over Time",
-            data,
+            label: 'Handicap Over Time',
+            data: handicapData,
             fill: false,
-            borderColor: "#007bff",
+            borderColor: 'blue',
             tension: 0.1
           }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: false
-            }
-          }
         }
       });
 
-      const modal = new bootstrap.Modal(document.getElementById('scoreModal'));
-      modal.show();
+      document.getElementById('scoreModal').style.display = 'block';
     }
+
+    fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx")
+      .then((res) => res.arrayBuffer())
+      .then((ab) => {
+        const workbook = XLSX.read(ab, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(sheet);
+
+        playerData = data.map((row) => ({
+          Name: row["Name"],
+          Score: parseInt(row["Score"], 10),
+          Competition: row["Competition"],
+          Date: row["Date"]
+        }));
+
+        const players = {};
+        playerData.forEach((row) => {
+          if (!players[row.Name]) players[row.Name] = [];
+          players[row.Name].push(row);
+        });
+
+        const tbody = document.querySelector("#playerTable tbody");
+        Object.keys(players).forEach((name) => {
+          const rounds = players[name];
+          const handicaps = rounds.map((r) => {
+            const par = getParForCompetition(r.Competition);
+            return (r.Score - par) * 0.93;
+          });
+          const avg = (handicaps.reduce((a, b) => a + b, 0) / handicaps.length).toFixed(1);
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><a href="#" onclick="showPlayerModal('${name}')">${name}</a></td>
+            <td>${avg}</td>
+            <td>${rounds.length}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
