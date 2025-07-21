@@ -98,7 +98,7 @@
       const tableBody = document.querySelector("#handicapTable tbody");
       tableBody.innerHTML = "";
 
-      Object.keys(players).forEach(name => {
+      Object.keys(players).sort().forEach(name => {
         const rounds = players[name];
         const handicaps = rounds.map(r => {
           const roundPar = getParForCompetition(r.competition);
