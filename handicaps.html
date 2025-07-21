@@ -141,7 +141,7 @@
           netWins[p.name] = (netWins[p.name]||0) +1
         )
       );
-      const par = 64;
+      const par = 32;
       const players = Object.keys(netScores).map(name => {
         const games = netScores[name].length;
         const wins = netWins[name] || 0;
