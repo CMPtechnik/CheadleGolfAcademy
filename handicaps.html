@@ -2,186 +2,201 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Junior Handicaps</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Junior Handicaps – Cheadle Golf Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   <style>
-    .modal-lg {
-      max-width: 90% !important;
+    body {
+      padding: 20px;
     }
-    canvas {
-      max-width: 100%;
-      height: auto;
+    table {
+      width: 100%;
+    }
+    dialog::backdrop {
+      background: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      padding: 20px;
+      max-width: 700px;
     }
   </style>
 </head>
 <body>
-  <div class="container py-4">
-    <h1 class="mb-4">Junior Handicaps</h1>
-    <div class="table-responsive">
-      <table class="table table-bordered" id="playerTable">
-        <thead class="table-light">
+  <section class="section">
+    <div class="container">
+      <h1 class="title">Junior Handicap Tracker</h1>
+      <table class="table is-striped is-fullwidth" id="handicapTable">
+        <thead>
           <tr>
-            <th>Name</th>
+            <th>Player</th>
+            <th>Current Handicap</th>
+            <th>Lowest Handicap</th>
             <th>Rounds Played</th>
-            <th>Handicap</th>
+            <th>Details</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
-    </div>
-    <div id="explanation" class="mt-5">
-      <h5>How Handicaps Are Calculated</h5>
-      <p>
-        Handicaps are calculated using the player's gross score minus the par for the round, multiplied by 0.93.
-        For example, if a player scores 45 on a par 32 course: (45 - 32) × 0.93 = 12.1 handicap.
-      </p>
-      <p>
-        The system supports two different par values depending on the competition type:
-        <ul>
-          <li><strong>Junior Competition</strong> (9 holes): Par 32</li>
-          <li><strong>Junior Competition Sixes</strong>: Par 22</li>
-        </ul>
-        The final handicap is an average of all rounds played by the player.
-      </p>
-    </div>
-  </div>
 
-  <!-- Modal -->
-  <div class="modal fade" id="playerModal" tabindex="-1" aria-labelledby="playerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="playerModalLabel">Player Details</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <h6 id="playerName"></h6>
-          <canvas id="handicapChart"></canvas>
-          <table class="table mt-4">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Score</th>
-                <th>Competition</th>
-                <th>Handicap</th>
-              </tr>
-            </thead>
-            <tbody id="playerScores"></tbody>
-          </table>
-        </div>
+      <h2 class="title is-5 mt-6">How are handicaps calculated?</h2>
+      <div class="content">
+        <p>
+          Handicaps are based on the average of a player's best 3 gross scores, relative to par, from recent rounds.
+          <br />
+          <strong>Formula:</strong> <code>(Gross Score − Par) × 0.93</code>
+        </p>
+        <ul>
+          <li><strong>Junior Competition</strong>: Par 32</li>
+          <li><strong>Junior Sixes Competition</strong>: Par 22</li>
+        </ul>
+        <p>
+          Handicaps are shown to 1 decimal place and updated after each new round. The best 3 scores are used to calculate the current handicap.
+        </p>
       </div>
     </div>
-  </div>
+  </section>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Modal -->
+  <dialog id="modal">
+    <div class="modal-content box">
+      <button class="delete is-pulled-right" id="closeModal"></button>
+      <h2 class="title is-4" id="modalPlayerName"></h2>
+      <div id="modalContent" class="mb-4"></div>
+      <canvas id="handicapChart" height="200"></canvas>
+    </div>
+  </dialog>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    const getParForCompetition = (name) => {
+      if (name.includes("Sixes")) return 22;
+      return 32;
+    };
+
     async function fetchData() {
       const res = await fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx");
-      const arrayBuffer = await res.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      return XLSX.utils.sheet_to_json(worksheet);
-    }
+      const ab = await res.arrayBuffer();
+      const wb = XLSX.read(ab, { type: "array" });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(sheet);
 
-    function getParForCompetition(name) {
-      if (!name) return 32;
-      name = name.toLowerCase();
-      if (name.includes('sixes')) return 22;
-      if (name.includes('junior competition')) return 32;
-      return 32;
-    }
+      const players = {};
 
-    function groupByPlayer(data) {
-      const map = new Map();
       data.forEach(row => {
-        const name = row.Name?.trim();
-        if (!name) return;
-        if (!map.has(name)) map.set(name, []);
-        map.get(name).push(row);
+        const name = row.Name;
+        const score = parseInt(row.Score);
+        const comp = row.Competition;
+        const date = row.Date;
+        const title = row.Title;
+
+        if (!players[name]) players[name] = [];
+        players[name].push({ score, competition: comp, date, title });
       });
-      return map;
-    }
 
-    function calculateAverage(arr) {
-      const valid = arr.filter(v => !isNaN(v));
-      if (valid.length === 0) return null;
-      const sum = valid.reduce((a, b) => a + b, 0);
-      return (sum / valid.length).toFixed(1);
-    }
+      const tableBody = document.querySelector("#handicapTable tbody");
+      tableBody.innerHTML = "";
 
-    function updateLeague(data) {
-      const grouped = groupByPlayer(data);
-      const tbody = document.querySelector("#playerTable tbody");
-      tbody.innerHTML = "";
-
-      grouped.forEach((rounds, player) => {
+      Object.keys(players).forEach(name => {
+        const rounds = players[name];
         const handicaps = rounds.map(r => {
-          const roundPar = getParForCompetition(r.Competition);
-          return (parseFloat(r.Score) - roundPar) * 0.93;
+          const roundPar = getParForCompetition(r.competition);
+          return (parseFloat(r.score) - roundPar) * 0.93;
         });
-        const avgHandicap = calculateAverage(handicaps);
 
-        const row = document.createElement("tr");
-        row.innerHTML = `<td><a href="#" class="player-link" data-player="${player}">${player}</a></td>
-                         <td>${rounds.length}</td>
-                         <td>${avgHandicap}</td>`;
-        tbody.appendChild(row);
+        const best3 = handicaps.sort((a, b) => a - b).slice(0, 3);
+        const current = (best3.reduce((a, b) => a + b, 0) / best3.length).toFixed(1);
+        const lowest = Math.min(...handicaps).toFixed(1);
+        const roundsPlayed = rounds.length;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${name}</td>
+          <td>${current}</td>
+          <td>${lowest}</td>
+          <td>${roundsPlayed}</td>
+          <td><button class="button is-small is-info open-modal" data-name="${name}">View</button></td>
+        `;
+        tableBody.appendChild(tr);
       });
 
-      document.querySelectorAll(".player-link").forEach(link => {
-        link.addEventListener("click", e => {
-          e.preventDefault();
-          const playerName = e.target.getAttribute("data-player");
-          showPlayerModal(playerName, grouped.get(playerName));
+      // Attach modal events
+      document.querySelectorAll(".open-modal").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const name = e.target.dataset.name;
+          openModal(name, players[name]);
         });
       });
     }
 
-    function showPlayerModal(playerName, scores) {
-      document.getElementById("playerName").textContent = playerName;
+    function openModal(name, scores) {
+      const modal = document.getElementById("modal");
+      document.getElementById("modalPlayerName").textContent = name;
 
-      const tbody = document.getElementById("playerScores");
-      tbody.innerHTML = "";
+      const content = document.getElementById("modalContent");
+      content.innerHTML = `
+        <table class="table is-fullwidth is-narrow">
+          <thead>
+            <tr>
+              <th>Date</th><th>Competition</th><th>Score</th><th>Par</th><th>Handicap for Round</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${scores.map(s => {
+              const par = getParForCompetition(s.competition);
+              const hcap = ((s.score - par) * 0.93).toFixed(1);
+              return `<tr>
+                <td>${s.date}</td>
+                <td>${s.competition}</td>
+                <td>${s.score}</td>
+                <td>${par}</td>
+                <td>${hcap}</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
 
-      const handicapData = scores.map(s => {
-        const roundPar = getParForCompetition(s.Competition);
-        const h = parseFloat(((s.Score - roundPar) * 0.93).toFixed(1));
-        const date = s.Date || "";
-        tbody.innerHTML += `<tr><td>${date}</td><td>${s.Score}</td><td>${s.Competition}</td><td>${h}</td></tr>`;
-        return { x: date, y: h };
+      // Chart
+      const ctx = document.getElementById("handicapChart").getContext("2d");
+      if (window.hcapChart) window.hcapChart.destroy();
+      const chartData = scores.map(s => {
+        const par = getParForCompetition(s.competition);
+        return ((s.score - par) * 0.93).toFixed(1);
       });
+      const chartLabels = scores.map(s => s.date);
 
-      const chartCanvas = document.getElementById("handicapChart");
-      if (window.handicapChart) window.handicapChart.destroy();
-
-      window.handicapChart = new Chart(chartCanvas, {
+      window.hcapChart = new Chart(ctx, {
         type: 'line',
         data: {
+          labels: chartLabels,
           datasets: [{
-            label: 'Handicap Over Time',
-            data: handicapData,
-            borderColor: 'blue',
+            label: 'Handicap per Round',
+            data: chartData,
+            borderColor: '#3273dc',
             fill: false,
-            tension: 0.1
+            tension: 0.2
           }]
         },
         options: {
           scales: {
-            x: { type: 'category', title: { display: true, text: 'Date' } },
-            y: { beginAtZero: false, title: { display: true, text: 'Handicap' } }
+            y: {
+              beginAtZero: false,
+              reverse: true
+            }
           }
         }
       });
 
-      const modal = new bootstrap.Modal(document.getElementById("playerModal"));
-      modal.show();
+      modal.showModal();
     }
 
-    fetchData().then(updateLeague);
+    document.getElementById("closeModal").addEventListener("click", () => {
+      document.getElementById("modal").close();
+    });
+
+    fetchData();
   </script>
 </body>
 </html>
