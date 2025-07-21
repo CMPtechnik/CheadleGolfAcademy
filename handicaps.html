@@ -12,6 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
+    /* (Your existing CSS unchanged) */
     :root {
       --primary: #DE3C09;
       --accent: #e6f2ef;
@@ -323,7 +324,7 @@
           // Get all rounds for this player
           const playerRounds = data.filter((e) => e.Name === name);
 
-          // Calculate handicap per round
+          // Calculate handicap per round using correct par
           const handicaps = playerRounds.map((r) => {
             const roundPar = parLookup[r.Competition] || 32;
             return (parseFloat(r.Score) - roundPar) * 0.93;
