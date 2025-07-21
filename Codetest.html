@@ -1,0 +1,9 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+  fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx")
+    .then(res => res.arrayBuffer())
+    .then(buffer => {
+      const wb = XLSX.read(buffer, { type: "array" });
+      console.log(wb.SheetNames);
+    }).catch(e => console.error(e));
+</script>
