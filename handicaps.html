@@ -48,6 +48,8 @@
         <ul>
           <li><strong>Junior Competition</strong>: Par 32</li>
           <li><strong>Junior Sixes Competition</strong>: Par 22</li>
+          <li><strong>Bruntwood 9</strong>: Par 27</li>
+          <li><strong>Bruntwood 18</strong>: Par 54</li>
         </ul>
         <p>
           Handicaps are shown to 1 decimal place and updated after each new round. The best 3 scores are used to calculate the current handicap.
@@ -58,8 +60,8 @@
   </section>
   <section style="max-width:1100px; margin:2rem auto; padding:1rem; background:#f9f9f9; border-radius:8px; font-family: 'Segoe UI', sans-serif; color:#333;">
   <p>
-    Handicaps are calculated by comparing each player's score against the par for the course played. Because there are two course types used in the junior competitions —
-    the <strong>Junior Competition</strong> (par 32) and the <strong>Junior Sixes Competition</strong> (par 22) — each round's score is adjusted individually based on the appropriate par.
+    Handicaps are calculated by comparing each player's score against the par for the course played. Because there are multiple course types used in the junior competitions —
+    the <strong>Junior Competition</strong> (par 32), the <strong>Junior Sixes Competition</strong> (par 22), <strong>Bruntwood 9</strong> (par 27), and <strong>Bruntwood 18</strong> (par 54) — each round's score is adjusted individually based on the appropriate par.
   </p>
   <p>
     For each round, the handicap differential is calculated as:
@@ -71,7 +73,7 @@
     The factor <code>0.93</code> is applied to provide a balanced adjustment to the raw score difference.
   </p>
   <p>
-    When players have played rounds on both courses, all their adjusted scores are combined to calculate an overall average handicap. This ensures fairness whether a player competes on the six-hole course or the full nine-hole course.
+    When players have played rounds on different courses, all their adjusted scores are combined to calculate an overall average handicap. This ensures fairness whether a player competes on the shorter or longer courses.
   </p>
   <p>
     For example, if a player has two rounds on the six-hole course (par 22) and one round on the nine-hole course (par 32), each round’s score is adjusted individually according to its par, then averaged to produce the final handicap.
@@ -97,7 +99,9 @@
   <script>
     const getParForCompetition = (name) => {
       if (name.includes("Sixes")) return 22;
-      return 32;
+      if (name.includes("Bruntwood 9")) return 27;
+      if (name.includes("Bruntwood 18")) return 54;
+      return 32; // default Junior Competition
     };
 
     async function fetchData() {
