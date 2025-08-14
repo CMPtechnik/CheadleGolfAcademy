@@ -237,7 +237,7 @@
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="League Logo" />
+    <img src="logocja.png" alt="League Logo" />
      <a id="darkModeToggle" onclick="toggleDarkMode()">🌗</a>
   </header>
 
@@ -266,6 +266,8 @@
 
   <div id="nextCompetition">
     Next Competition: <span id="nextCompetitionText">TBD</span>
+    <div id="weather-widget" class="rounded-xl p-4 shadow-md text-center text-sm" style="max-width:600px;margin:1rem auto;background:var(--accent);color:var(--text);"></div>
+      <div id="weatherDetails" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">Loading weather...</div>
   </div>
 
   <div class="modal" id="scoreModal">
@@ -459,6 +461,82 @@
     function toggleDarkMode(){
       document.body.classList.toggle('dark-mode');
     }
+  </script>
+  <script>
+    const WEATHER_API_KEY = "e583bd0c194bbfeb3deb92f6bfdad11a";
+    const LOCATION = "Cheadle,UK";
+
+    function extractDateFromText(text) {
+      let date = null;
+      const slashMatch = text.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+      if (slashMatch) {
+        const [_, day, month, year] = slashMatch;
+        date = new Date(`${year}-${month}-${day}`);
+      } else {
+        const wordMatch = text.match(/\b(\d{1,2})\s(\w+)/);
+        if (wordMatch) {
+          const [_, day, monthName] = wordMatch;
+          const year = new Date().getFullYear();
+          date = new Date(`${day} ${monthName} ${year}`);
+        }
+      }
+      return date;
+    }
+
+    function windDirection(degrees) {
+      const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+      return dirs[Math.round(degrees / 45) % 8];
+    }
+
+    function fetchWeatherForNextComp(nextCompText) {
+      const compDate = extractDateFromText(nextCompText);
+      if (!compDate) return;
+
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${LOCATION}&appid=${WEATHER_API_KEY}&units=metric`)
+        .then(res => res.json())
+        .then(data => {
+          const forecasts = data.list.filter(item => {
+            const forecastDate = new Date(item.dt_txt);
+            return forecastDate.getDate() === compDate.getDate() &&
+                   forecastDate.getMonth() === compDate.getMonth() &&
+                   forecastDate.getFullYear() === compDate.getFullYear();
+          });
+
+          let forecast = forecasts.find(f => f.dt_txt.includes('12:00:00')) ||
+                         forecasts.find(f => f.dt_txt.includes('20:00:00')) ||
+                         forecasts[0];
+
+          const container = document.getElementById("weatherDetails");
+          if (forecast) {
+            const iconUrl = `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@4x.png`;
+            const windSpeedMph = (forecast.wind.speed * 2.23694).toFixed(1);
+            const windDir = windDirection(forecast.wind.deg);
+            const arrowStyle = `transform: rotate(${forecast.wind.deg}deg); display:inline-block; transition:transform 0.3s`; // rotate arrow
+
+            container.innerHTML = `
+              <img src="${iconUrl}" alt="${forecast.weather[0].description}" style="height:60px;filter:drop-shadow(0 0 3px rgba(0,0,0,0.5));">
+              <div>${forecast.weather[0].main} (${forecast.weather[0].description})</div>
+              <div>Temp: ${Math.round(forecast.main.temp)}°C</div>
+              <div>Wind: ${windSpeedMph} mph (${windDir}) <span style="${arrowStyle}">⬆️</span></div>
+            `;
+          } else {
+            container.innerHTML = "<div>No forecast available yet for this date.</div>";
+          }
+        })
+        .catch((err) => {
+          console.error("Weather API error:", err);
+          document.getElementById("weatherDetails").innerHTML = "<div>Unable to load weather.</div>";
+        });
+    }
+
+    const nextCompEl = document.getElementById('nextCompetitionText');
+    const observer = new MutationObserver(() => {
+      if (nextCompEl.innerText !== 'TBD') {
+        fetchWeatherForNextComp(nextCompEl.innerText);
+        observer.disconnect();
+      }
+    });
+    observer.observe(nextCompEl, { childList: true });
   </script>
   <b><center><h3> Competion Calendar 2025 </h3></center></b>
   <b><center><h4> Autumn Series </h4></center></b>
