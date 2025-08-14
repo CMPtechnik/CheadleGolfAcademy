@@ -7,28 +7,40 @@
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="favicon.png" sizes="180x180" />
   <meta name="theme-color" content="#005c41" />
+
   <!-- Chart.js & XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
   <style>
-    :root { --primary: #005c41; --accent: #e6f2ef; --text: #1e1e1e; --bg: #fdfdfd; --border: #ccc; }
+    :root {
+      --primary: #005c41;
+      --accent: #e6f2ef;
+      --text: #1e1e1e;
+      --bg: #fdfdfd;
+      --border: #ccc;
+      --hover: #f1f1f1;
+    }
     body { margin:0; font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); }
     header { background:var(--primary); color:#fff; padding:1rem; text-align:center; }
     header nav a { color:#fff; text-decoration:none; margin:0 0.5rem; font-size:0.9rem; }
     #profileHeader { max-width:800px; margin:2rem auto; text-align:center; }
     #profileHeader .avatar { width:100px; height:100px; border-radius:50%; object-fit:cover; }
     #profileHeader h1 { margin:0.5rem 0; }
-    #profileHeader ul { list-style:none; padding:0; margin:0.5rem 0; display:flex; justify-content:center; gap:1rem; }
-    #charts { max-width:800px; margin:2rem auto; display:grid; gap:2rem; }
+    #profileHeader ul { list-style:none; padding:0; margin:0.5rem 0; display:flex; justify-content:center; gap:1rem; flex-wrap:wrap; }
+    #charts { max-width:800px; margin:2rem auto; }
     canvas { width:100% !important; height:300px !important; }
+    .tabs { text-align:center; margin-bottom:1rem; }
+    .tabs button { padding:0.5rem 1rem; margin:0 0.25rem; border:none; border-radius:4px; background:var(--accent); color:var(--primary); font-weight:600; cursor:pointer; }
+    .tabs button.active { background:var(--primary); color:white; }
     #historySection { max-width:800px; margin:2rem auto; }
     #historyTable { width:100%; border-collapse:collapse; }
     #historyTable th, #historyTable td { border:1px solid var(--border); padding:8px; text-align:center; }
     #historyTable th { background:var(--accent); }
     .no-data { text-align:center; margin:2rem auto; font-size:1.2rem; color:#666; }
     @media screen and (max-width:768px) {
-      #charts { display:block; }
       #charts canvas { height:200px !important; }
+      #profileHeader ul { flex-direction:column; gap:0.5rem; }
     }
   </style>
 </head>
@@ -43,16 +55,26 @@
   <div id="profileHeader"></div>
 
   <div id="charts" style="display:none;">
-    <canvas id="chartScore"></canvas>
-    <canvas id="chartPosition"></canvas>
-    <canvas id="chartSF"></canvas>
+    <div class="tabs">
+      <button id="tabScore" class="active" onclick="showChart('score')"> Score (Gross)</button>
+      <button id="tabPosition" onclick="showChart('position')">Competition Position</button>
+      <button id="tabSF" onclick="showChart('sf')">Stableford Points</button>
+    </div>
+    <canvas id="playerChart"></canvas>
   </div>
 
   <section id="historySection" style="display:none;">
     <h2>Competition History</h2>
     <table id="historyTable">
       <thead>
-        <tr><th>Date</th><th>Competition</th><th>Score</th><th>Stableford</th><th>Points</th><th>Winnings</th><th>Trophy</th></tr>
+        <tr>
+          <th>Date</th>
+          <th>Competition</th>
+          <th>Score</th>
+          <th>Stableford</th>
+          <th>Points</th>
+          <th>Trophy</th>
+        </tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -71,16 +93,14 @@
 
     const params = new URLSearchParams(window.location.search);
     const playerName = decodeURIComponent(params.get('name') || '');
+    let recs = [];
 
     fetch('https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=' + Date.now())
       .then(res => res.arrayBuffer())
       .then(buffer => {
         const wb = XLSX.read(buffer, { type:'array' });
         const sheet = wb.Sheets[wb.SheetNames[0]];
-        const history = XLSX.utils.sheet_to_json(sheet);
-
-        // Filter records for player (case-insensitive)
-        const recs = history.filter(r => r.Name && r.Name.toLowerCase() === playerName.toLowerCase());
+        recs = XLSX.utils.sheet_to_json(sheet).filter(r => r.Name && r.Name.toLowerCase() === playerName.toLowerCase());
 
         if (!recs.length) {
           document.getElementById('noData').style.display = 'block';
@@ -90,14 +110,13 @@
         document.getElementById('charts').style.display = '';
         document.getElementById('historySection').style.display = '';
 
-        // Compute stats
+        // Stats
         const games = recs.length;
-        const totalPoints = recs.reduce((sum, r) => sum + (parseFloat(r.Points) || 0), 0);
-        const totalWinnings = recs.reduce((sum, r) => sum + (parseFloat(r.Winnings) || 0), 0);
-        const trophies = recs.filter(r => parseInt(r.Position) === 1).length;
-        const winPct = games ? ((trophies / games) * 100).toFixed(1) : 0;
+        const totalPoints = recs.reduce((sum,r)=>sum+(parseFloat(r.Points)||0),0);
+        const trophies = recs.filter(r => parseInt(r.Position)===1).length;
+        const winPct = games ? ((trophies/games)*100).toFixed(1) : 0;
 
-        // Render header without AvatarURL
+        // Header
         document.getElementById('profileHeader').innerHTML = `
           <img class="avatar" src="default.png" alt="${playerName}" />
           <h1>${playerName}</h1>
@@ -106,51 +125,13 @@
             <li>Total Points: ${totalPoints}</li>
             <li>Win %: ${winPct}%</li>
             <li>Trophies: ${trophies}</li>
-            <li>Winnings: £${totalWinnings.toFixed(2)}</li>
           </ul>
         `;
 
-        // Prepare chart data
-        const dates = recs.map(r => parseDateStr(r.Date).toLocaleDateString());
-        const scores = recs.map(r => parseFloat(r.Score) || 0);
-        const positions = recs.map(r => parseInt(r.Position) || 0);
-        const sfs = recs.map(r => parseInt(r['Stableford Points']) || 0);
-
-        // Net Score Chart with Par 64 baseline
-        const ctxScore = document.getElementById('chartScore').getContext('2d');
-        new Chart(ctxScore, {
-          type: 'line',
-          data: {
-            labels: dates,
-            datasets: [
-              { label: 'Net Score', data: scores, fill: false },
-              { label: 'Par 64', data: new Array(dates.length).fill(64), borderDash: [5,5], fill: false }
-            ]
-          },
-          options: { responsive: true }
-        });
-
-        // Position Chart
-        const ctxPos = document.getElementById('chartPosition').getContext('2d');
-        new Chart(ctxPos, {
-          type: 'line',
-          data: { labels: dates, datasets: [{ label: 'Position', data: positions, fill: false }] },
-          options: { responsive: true, scales: { y: { reverse: true } } }
-        });
-
-        // Stableford Chart
-        const ctxSF = document.getElementById('chartSF').getContext('2d');
-        new Chart(ctxSF, {
-          type: 'bar',
-          data: { labels: dates, datasets: [{ label: 'Stableford Points', data: sfs }] },
-          options: { responsive: true }
-        });
-
         // Populate history table
         const tbody = document.querySelector('#historyTable tbody');
-        recs.sort((a,b) => parseDateStr(b.Date) - parseDateStr(a.Date)).forEach(r => {
-          const trophy = parseInt(r.Position) === 1 ? '🏆' : '';
-          const win = isNaN(parseFloat(r.Winnings)) ? 0 : parseFloat(r.Winnings);
+        recs.sort((a,b)=>parseDateStr(b.Date)-parseDateStr(a.Date)).forEach(r => {
+          const trophy = parseInt(r.Position)===1?'🏆':'';
           const sf = isNaN(parseInt(r['Stableford Points'])) ? 0 : parseInt(r['Stableford Points']);
           tbody.innerHTML += `
             <tr>
@@ -159,13 +140,59 @@
               <td>${r.Score||''}</td>
               <td>${sf}</td>
               <td>${r.Points||''}</td>
-              <td>£${win.toFixed(2)}</td>
               <td>${trophy}</td>
             </tr>
           `;
         });
+
+        // Initialize chart
+        showChart('score');
       })
       .catch(err => console.error('Error loading profile data:', err));
+
+    let playerChart;
+    function showChart(type) {
+      ['tabScore','tabPosition','tabSF'].forEach(id=>document.getElementById(id).classList.remove('active'));
+      document.getElementById('tab' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('active');
+
+      const labels = recs.map(r=>parseDateStr(r.Date).toLocaleDateString());
+      let datasets = [];
+      let options = { responsive:true };
+
+      if(type==='score') {
+        datasets = [
+          {
+            label:'Net Score',
+            data: recs.map(r=>parseFloat(r.Score)||0),
+            fill:false,
+            borderColor:'#005c41',
+            tension:0.2,
+            pointStyle: recs.map(r=>parseInt(r.Position)===1?'🏆':'circle'),
+            pointRadius:6
+          },
+          {
+            label:'Par 32',
+            data: new Array(labels.length).fill(32),
+            borderDash:[5,5],
+            fill:false,
+            borderColor:'#888'
+          }
+        ];
+      } else if(type==='position') {
+        datasets = [
+          { label:'Position', data: recs.map(r=>parseInt(r.Position)||0), fill:false, borderColor:'#ff6600', tension:0.2 }
+        ];
+        options.scales = { y: { reverse:true, title:{display:true,text:'Finishing Position'} } };
+      } else if(type==='sf') {
+        datasets = [
+          { label:'Stableford Points', data: recs.map(r=>parseInt(r['Stableford Points'])||0), backgroundColor:'#008080' }
+        ];
+      }
+
+      const ctx = document.getElementById('playerChart').getContext('2d');
+      if(playerChart) playerChart.destroy();
+      playerChart = new Chart(ctx, { type:type==='sf'?'bar':'line', data:{ labels, datasets }, options });
+    }
   </script>
 </body>
 </html>
