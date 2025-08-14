@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Junior Handicaps – Cheadle Golf Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <style>
+    body {
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+    }
+    dialog::backdrop {
+      background: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      padding: 20px;
+      max-width: 700px;
+    }
+  </style>
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">Junior Handicap Tracker</h1>
+      <table class="table is-striped is-fullwidth" id="handicapTable">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Current Handicap</th>
+            <th>Lowest Handicap</th>
+            <th>Rounds Played</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <h2 class="title is-5 mt-6">How are handicaps calculated?</h2>
+      <div class="content">
+        <p>
+          Handicaps are based on the average of a player's best 3 gross scores, relative to par, from recent rounds.
+          <br />
+          <strong>Formula:</strong> <code>(Gross Score − Par) × 0.93</code>
+        </p>
+        <ul>
+          <li><strong>Junior Competition</strong>: Par 32</li>
+          <li><strong>Junior Sixes Competition</strong>: Par 22</li>
+          <li><strong>Bruntwood 9</strong>: Par 27</li>
+          <li><strong>Bruntwood 18</strong>: Par 54</li>
+        </ul>
+        <p>
+          Handicaps are shown to 1 decimal place and updated after each new round. The best 3 scores are used to calculate the current handicap.
+      <p></p><b>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</b></p>
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Modal -->
+  <dialog id="modal">
+    <div class="modal-content box">
+      <button class="delete is-pulled-right" id="closeModal"></button>
+      <h2 class="title is-4" id="modalPlayerName"></h2>
+      <div id="modalContent" class="mb-4"></div>
+      <canvas id="handicapChart" height="200"></canvas>
+    </div>
+  </dialog>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const getParForCompetition = (name) => {
+      if (name.includes("Sixes")) return 22;
+      if (name.includes("Bruntwood 9")) return 27;
+      if (name.includes("Bruntwood 18")) return 54;
+      return 32; // default Junior Competition
+    };
+
+    async function fetchData() {
+      const res = await fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx");
+      const ab = await res.arrayBuffer();
+      const wb = XLSX.read(ab, { type: "array" });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(sheet);
+
+      const players = {};
+
+      data.forEach(row => {
+        const name = row.Name;
+        const score = parseInt(row.Score);
+        const comp = row.Competition;
+        const date = row.Date;
+        const title = row.Title;
+
+        if (!players[name]) players[name] = [];
+        players[name].push({ score, competition: comp, date, title });
+      });
+
+      const tableBody = document.querySelector("#handicapTable tbody");
+      tableBody.innerHTML = "";
+
+      Object.keys(players).sort().forEach(name => {
+        const rounds = players[name];
+        const handicaps = rounds.map(r => {
+          const roundPar = getParForCompetition(r.competition);
+          return (parseFloat(r.score) - roundPar) * 0.93;
+        });
+
+        const best3 = handicaps.sort((a, b) => a - b).slice(0, 3);
+        const current = (best3.reduce((a, b) => a + b, 0) / best3.length).toFixed(1);
+        const lowest = Math.min(...handicaps).toFixed(1);
+        const roundsPlayed = rounds.length;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${name}</td>
+          <td>${current}</td>
+          <td>${lowest}</td>
+          <td>${roundsPlayed}</td>
+          <td><button class="button is-small is-info open-modal" data-name="${name}">View</button></td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      // Attach modal events
+      document.querySelectorAll(".open-modal").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const name = e.target.dataset.name;
+          openModal(name, players[name]);
+        });
+      });
+    }
+
+    function openModal(name, scores) {
+      const modal = document.getElementById("modal");
+      document.getElementById("modalPlayerName").textContent = name;
+
+      const content = document.getElementById("modalContent");
+      content.innerHTML = `
+        <table class="table is-fullwidth is-narrow">
+          <thead>
+            <tr>
+              <th>Date</th><th>Competition</th><th>Score</th><th>Par</th><th>Handicap for Round</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${scores.map(s => {
+              const par = getParForCompetition(s.competition);
+              const hcap = ((s.score - par) * 0.93).toFixed(1);
+              return `<tr>
+                <td>${s.date}</td>
+                <td>${s.competition}</td>
+                <td>${s.score}</td>
+                <td>${par}</td>
+                <td>${hcap}</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+
+      // Chart
+      const ctx = document.getElementById("handicapChart").getContext("2d");
+      if (window.hcapChart) window.hcapChart.destroy();
+      const chartData = scores.map(s => {
+        const par = getParForCompetition(s.competition);
+        return ((s.score - par) * 0.93).toFixed(1);
+      });
+      const chartLabels = scores.map(s => s.date);
+
+      window.hcapChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartLabels,
+          datasets: [{
+            label: 'Handicap per Round',
+            data: chartData,
+            borderColor: '#3273dc',
+            fill: false,
+            tension: 0.2
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: false,
+              reverse: true
+            }
+          }
+        }
+      });
+
+      modal.showModal();
+    }
+
+    document.getElementById("closeModal").addEventListener("click", () => {
+      document.getElementById("modal").close();
+    });
+
+    fetchData();
+  </script>
+</body>
+</html>

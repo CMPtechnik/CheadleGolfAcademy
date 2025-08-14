@@ -6,59 +6,63 @@
   <title>Junior Handicaps – Cheadle Golf Academy</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   <style>
-    body {
-      padding: 20px;
-    }
-    table {
-      width: 100%;
-    }
-    dialog::backdrop {
-      background: rgba(0,0,0,0.5);
-    }
-    .modal-content {
-      padding: 20px;
-      max-width: 700px;
+    body { padding: 20px; }
+    table { width: 100%; }
+    dialog::backdrop { background: rgba(0,0,0,0.5); }
+    .modal-content { padding: 20px; max-width: 800px; width: 95%; }
+    .best-round { background-color: #ffeaa7; font-weight: bold; }
+    .sortable:hover { cursor: pointer; text-decoration: underline; }
+    @media screen and (max-width: 768px) {
+      .modal-content { width: 95%; padding: 10px; }
     }
   </style>
 </head>
 <body>
   <section class="section">
     <div class="container">
-      <h1 class="title">Junior Handicap Tracker</h1>
+    <center><h1 class="title">Junior Handicap Tracker</h1></center>
+    <center><p class="mb-4">Click on a player’s <strong>View</strong> button to see per-round details and chart.</p></center>
+    
+
       <table class="table is-striped is-fullwidth" id="handicapTable">
         <thead>
           <tr>
-            <th>Player</th>
-            <th>Current Handicap</th>
-            <th>Lowest Handicap</th>
-            <th>Rounds Played</th>
+            <th class="sortable" data-sort="name">Player ⬍</th>
+            <th class="sortable" data-sort="current">Current Handicap ⬍</th>
+            <th class="sortable" data-sort="lowest">Lowest Handicap ⬍</th>
+            <th class="sortable" data-sort="roundsPlayed">Rounds Played ⬍</th>
             <th>Details</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
+    </div>
+  </section>
 
+  <section class="section">
+    <div class="container">
       <h2 class="title is-5 mt-6">How are handicaps calculated?</h2>
-      <div class="content">
+      <div class="content box" style="background:#f5f5f5;">
         <p>
-          Handicaps are based on the average of a player's best 3 gross scores, relative to par, from recent rounds.
+          Handicaps are based on the average of a player's <strong>best 3 gross scores</strong>, relative to par, from recent rounds.
           <br />
           <strong>Formula:</strong> <code>(Gross Score − Par) × 0.93</code>
         </p>
         <ul>
-          <li><strong>Junior Competition</strong>: Par 32</li>
-          <li><strong>Junior Sixes Competition</strong>: Par 22</li>
-          <li><strong>Bruntwood 9</strong>: Par 27</li>
-          <li><strong>Bruntwood 18</strong>: Par 54</li>
+          <li>🏌️‍♂️ <strong>Junior Competition</strong>: Par 32</li>
+          <li>🏌️ <strong>Junior Sixes Competition</strong>: Par 22</li>
+          <li>⛳ <strong>Bruntwood 9</strong>: Par 27</li>
+          <li>⛳ <strong>Bruntwood 18</strong>: Par 54</li>
         </ul>
         <p>
           Handicaps are shown to 1 decimal place and updated after each new round. The best 3 scores are used to calculate the current handicap.
-      <p></p><b>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</b></p>
+        </p>
+        <p>
+          <b>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</b>
         </p>
       </div>
     </div>
   </section>
-
 
   <!-- Modal -->
   <dialog id="modal">
@@ -70,7 +74,6 @@
     </div>
   </dialog>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -78,7 +81,7 @@
       if (name.includes("Sixes")) return 22;
       if (name.includes("Bruntwood 9")) return 27;
       if (name.includes("Bruntwood 18")) return 54;
-      return 32; // default Junior Competition
+      return 32;
     };
 
     async function fetchData() {
@@ -89,110 +92,121 @@
       const data = XLSX.utils.sheet_to_json(sheet);
 
       const players = {};
-
       data.forEach(row => {
         const name = row.Name;
-        const score = parseInt(row.Score);
+        const score = parseFloat(row.Score);
         const comp = row.Competition;
         const date = row.Date;
-        const title = row.Title;
-
+        if (!name || isNaN(score)) return;
         if (!players[name]) players[name] = [];
-        players[name].push({ score, competition: comp, date, title });
+        players[name].push({ score, competition: comp, date });
       });
 
+      const playerStats = Object.keys(players).map(name => {
+        const rounds = players[name];
+        const handicaps = rounds.map(r => (r.score - getParForCompetition(r.competition)) * 0.93);
+        const best3 = [...handicaps].sort((a,b)=>a-b).slice(0,3);
+        const current = (best3.reduce((a,b)=>a+b,0)/best3.length).toFixed(1);
+        const lowest = Math.min(...handicaps).toFixed(1);
+        return { name, current: parseFloat(current), lowest: parseFloat(lowest), roundsPlayed: rounds.length, rounds };
+      });
+
+      renderTable(playerStats);
+    }
+
+    function renderTable(players) {
       const tableBody = document.querySelector("#handicapTable tbody");
       tableBody.innerHTML = "";
 
-      Object.keys(players).sort().forEach(name => {
-        const rounds = players[name];
-        const handicaps = rounds.map(r => {
-          const roundPar = getParForCompetition(r.competition);
-          return (parseFloat(r.score) - roundPar) * 0.93;
-        });
-
-        const best3 = handicaps.sort((a, b) => a - b).slice(0, 3);
-        const current = (best3.reduce((a, b) => a + b, 0) / best3.length).toFixed(1);
-        const lowest = Math.min(...handicaps).toFixed(1);
-        const roundsPlayed = rounds.length;
-
+      players.forEach(p => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${name}</td>
-          <td>${current}</td>
-          <td>${lowest}</td>
-          <td>${roundsPlayed}</td>
-          <td><button class="button is-small is-info open-modal" data-name="${name}">View</button></td>
+          <td>${p.name}</td>
+          <td>${p.current.toFixed(1)}</td>
+          <td>${p.lowest.toFixed(1)}</td>
+          <td>${p.roundsPlayed}</td>
+          <td><button class="button is-small is-info open-modal" data-name="${p.name}">View</button></td>
         `;
         tableBody.appendChild(tr);
       });
 
-      // Attach modal events
       document.querySelectorAll(".open-modal").forEach(btn => {
         btn.addEventListener("click", e => {
           const name = e.target.dataset.name;
-          openModal(name, players[name]);
+          const player = players.find(p=>p.name===name);
+          openModal(name, player.rounds);
+        });
+      });
+
+      // Sorting
+      document.querySelectorAll(".sortable").forEach(th => {
+        if(th.asc === undefined) th.asc = true; // initialize per column
+        th.addEventListener("click", () => {
+          const key = th.dataset.sort;
+          const asc = th.asc;
+          th.asc = !asc;
+
+          players.sort((a,b) => {
+            if(key === 'name'){
+              return asc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+            } else {
+              return asc ? a[key]-b[key] : b[key]-a[key];
+            }
+          });
+          renderTable(players);
         });
       });
     }
 
-    function openModal(name, scores) {
+    function openModal(name, rounds) {
       const modal = document.getElementById("modal");
       document.getElementById("modalPlayerName").textContent = name;
+
+      const handicaps = rounds.map(r => ({
+        ...r,
+        hcap: ((r.score - getParForCompetition(r.competition)) * 0.93).toFixed(1)
+      }));
+      const best3Hcap = [...handicaps].sort((a,b) => a.hcap-b.hcap).slice(0,3).map(r=>r.hcap);
 
       const content = document.getElementById("modalContent");
       content.innerHTML = `
         <table class="table is-fullwidth is-narrow">
           <thead>
             <tr>
-              <th>Date</th><th>Competition</th><th>Score</th><th>Par</th><th>Handicap for Round</th>
+              <th>Date</th><th>Competition</th><th>Score</th><th>Par</th><th>Handicap</th>
             </tr>
           </thead>
           <tbody>
-            ${scores.map(s => {
-              const par = getParForCompetition(s.competition);
-              const hcap = ((s.score - par) * 0.93).toFixed(1);
-              return `<tr>
-                <td>${s.date}</td>
-                <td>${s.competition}</td>
-                <td>${s.score}</td>
-                <td>${par}</td>
-                <td>${hcap}</td>
-              </tr>`;
-            }).join("")}
+            ${handicaps.map(r=>`
+              <tr class="${best3Hcap.includes(r.hcap) ? 'best-round' : ''}">
+                <td>${r.date}</td>
+                <td>${r.competition} ${best3Hcap.includes(r.hcap) ? '🏆' : ''}</td>
+                <td>${r.score}</td>
+                <td>${getParForCompetition(r.competition)}</td>
+                <td>${r.hcap}</td>
+              </tr>
+            `).join("")}
           </tbody>
         </table>
       `;
 
-      // Chart
+      const chartData = handicaps.map(r => parseFloat(r.hcap));
       const ctx = document.getElementById("handicapChart").getContext("2d");
       if (window.hcapChart) window.hcapChart.destroy();
-      const chartData = scores.map(s => {
-        const par = getParForCompetition(s.competition);
-        return ((s.score - par) * 0.93).toFixed(1);
-      });
-      const chartLabels = scores.map(s => s.date);
-
       window.hcapChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: chartLabels,
+          labels: rounds.map(r => r.date),
           datasets: [{
             label: 'Handicap per Round',
             data: chartData,
             borderColor: '#3273dc',
-            fill: false,
-            tension: 0.2
+            backgroundColor: chartData.map(h => best3Hcap.includes(h) ? '#f6e58d99' : '#3273dc33'),
+            fill: true,
+            tension: 0.3
           }]
         },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: false,
-              reverse: true
-            }
-          }
-        }
+        options: { scales: { y: { beginAtZero: false, reverse: true } } }
       });
 
       modal.showModal();
