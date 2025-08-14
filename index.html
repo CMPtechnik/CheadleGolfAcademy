@@ -317,7 +317,7 @@
           <th>Rank</th>
           <th>Name</th>
           <th>Games</th>
-          <th>Net Win %</th>
+          <th>Win %</th>
           <th>Total Points</th>
           <th>Wins</th>
         </tr>
@@ -481,7 +481,7 @@
 
       scores.forEach(s=>{
         const trophy = s.position==1?' 🏆':'';
-        scoreList.innerHTML   += `<li>${s.competition}: Net ${s.score}, Position ${s.position}${trophy}</li>`;
+        scoreList.innerHTML   += `<li>${s.competition}: Gross ${s.score}, Position ${s.position}${trophy}</li>`;
         posList.innerHTML     += `<li>${s.competition}: Finished ${s.position}, Points ${s.points}${trophy}</li>`;
       });
 
