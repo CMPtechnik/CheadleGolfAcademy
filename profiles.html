@@ -3,22 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>All Player Profiles</title>
+  <title>All Player Profiles – Cheadle Golf Academy</title>
   <link rel="icon" href="favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="favicon.png" sizes="180x180" />
   <meta name="theme-color" content="#005c41" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
   <style>
     :root { --primary: #005c41; --accent: #e6f2ef; --text: #1e1e1e; --bg: #fdfdfd; }
     body { margin:0; font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); }
     header { background:var(--primary); color:#fff; padding:1rem; text-align:center; }
-    header nav a { color:#fff; text-decoration:none; margin:0 0.5rem; }
-    main { max-width:600px; margin:2rem auto; padding:0 1rem; }
-    ul { list-style:none; padding:0; }
-    li { margin:0.5rem 0; }
-    a.profile-link { color: var(--primary); text-decoration: none; font-size:1.1rem; }
-    a.profile-link:hover { text-decoration: underline; }
-    .loading { text-align:center; margin-top:2rem; color:#666; }
+    header nav a { color:#fff; text-decoration:none; margin:0 0.5rem; font-weight:600; }
+    main { max-width:800px; margin:2rem auto; padding:0 1rem; text-align:center; }
+    h1.title { margin-bottom:1rem; }
+
+    /* Handicap Tracker button */
+    .tracker-button {
+      display: inline-block;
+      margin-bottom:2rem;
+      padding:0.75rem 1.5rem;
+      background-color: var(--primary);
+      color:#fff;
+      border-radius:5px;
+      text-decoration:none;
+      font-weight:600;
+      transition: background-color 0.3s ease;
+    }
+    .tracker-button:hover { background-color:#00412f; color:#fff; }
+
+    /* Player buttons */
+    #playerList { display:flex; flex-wrap:wrap; justify-content:center; gap:0.5rem; padding:0; margin:0; list-style:none; }
+    .player-button {
+      display: inline-block;
+      padding:0.5rem 1rem;
+      background-color: var(--accent);
+      color: var(--primary);
+      border:2px solid var(--primary);
+      border-radius:5px;
+      text-decoration:none;
+      font-weight:600;
+      transition: all 0.3s ease;
+    }
+    .player-button:hover {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    .loading { text-align:center; margin-top:2rem; color:#666; font-size:1.1rem; }
+
+    @media screen and (max-width:600px) {
+      .player-button { flex:1 1 45%; text-align:center; }
+    }
   </style>
 </head>
 <body>
@@ -28,11 +63,14 @@
       <strong>All Players</strong>
     </nav>
   </header>
+
   <main>
-    <h1>All Player Profiles</h1>
+    <a href="handicaps.html" class="tracker-button">CGA Handicap Tracker</a>
+    <h1 class="title">All Player Profiles</h1>
     <div id="loading" class="loading">Loading players...</div>
     <ul id="playerList"></ul>
   </main>
+
   <script>
     fetch('https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=' + Date.now())
       .then(res => res.arrayBuffer())
@@ -46,7 +84,7 @@
         const list = document.getElementById('playerList');
         list.innerHTML = names.map(name => {
           const url = `profile.html?name=${encodeURIComponent(name)}`;
-          return `<li><a class="profile-link" href="${url}">${name}</a></li>`;
+          return `<li><a class="player-button" href="${url}">${name}</a></li>`;
         }).join('');
         document.getElementById('loading').style.display = 'none';
       })
