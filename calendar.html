@@ -3,134 +3,96 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Competition Calendar - Cheadle Juniors</title>
-
-  <!-- Favicon & Theme -->
+  <title>Cheadle Juniors – Competition Calendar</title>
   <link rel="icon" href="favicon.png" type="image/png">
-  <meta name="theme-color" content="#005c41" />
-
-  <!-- FullCalendar CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
-
   <style>
-    :root {
-      --primary: #DE3C09;
-      --accent: #e6f2ef;
-      --text: #1e1e1e;
-      --bg: #fdfdfd;
-      --border: #ccc;
-      --hover: #f1f1f1;
-    }
-    .dark-mode {
-      --bg: #121212;
-      --text: #f5f5f5;
-      --accent: #1f2b27;
-      --border: #444;
-      --hover: #1e1e1e;
-    }
     body {
-      margin: 0;
-      padding: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      transition: background 0.3s, color 0.3s;
+      margin: 0;
+      background: #fdfdfd;
+      color: #1e1e1e;
     }
     header {
-      background: var(--primary);
+      background: #31522F;
       color: white;
       padding: 1rem;
       text-align: center;
-      position: relative;
     }
-    #darkModeToggle {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      cursor: pointer;
-      font-size: 1.5rem;
-    }
-    #calendar {
+    section {
       max-width: 900px;
       margin: 2rem auto;
-      padding: 0 1rem;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      padding: 1rem;
     }
-    .fc-toolbar-title {
-      color: var(--primary);
+    h2 {
+      text-align: center;
+      color: #31522F;
     }
-    .fc .fc-button {
-      background: var(--accent);
-      border: none;
-      color: var(--text);
-      margin: 0 0.25rem;
+    .calendar-grid {
+      display: grid;
+      gap: 1.5rem;
     }
-    .fc .fc-button:hover {
-      background: var(--primary);
-      color: white;
+    .calendar-card {
+      background: #e6f2ef;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .calendar-card h3 {
+      margin: 0;
+      color: #31522F;
+    }
+    .calendar-card ul {
+      margin: 0.5rem 0 0;
+      padding-left: 1.2rem;
+      line-height: 1.6;
     }
     footer {
       text-align: center;
-      padding: 1rem;
+      margin: 2rem 0;
       font-size: 0.9rem;
+      color: #555;
     }
   </style>
 </head>
 <body>
   <header>
+    <h1>📅 Competition Calendar 2025</h1>
     <nav>
-      <a href="index.html">Home</a>
+      <a href="index.html" style="color:white;text-decoration:none;">⬅ Back to Home</a>
     </nav>
-    <h1>Competition Calendar</h1>
-    <a id="darkModeToggle" onclick="toggleDarkMode()">🌗</a>
   </header>
 
-  <div id="calendar"></div>
+  <section>
+    <div class="calendar-grid">
+      <div class="calendar-card">
+        <h3>🍂 Autumn Series</h3>
+        <ul>
+          <li><b>September 14th</b> – Tee Times 13:00–13:30</li>
+          <li><b>October 19th</b> – Tee Times 13:00–13:30</li>
+          <li><b>November 9th</b> – Tee Times 13:00–13:30</li>
+        </ul>
+      </div>
+
+      <div class="calendar-card">
+        <h3>🎄 Christmas ShootOut</h3>
+        <p>TBC</p>
+      </div>
+
+      <div class="calendar-card">
+        <h3>❄ Winter Series</h3>
+        <p>TBC</p>
+      </div>
+    </div>
+  </section>
 
   <footer>
-    <a href="index.html">&larr; Back to League Table</a>
+    <p>Build v1.0.0 | Cheadle Juniors</p>
+    <p>
+      <img src="logocja.png" alt="League Logo" height="60"/>
+      <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png"
+           alt="CGC Logo" height="60"/>
+    </p>
+    <p><a href="https://www.theapplegeek.co.uk" target="_blank">The Apple Geek Data Solutions</a></p>
   </footer>
-
-  <!-- FullCalendar JS -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var calendarEl = document.getElementById('calendar');
-
-      var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,listMonth,listWeek'
-        },
-        themeSystem: 'standard',
-        views: {
-          listMonth: { buttonText: 'List Month' }
-        },
-        events: [
-          { title: 'Junior Comp 1 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-04-13' },
-          { title: 'Junior Comp 2 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-05-11' },
-          { title: 'Junior Comp 3 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-06-08' },
-          { title: 'Junior Comp 4 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-07-13' },
-          { title: 'Junior Comp 5 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-08-10' },
-          { title: 'Junior Comp 6 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-09-14' },
-          { title: 'Junior Comp 7 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-10-19' },
-          { title: 'Junior Comp 8 (9 Holes) / Junior Sixes (6 Holes)', start: '2025-11-09' }
-        ],
-        eventColor: 'var(--primary)',
-        eventTextColor: 'white'
-      });
-
-      calendar.render();
-    });
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-    }
-  </script>
 </body>
 </html>
