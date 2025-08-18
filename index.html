@@ -610,58 +610,53 @@
   <br>
   <center><a href="https://www.theapplegeek.co.uk" target="_blank">The Apple Geek Data Solutions</a></center>
   <div id="hitsCounter" style="text-align:center;font-weight:bold;margin:1rem 0;">
-  Visitors today: Loading... <br>
-  Total visitors: Loading...
-</div>
+    Visitors today: Loading... | Total visitors: Loading...
+  </div>
 
-<script>
-  const counterEl = document.getElementById('hitsCounter');
+  <script>
+    const counterEl = document.getElementById('hitsCounter');
 
-  const today = new Date().toISOString().slice(0,10);
-  const namespace = "cheadle-juniors"; // change this to your site name
-  const todayKey = `${namespace}/${today}`;
-  const totalKey = `${namespace}/total`;
+    const namespace = "cheadle-juniors"; // your chosen namespace
+    const today = new Date().toISOString().slice(0,10); // e.g. 2025-08-18
+    const dailyKey = `${namespace}/${today}`;
+    const totalKey = `${namespace}/total`;
 
-  // Track if we've already counted this visitor today
-  const storageKey = "visitorCounted_" + today;
+    // Store flag so same visitor doesn't increment again today
+    const storageKey = "visitorCounted_" + today;
 
-  async function updateCounters() {
-    try {
-      // === DAILY VISITORS ===
-      let todayCount;
-      if (!localStorage.getItem(storageKey)) {
-        // First visit today → increment
-        const res = await fetch(`https://api.countapi.xyz/hit/${todayKey}`);
-        const data = await res.json();
-        todayCount = data.value;
-        localStorage.setItem(storageKey, "true");
-
-        // Also bump the TOTAL counter once per day per visitor
-        await fetch(`https://api.countapi.xyz/hit/${totalKey}`);
-      } else {
-        // Already counted today → just read
-        const res = await fetch(`https://api.countapi.xyz/get/${todayKey}`);
-        const data = await res.json();
-        todayCount = data.value;
-      }
-
-      // === TOTAL VISITORS ===
-      const resTotal = await fetch(`https://api.countapi.xyz/get/${totalKey}`);
-      const dataTotal = await resTotal.json();
-
-      // Update UI
-      counterEl.innerHTML = `
-        Visitors today: ${todayCount}<br>
-        Total visitors: ${dataTotal.value}
-      `;
-    } catch (e) {
-      console.error("Counter error:", e);
-      counterEl.innerHTML = "Visitors: (offline)";
+    function updateCounters(daily, total) {
+      counterEl.innerText = `Visitors today: ${daily} | Total visitors: ${total}`;
     }
-  }
 
-  updateCounters();
-</script>
+    async function fetchCount(url) {
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.value;
+    }
+
+    async function initCounters() {
+      try {
+        let daily, total;
+
+        if (!localStorage.getItem(storageKey)) {
+          // Increment both
+          daily = await fetchCount(`https://api.countapi.xyz/hit/${dailyKey}`);
+          total = await fetchCount(`https://api.countapi.xyz/hit/${totalKey}`);
+          localStorage.setItem(storageKey, "true");
+        } else {
+          // Just get values
+          daily = await fetchCount(`https://api.countapi.xyz/get/${dailyKey}`);
+          total = await fetchCount(`https://api.countapi.xyz/get/${totalKey}`);
+        }
+
+        updateCounters(daily, total);
+      } catch (err) {
+        counterEl.innerText = "Visitors today: (offline) | Total visitors: (offline)";
+      }
+    }
+
+    initCounters();
+  </script>
 
 </body>
 </html>
