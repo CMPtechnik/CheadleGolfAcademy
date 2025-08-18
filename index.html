@@ -609,24 +609,28 @@
   <center>Build v1.0.0 | Tables and Members</center>
   <br>
   <center><a href="https://www.theapplegeek.co.uk" target="_blank">The Apple Geek Data Solutions</a></center>
-  <div id="hitsCounter" style="text-align:center;font-weight:bold;margin:1rem 0;">
-    Visitors today: Loading... | Total visitors: Loading...
+  <div id="hitsCounter"
+       style="max-width:300px;margin:1.5rem auto;padding:1rem;
+              background:#f8f9fa;border:1px solid #ddd;border-radius:12px;
+              text-align:center;font-family:Arial, sans-serif;
+              box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+    <div style="font-size:1.1rem;font-weight:bold;color:#333;">
+      Visitors today: <span id="dailyCount">…</span>
+    </div>
+    <div style="margin-top:0.3rem;font-size:0.95rem;color:#666;">
+      Total visitors: <span id="totalCount">…</span>
+    </div>
   </div>
 
   <script>
-    const counterEl = document.getElementById('hitsCounter');
-
-    const namespace = "cheadle-juniors"; // your chosen namespace
     const today = new Date().toISOString().slice(0,10); // e.g. 2025-08-18
+    const namespace = "cheadle-juniors";
     const dailyKey = `${namespace}/${today}`;
     const totalKey = `${namespace}/total`;
-
-    // Store flag so same visitor doesn't increment again today
     const storageKey = "visitorCounted_" + today;
 
-    function updateCounters(daily, total) {
-      counterEl.innerText = `Visitors today: ${daily} | Total visitors: ${total}`;
-    }
+    const dailyEl = document.getElementById("dailyCount");
+    const totalEl = document.getElementById("totalCount");
 
     async function fetchCount(url) {
       const res = await fetch(url);
@@ -649,9 +653,11 @@
           total = await fetchCount(`https://api.countapi.xyz/get/${totalKey}`);
         }
 
-        updateCounters(daily, total);
+        dailyEl.textContent = daily;
+        totalEl.textContent = total;
       } catch (err) {
-        counterEl.innerText = "Visitors today: (offline) | Total visitors: (offline)";
+        dailyEl.textContent = "—";
+        totalEl.textContent = "—";
       }
     }
 
