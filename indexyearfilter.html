@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cheadle Juniors</title>
+
+  <!-- Favicon & Apple Icons -->
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cheadle Golf League">
+  <meta name="theme-color" content="#005c41" />
+
+  <!-- Chart.js & XLSX -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root { --primary: #31522F; --accent: #e6f2ef; --text: #1e1e1e; --bg: #fdfdfd; --border: #ccc; --hover: #f1f1f1; }
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; }
+    .dark-mode { --bg: #121212; --text: #f5f5f5; --accent: #1f2b27; --border: #444; --hover: #1e1e1e; }
+    .dark-mode table, .dark-mode th, .dark-mode td, .dark-mode .modal-content { background-color: #1e1e1e; color: var(--text); }
+    .dark-mode th { background-color: #2a2a2a; }
+    .dark-mode .tooltip-bubble { background: #f5f5f5; color: #111; }
+    .dark-mode a { color: #80ffd3; }
+
+    header { background: var(--primary); color: white; padding: 1rem; text-align: center; position: relative; }
+    header img { max-height: 350px; }
+    header h1 { margin: 0.5rem 0 0; }
+    #darkModeToggle { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 1.5rem; }
+
+    main { max-width: 1100px; margin: auto; padding: 1rem; }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    th, td { border: 1px solid var(--border); padding: 10px; text-align: center; }
+    th { background: var(--accent); position: sticky; top: 0; z-index: 1; }
+    tbody tr:nth-child(even) { background: #f9f9f9; }
+    tbody tr:hover { background: var(--hover); }
+    a { color: var(--primary); text-decoration: none; font-weight: bold; }
+    .trophy { position: relative; display: inline-block; cursor: pointer; }
+    .tooltip-bubble { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 5px 8px; border-radius: 5px; font-size: 0.75rem; white-space: nowrap; z-index: 1000; }
+    .trophy.show-tooltip .tooltip-bubble { display: block; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .close-btn { float: right; font-size: 20px; cursor: pointer; }
+
+    .tabs { text-align: center; margin: 1rem 0; }
+    .tabs button { padding: 0.5rem 1rem; margin: 0 0.25rem; border: none; border-radius: 4px; background: var(--accent); color: var(--primary); font-weight: 600; cursor: pointer; }
+    .tabs button.active { background: var(--primary); color: white; }
+
+    #scoreChart, #positionChart { margin-bottom: 1rem; }
+
+    #nextCompetition { text-align: center; padding: 1rem; font-size: 1rem; background: var(--accent); margin: 1rem auto; max-width: 1100px; border-radius: 5px; }
+
+    @media screen and (max-width: 768px) { table { display: block; overflow-x: auto; white-space: nowrap; } .tabs { display: flex; flex-direction: column; gap: 8px; } }
+
+    .update-bar, .info-links, .info-btn { /* existing styling */ }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logowhite.png" alt="League Logo" />
+    <a id="darkModeToggle" onclick="toggleDarkMode()">🌗</a>
+  </header>
+
+  <div class="info-links">
+    <a href="results.html" class="info-btn">📊 Results</a>
+    <a href="calendar.html" class="info-btn">📅 Calendar</a>
+  </div>
+
+  <br><center>⬅️➡️ Scroll to view full table</center>
+  <br><center>Click Player Name To View Stats</center>
+
+  <!-- Year Filter -->
+  <div style="text-align:center; margin:1rem 0;">
+    Show historic results for year:
+    <select id="year-select">
+      <option value="">Current Year</option>
+    </select>
+  </div>
+
+  <main id="tables-container">
+    <!-- League tables will be dynamically injected here -->
+  </main>
+
+  <div id="nextCompetition">
+    Next Competition: <span id="nextCompetitionText">TBD</span>
+    <div id="weather-widget" class="rounded-xl p-4 shadow-md text-center text-sm" style="max-width:600px;margin:1rem auto;background:var(--accent);color:var(--text);"></div>
+    <div id="weatherDetails" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">Loading weather...</div>
+  </div>
+
+  <div class="modal" id="scoreModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <div class="tabs">
+        <button id="tabNet" onclick="showTab('net')" class="active">Scores</button>
+        <button id="tabPositions" onclick="showTab('positions')">Competition History</button>
+        <button id="tabHistory" onclick="showTab('history')">Results History</button>
+      </div>
+      <canvas id="scoreChart" height="200"></canvas>
+      <canvas id="positionChart" height="200" style="display:none;"></canvas>
+      <ul id="scoreList"></ul>
+      <ul id="positionList" style="display:none;"></ul>
+    </div>
+  </div>
+
+  <script>
+    let history = {};
+    let currentYear = new Date().getFullYear();
+
+    function parseDateStr(dateStr) {
+      if (typeof dateStr === 'string' && dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+      } else return new Date(dateStr);
+    }
+
+    function renderTableForYear(year) {
+      const tableContainer = document.getElementById('tables-container');
+      tableContainer.innerHTML = '';
+      if (!history[year]) return;
+
+      const table = document.createElement('table');
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Games</th>
+            <th>Win %</th>
+            <th>Total Points</th>
+            <th>Wins</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      const tbody = table.querySelector('tbody');
+
+      const data = history[year].map((p,i) => {
+        const won = history[year].filter(e=>e.Name===p.name&&parseInt(e.Position)===1)
+                          .map(e=>e.Competition);
+        const span = won.length
+          ? `<span class="trophy" onclick="toggleTooltip(this)">${'🏆'.repeat(won.length)}
+               <span class="tooltip-bubble">${won.join(', ')}</span>
+             </span>` : '';
+        return `<tr>
+          <td>${i+1}</td>
+          <td><a href="#" onclick="showPlayerModal('${p.name}')">${p.name}</a></td>
+          <td>${p.games}</td>
+          <td>${p.winPct}%</td>
+          <td>${p.points}</td>
+          <td>${span}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = data.join('');
+      tableContainer.appendChild(table);
+    }
+
+    fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + new Date().getTime())
+      .then(res => res.arrayBuffer())
+      .then(buffer => {
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+
+        // Group by year
+        rows.forEach(r => {
+          const yr = parseDateStr(r.Date).getFullYear();
+          if (!history[yr]) history[yr] = [];
+          history[yr].push(r);
+        });
+
+        // Populate year dropdown for historic years
+        const yearSelect = document.getElementById('year-select');
+        Object.keys(history).filter(y=>y<currentYear).sort((a,b)=>b-a)
+          .forEach(y=>{
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            yearSelect.appendChild(opt);
+          });
+
+        // Render current year by default
+        renderTableForYear(currentYear);
+
+        yearSelect.addEventListener('change', e => {
+          const yr = e.target.value ? parseInt(e.target.value) : currentYear;
+          renderTableForYear(yr);
+        });
+      });
+
+    function toggleTooltip(el){
+      document.querySelectorAll('.trophy.show-tooltip').forEach(t=>{
+        if(t!==el) t.classList.remove('show-tooltip');
+      });
+      el.classList.toggle('show-tooltip');
+    }
+    document.addEventListener('click',e=>{
+      if(!e.target.closest('.trophy'))
+        document.querySelectorAll('.trophy.show-tooltip').forEach(t=>t.classList.remove('show-tooltip'));
+    });
+
+    function showPlayerModal(name){ /* existing modal code */ }
+    function showTab(tab){ /* existing tab switch code */ }
+    function closeModal(){ document.getElementById('scoreModal').style.display='none'; }
+    function toggleDarkMode(){ document.body.classList.toggle('dark-mode'); }
+  </script>
+</body>
+</html>
