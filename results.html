@@ -76,13 +76,30 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
-    function parseDateStr(s) {
-      if (typeof s === 'string' && s.includes('/')) {
-        const [d, m, y] = s.split('/');
-        return new Date(y, m - 1, d);
-      }
-      return new Date(s);
+function parseDateStr(s) {
+  if (!s) return new Date('Invalid');
+
+  // Excel serial number format (days since 1900)
+  if (typeof s === 'number') {
+    return new Date(Math.round((s - 25569) * 86400 * 1000));
+  }
+
+  // Text in dd/mm/yyyy or d/m/yyyy format
+  if (typeof s === 'string' && s.includes('/')) {
+    const parts = s.split('/');
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const y = parseInt(parts[2], 10);
+    if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+      return new Date(y, m - 1, d);
     }
+  }
+
+  // Fallback
+  const parsed = new Date(s);
+  return isNaN(parsed) ? new Date('Invalid') : parsed;
+}
+
 
     let allCompetitions = [];
     let currentSeason = null;

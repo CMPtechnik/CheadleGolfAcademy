@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Series Results — Cheadle Juniors</title>
+  <link rel="icon" href="favicon.png" type="image/png"/>
+  <meta name="theme-color" content="#005c41" />
+  <!-- Chart.js & XLSX -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{--primary:#005c41;--accent:#e6f2ef;--text:#111;--bg:#fff}
+    body{font-family:Segoe UI,Segoe,Arial,sans-serif;margin:0;background:var(--bg);color:var(--text);padding:18px}
+    header{background:var(--primary);color:#fff;padding:14px;border-radius:6px}
+    header h1{margin:0;font-size:1.1rem}
+    .sub { font-size:0.9rem; color:#f0f7f3; margin-top:6px; }
+    .controls{display:flex;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap}
+    select,input[type="checkbox"]{padding:8px 10px;border-radius:6px;border:1px solid #ddd}
+    button{padding:8px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer}
+    button.btn-primary{background:var(--primary);color:#fff;border:none}
+    .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border:1px solid #e6e6e6;padding:8px;text-align:center}
+    th{background:var(--accent)}
+    tbody tr:hover{background:#f6f9f6}
+    .winner{background:linear-gradient(90deg,#fff9e6,#fff);border-left:4px solid gold}
+    .small{font-size:0.9rem;color:#666}
+    .export-row{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:8px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:1000}
+    .modal{background:#fff;padding:18px;border-radius:8px;max-width:900px;width:95%;max-height:85vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+    .close-btn{float:right;border:none;background:transparent;font-size:1.1rem;cursor:pointer}
+    .toggle { display:flex; align-items:center; gap:6px; font-size:0.95rem; }
+    @media (max-width:720px){ .controls{flex-direction:column;align-items:stretch} table{font-size:0.95rem} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Season Series Results — Cheadle Juniors</h1>
+    <div class="sub">Spring: Apr &amp; May · Summer: Jun, Jul, Aug · Autumn: Sep, Oct, Nov</div>
+  </header>
+
+  <div class="controls" aria-label="controls">
+    <div>
+      <label for="yearSelect"><strong>Year</strong></label><br/>
+      <select id="yearSelect" aria-label="Year selector"></select>
+    </div>
+
+    <div>
+      <label for="seriesSelect"><strong>Series</strong></label><br/>
+      <select id="seriesSelect" aria-label="Series selector">
+        <option value="spring">Spring (Apr &amp; May)</option>
+        <option value="summer">Summer (Jun, Jul, Aug)</option>
+        <option value="autumn">Autumn (Sep, Oct, Nov)</option>
+      </select>
+    </div>
+
+    <div class="toggle">
+      <input type="checkbox" id="includeAllToggle" />
+      <label for="includeAllToggle">Include all players (not just qualifiers)</label>
+    </div>
+
+    <div class="right">
+      <a href="index.html"><button title="Return home" class="btn-primary">🏠 Home</button></a>
+      <button id="refreshBtn" class="btn-primary">🔁 Refresh</button>
+      <button id="exportBtn" class="btn-primary">📁 Export CSV</button>
+      <button id="printBtn" class="btn-primary">🖨️ Print</button>
+    </div>
+  </div>
+
+  <div id="summary" class="small" style="margin-top:6px"></div>
+
+  <div id="resultsArea">
+    <table id="resultsTable" aria-label="Series results table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th style="text-align:left">Month Breakdown</th>
+          <th>Total Points</th>
+          <th>Qualifies</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="export-row">
+    <small class="small">Export shows table contents. Toggle 'Include all players' to show non-qualifiers.</small>
+  </div>
+
+  <!-- modal -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
+    <div class="modal" role="document">
+      <button class="close-btn" id="modalClose">&times;</button>
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+      <canvas id="modalChart" height="240" style="margin-top:10px"></canvas>
+    </div>
+  </div>
+
+<script>
+/* ---------- Config ---------- */
+const WORKBOOK_URL = 'https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=' + Date.now();
+// fallback mapping position->points if Points column empty (index = position)
+const fallbackPoints = [0,10,8,6,5,4,3,2,1];
+// seasons -> months number
+const SERIES_MONTHS = { spring:[4,5], summer:[6,7,8], autumn:[9,10,11] };
+
+/* ---------- Utilities (robust date parser) ---------- */
+function parseDateStr(v){
+  if (v === null || v === undefined || v === '') return null;
+  // Excel serials (numbers)
+  if (typeof v === 'number' && isFinite(v)) {
+    if (v > 20000 && v < 80000) return new Date(Math.round((v - 25569) * 86400 * 1000));
+  }
+  if (typeof v === 'string') {
+    const slash = v.match(/^\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\s*$/);
+    if (slash) {
+      let d = parseInt(slash[1],10), m = parseInt(slash[2],10)-1, y = parseInt(slash[3],10);
+      if (y < 100) y += 2000;
+      return new Date(y,m,d);
+    }
+    const iso = new Date(v);
+    if (!isNaN(iso)) return iso;
+    const parsed = Date.parse(v.replace(/(\d+)\s+([A-Za-z]+)\s+(\d{4})/,'$1 $2 $3'));
+    if (!isNaN(parsed)) return new Date(parsed);
+  }
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+function toGB(d){ return d ? d.toLocaleDateString('en-GB') : ''; }
+function escapeHtml(s){ if (!s && s !== 0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// points extraction preferring Points column (col E)
+function getPointsFromRow(r){
+  const raw = (r.Points ?? r['Points'] ?? r['points'] ?? '').toString().trim();
+  const v = parseFloat(raw);
+  if (!isNaN(v)) return v;
+  const pos = parseInt(r.Position,10);
+  if (!isNaN(pos) && pos >= 1) {
+    if (pos < fallbackPoints.length) return fallbackPoints[pos];
+    return 1;
+  }
+  return 0;
+}
+
+/* ---------- DOM refs ---------- */
+const yearSelect = document.getElementById('yearSelect');
+const seriesSelect = document.getElementById('seriesSelect');
+const includeAllToggle = document.getElementById('includeAllToggle');
+const resultsTbody = document.querySelector('#resultsTable tbody');
+const summary = document.getElementById('summary');
+const refreshBtn = document.getElementById('refreshBtn');
+const exportBtn = document.getElementById('exportBtn');
+const printBtn = document.getElementById('printBtn');
+
+const modalBackdrop = document.getElementById('modalBackdrop');
+const modalClose = document.getElementById('modalClose');
+const modalTitle = document.getElementById('modalTitle');
+const modalBody = document.getElementById('modalBody');
+const modalChartEl = document.getElementById('modalChart');
+let modalChart = null;
+
+/* ---------- State ---------- */
+let allRows = [];
+let availableYears = [];
+let currentSeasonFromSettings = null;
+
+/* ---------- Fetch & Init ---------- */
+async function init(){
+  try{
+    const res = await fetch(WORKBOOK_URL);
+    const buf = await res.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+
+    // settings sheet
+    const sSheet = wb.Sheets['Settings'];
+    if (sSheet) {
+      const sRows = XLSX.utils.sheet_to_json(sSheet, { header:1 });
+      sRows.forEach(r => {
+        if (!r || !r[0]) return;
+        const key = String(r[0]).toLowerCase();
+        if (key.includes('current season') && r[1]) {
+          const maybe = parseInt(r[1]);
+          if (!isNaN(maybe)) currentSeasonFromSettings = maybe;
+        }
+      });
+    }
+
+    const sheet = wb.Sheets['Results'] || wb.Sheets[wb.SheetNames[0]];
+    allRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+    availableYears = Array.from(new Set(allRows.map(r=>{
+      const d = parseDateStr(r.Date);
+      return d ? d.getFullYear() : null;
+    }).filter(y=>y))).sort((a,b)=>b-a);
+
+    yearSelect.innerHTML = availableYears.map(y => `<option value="${y}">${y}</option>`).join('');
+    const defaultYear = (currentSeasonFromSettings && availableYears.includes(currentSeasonFromSettings)) ? currentSeasonFromSettings : (availableYears[0] || (new Date()).getFullYear());
+    yearSelect.value = defaultYear;
+
+    // set sensible default series based on current month
+    const nowMo = (new Date()).getMonth()+1;
+    if ([4,5].includes(nowMo)) seriesSelect.value='spring';
+    else if ([6,7,8].includes(nowMo)) seriesSelect.value='summer';
+    else seriesSelect.value='autumn';
+
+    buildSeriesTable();
+  } catch(err){
+    console.error('Workbook load error', err);
+    summary.textContent = 'Error loading data.';
+  }
+}
+
+/* ---------- Tie-break helper functions ---------- */
+function countWinsInRounds(rounds, monthsSet){
+  // rounds is array of rows; count how many positions==1 in those rounds
+  return rounds.filter(r => parseInt(r.Position,10) === 1 && monthsSet.has((parseDateStr(r.Date) || new Date()).getMonth()+1)).length;
+}
+function highestSingleRoundPoints(rounds, monthsSet){
+  return Math.max(...rounds.filter(r => monthsSet.has((parseDateStr(r.Date)||new Date()).getMonth()+1)).map(getPointsFromRow).concat([0]));
+}
+function averageScore(rounds, monthsSet){
+  const vals = rounds.filter(r=>monthsSet.has((parseDateStr(r.Date)||new Date()).getMonth()+1)).map(r=>parseFloat(r.Score)).filter(v=>!isNaN(v));
+  if (!vals.length) return null;
+  return vals.reduce((a,b)=>a+b,0)/vals.length;
+}
+function headToHeadScore(aRounds, bRounds, monthsSet){
+  // for competitions both players played in (exact competition name), count who finished higher more often
+  const byCompA = {};
+  aRounds.forEach(r => { const d=parseDateStr(r.Date); if (!d) return; if (!monthsSet.has(d.getMonth()+1)) return; const comp=r.Competition||r.Title||''; byCompA[comp] = byCompA[comp] || []; byCompA[comp].push(r); });
+  const byCompB = {};
+  bRounds.forEach(r => { const d=parseDateStr(r.Date); if (!d) return; if (!monthsSet.has(d.getMonth()+1)) return; const comp=r.Competition||r.Title||''; byCompB[comp] = byCompB[comp] || []; byCompB[comp].push(r); });
+
+  let aBetter = 0, bBetter = 0;
+  Object.keys(byCompA).forEach(comp=>{
+    if (!byCompB[comp]) return;
+    // pick best position for each (lowest number)
+    const apos = Math.min(...byCompA[comp].map(r=>parseInt(r.Position)||999));
+    const bpos = Math.min(...byCompB[comp].map(r=>parseInt(r.Position)||999));
+    if (apos < bpos) aBetter++;
+    else if (bpos < apos) bBetter++;
+  });
+  return aBetter - bBetter;
+}
+
+/* ---------- Sorting comparator applying tie-break rules ---------- */
+function comparePlayers(a, b, months, year){
+  // a and b are objects with: name, perMonthPoints, total, qualifies, rounds
+  // 1. total points
+  if (b.total !== a.total) return b.total - a.total;
+
+  const monthsSet = new Set(months);
+
+  // 2. most wins in series
+  const aWins = countWinsInRounds(a.rounds, monthsSet);
+  const bWins = countWinsInRounds(b.rounds, monthsSet);
+  if (bWins !== aWins) return bWins - aWins;
+
+  // 3. highest single round points
+  const aHigh = highestSingleRoundPoints(a.rounds, monthsSet);
+  const bHigh = highestSingleRoundPoints(b.rounds, monthsSet);
+  if (bHigh !== aHigh) return bHigh - aHigh;
+
+  // 4. lowest average gross score (lower is better)
+  const aAvg = averageScore(a.rounds, monthsSet);
+  const bAvg = averageScore(b.rounds, monthsSet);
+  if (aAvg !== null && bAvg !== null) {
+    if (aAvg !== bAvg) return aAvg - bAvg; // lower average wins
+  } else if (aAvg !== null) {
+    return -1; // a has avg, b doesn't -> a better
+  } else if (bAvg !== null) {
+    return 1;
+  }
+
+  // 5. head to head
+  const hh = headToHeadScore(a.rounds, b.rounds, monthsSet);
+  if (hh !== 0) return -hh; // if aBetter-bBetter >0 -> aBetter so a comes first => negative of hh
+
+  // 6. final fallback: alphabetical
+  return a.name.localeCompare(b.name);
+}
+
+/* ---------- Build table ---------- */
+function buildSeriesTable(){
+  const year = parseInt(yearSelect.value,10);
+  const series = seriesSelect.value;
+  const months = SERIES_MONTHS[series];
+  const monthsSet = new Set(months);
+  summary.textContent = `Calculating ${series.charAt(0).toUpperCase()+series.slice(1)} series for ${year} — required months: ${months.join(', ')}.`;
+
+  // filter for selected year & months
+  const seasonRows = allRows.filter(r=>{
+    const d = parseDateStr(r.Date);
+    if (!d) return false;
+    return d.getFullYear() === year && months.includes(d.getMonth()+1);
+  });
+
+  // group by player
+  const byPlayer = {};
+  seasonRows.forEach(r => {
+    const d = parseDateStr(r.Date);
+    if (!d) return;
+    const player = (r.Name||'').trim();
+    if (!player) return;
+    const month = d.getMonth()+1;
+    if (!byPlayer[player]) byPlayer[player] = { months: {}, rounds: [] };
+    byPlayer[player].months[month] = byPlayer[player].months[month] || [];
+    byPlayer[player].months[month].push(r);
+    byPlayer[player].rounds.push(r);
+  });
+
+  const players = Object.keys(byPlayer).map(name => {
+    const obj = byPlayer[name];
+    let total = 0;
+    const perMonthPoints = {};
+    months.forEach(m => {
+      const cell = obj.months[m] || [];
+      const pts = cell.reduce((s,row)=>s + getPointsFromRow(row), 0);
+      perMonthPoints[m] = pts;
+      total += pts;
+    });
+    const qualifies = months.every(m => (obj.months[m] && obj.months[m].length>0));
+    return { name, perMonthPoints, total, qualifies, rounds: obj.rounds };
+  });
+
+  // includeAll toggle
+  const includeAll = includeAllToggle.checked;
+  let shownPlayers = includeAll ? players : players.filter(p=>p.qualifies);
+
+  // sort with tie-break comparator (we want qualifiers ordered at top)
+  shownPlayers.sort((a,b) => {
+    // prefer qualifiers
+    if (a.qualifies !== b.qualifies) return a.qualifies ? -1 : 1;
+    return comparePlayers(a,b,months,year);
+  });
+
+  // render
+  resultsTbody.innerHTML = '';
+  if (!shownPlayers.length) {
+    resultsTbody.innerHTML = `<tr><td colspan="5">No entries for ${year} ${series} series.</td></tr>`;
+    summary.textContent = `Series: ${series.toUpperCase()} • Year: ${year} • Qualifying players: ${players.filter(p=>p.qualifies).length}`;
+    return;
+  }
+
+  // determine winners (could be ties)
+  const qualifyingPlayers = shownPlayers.filter(p=>p.qualifies);
+  let winners = [];
+  if (qualifyingPlayers.length) {
+    // top total among qualifiers
+    const topTotal = Math.max(...qualifyingPlayers.map(p=>p.total||0));
+    // select those with same total and apply full tie-breaker among them (since sorted, first group with same totals)
+    let topCandidates = qualifyingPlayers.filter(p=>p.total===topTotal);
+    if (topCandidates.length === 1) winners = [topCandidates[0]];
+    else {
+      // re-sort topCandidates using comparator to break ties exactly
+      topCandidates.sort((a,b)=>comparePlayers(a,b,months,year));
+      // find tied group: compare with first, any that are equal under comparator (i.e., comparator==0) considered joint winners
+      const first = topCandidates[0];
+      winners = topCandidates.filter(c => comparePlayers(first, c, months, year) === 0);
+    }
+  }
+
+  // render rows
+  const monthNames = months.map(m => new Date(year,m-1,1).toLocaleString('en-GB',{month:'short'}));
+  shownPlayers.forEach((p, idx) => {
+    const tr = document.createElement('tr');
+    const isWinner = winners.some(w=>w.name===p.name);
+    if (isWinner) tr.classList.add('winner');
+    const monthBreakdown = months.map((m,i)=>`${monthNames[i]}: ${p.perMonthPoints[m] || 0}`).join(' | ');
+    tr.innerHTML = `
+      <td>${idx+1}</td>
+      <td><a href="#" class="player-link" data-name="${escapeHtml(p.name)}">${escapeHtml(p.name)}</a></td>
+      <td style="text-align:left">${escapeHtml(monthBreakdown)}</td>
+      <td>${p.total}</td>
+      <td>${p.qualifies ? '✅' : '—'}</td>
+    `;
+    resultsTbody.appendChild(tr);
+  });
+
+  // wire up modals
+  resultsTbody.querySelectorAll('.player-link').forEach(a=>{
+    a.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      const nm = a.dataset.name;
+      const p = shownPlayers.find(x=>x.name===nm);
+      if (p) openPlayerModal(p, year, series, months);
+    });
+  });
+
+  // summary including winners
+  let summaryText = `Series: <strong>${series.toUpperCase()}</strong> • Year: <strong>${year}</strong> • Qualifying players: <strong>${players.filter(p=>p.qualifies).length}</strong>`;
+  if (winners.length) {
+    const names = winners.map(w=>escapeHtml(w.name)).join(', ');
+    summaryText += ` • Winner${winners.length>1?'s':''}: <strong>${names}</strong> — ${winners[0].total} pts 🏆`;
+  } else summaryText += ` • No qualifying winner`;
+  summary.innerHTML = summaryText;
+}
+
+/* ---------- Player modal ---------- */
+function openPlayerModal(playerObj, year, series, months){
+  modalTitle.textContent = `${playerObj.name} — ${series.charAt(0).toUpperCase()+series.slice(1)} ${year}`;
+
+  const rows = playerObj.rounds.map(r=>{
+    const d = parseDateStr(r.Date);
+    return {
+      date: d ? d.toLocaleDateString('en-GB') : (r.Date || ''),
+      competition: r.Competition || r.Title || '',
+      score: r.Score || '',
+      points: getPointsFromRow(r),
+      pos: r.Position || ''
+    };
+  }).sort((a,b)=> new Date(a.date) - new Date(b.date));
+
+  modalBody.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;margin-top:6px">
+      <thead><tr style="background:#f1f1f1"><th style="padding:6px">Date</th><th style="padding:6px">Competition</th><th style="padding:6px">Score</th><th style="padding:6px">Points</th><th style="padding:6px">Pos</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>`<tr><td style="padding:6px">${escapeHtml(r.date)}</td><td style="padding:6px;text-align:left">${escapeHtml(r.competition)}</td><td style="padding:6px">${escapeHtml(r.score)}</td><td style="padding:6px">${r.points}</td><td style="padding:6px">${escapeHtml(r.pos)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  `;
+
+  // chart: points per round + cumulative
+  const labels = rows.map(r=>`${r.date} · ${r.competition}`);
+  const pts = rows.map(r=>r.points);
+  const cum = []; let run = 0; pts.forEach(p=>{ run += p; cum.push(run); });
+
+  if (modalChart) modalChart.destroy();
+  const ctx = modalChartEl.getContext('2d');
+  modalChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets: [
+      { type:'bar', label:'Points', data:pts, backgroundColor:'#2f7a57' },
+      { type:'line', label:'Cumulative', data:cum, borderColor:'#ff8c00', fill:false, tension:0.2 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  modalBackdrop.style.display = 'flex';
+  modalBackdrop.setAttribute('aria-hidden','false');
+}
+
+/* ---------- Export, Print, UI wiring ---------- */
+exportBtn.addEventListener('click', ()=>{
+  // Build CSV from current table
+  const rows = [];
+  document.querySelectorAll('#resultsTable tbody tr').forEach(tr=>{
+    const tds = tr.querySelectorAll('td');
+    if (tds.length < 5) return;
+    rows.push({
+      Rank: tds[0].innerText.trim(),
+      Player: tds[1].innerText.trim(),
+      Months: tds[2].innerText.trim(),
+      TotalPoints: tds[3].innerText.trim(),
+      Qualifies: tds[4].innerText.trim()
+    });
+  });
+  if (!rows.length) return alert('No data to export');
+  const hdr = Object.keys(rows[0]).join(',');
+  const csv = hdr + '\n' + rows.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `series_${seriesSelect.value}_${yearSelect.value}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+printBtn.addEventListener('click', ()=> window.print());
+refreshBtn.addEventListener('click', buildSeriesTable);
+yearSelect.addEventListener('change', buildSeriesTable);
+seriesSelect.addEventListener('change', buildSeriesTable);
+includeAllToggle.addEventListener('change', buildSeriesTable);
+
+modalClose.addEventListener('click', ()=>{ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); if (modalChart) modalChart.destroy(); });
+modalBackdrop.addEventListener('click', (e)=>{ if (e.target === modalBackdrop) { modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); if (modalChart) modalChart.destroy(); } });
+
+/* ---------- Launch ---------- */
+init();
+</script>
+</body>
+</html>

@@ -83,12 +83,21 @@
   <div id="noData" class="no-data" style="display:none;">No data found for this player.</div>
 
   <script>
+    // ✅ FIXED DATE PARSER (handles Excel serials + text)
     function parseDateStr(s) {
+      if (!s) return new Date('Invalid');
+      // If Excel serial number (e.g., 45678)
+      if (!isNaN(s) && Number(s) > 20000 && Number(s) < 80000) {
+        return new Date((Number(s) - 25569) * 86400 * 1000);
+      }
+      // If string in dd/mm/yyyy or d/m/yyyy format
       if (typeof s === 'string' && s.includes('/')) {
-        const [d, m, y] = s.split('/');
+        const [d, m, y] = s.split(/[\/\-]/).map(v => parseInt(v));
         return new Date(y, m - 1, d);
       }
-      return new Date(s);
+      // Otherwise try direct parse
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? new Date('Invalid') : d;
     }
 
     const params = new URLSearchParams(window.location.search);
@@ -98,7 +107,7 @@
     fetch('https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=' + Date.now())
       .then(res => res.arrayBuffer())
       .then(buffer => {
-        const wb = XLSX.read(buffer, { type:'array' });
+        const wb = XLSX.read(buffer, { type: 'array' });
         const sheet = wb.Sheets[wb.SheetNames[0]];
         recs = XLSX.utils.sheet_to_json(sheet).filter(r => r.Name && r.Name.toLowerCase() === playerName.toLowerCase());
 
@@ -112,9 +121,9 @@
 
         // Stats
         const games = recs.length;
-        const totalPoints = recs.reduce((sum,r)=>sum+(parseFloat(r.Points)||0),0);
-        const trophies = recs.filter(r => parseInt(r.Position)===1).length;
-        const winPct = games ? ((trophies/games)*100).toFixed(1) : 0;
+        const totalPoints = recs.reduce((sum, r) => sum + (parseFloat(r.Points) || 0), 0);
+        const trophies = recs.filter(r => parseInt(r.Position) === 1).length;
+        const winPct = games ? ((trophies / games) * 100).toFixed(1) : 0;
 
         // Header
         document.getElementById('profileHeader').innerHTML = `
@@ -130,16 +139,18 @@
 
         // Populate history table
         const tbody = document.querySelector('#historyTable tbody');
-        recs.sort((a,b)=>parseDateStr(b.Date)-parseDateStr(a.Date)).forEach(r => {
-          const trophy = parseInt(r.Position)===1?'🏆':'';
+        recs.sort((a, b) => parseDateStr(b.Date) - parseDateStr(a.Date)).forEach(r => {
+          const date = parseDateStr(r.Date);
+          const dateStr = !isNaN(date.getTime()) ? date.toLocaleDateString('en-GB') : '';
+          const trophy = parseInt(r.Position) === 1 ? '🏆' : '';
           const sf = isNaN(parseInt(r['Stableford Points'])) ? 0 : parseInt(r['Stableford Points']);
           tbody.innerHTML += `
             <tr>
-              <td>${parseDateStr(r.Date).toLocaleDateString()}</td>
-              <td>${r.Title||r.Competition}</td>
-              <td>${r.Score||''}</td>
+              <td>${dateStr}</td>
+              <td>${r.Title || r.Competition}</td>
+              <td>${r.Score || ''}</td>
               <td>${sf}</td>
-              <td>${r.Points||''}</td>
+              <td>${r.Points || ''}</td>
               <td>${trophy}</td>
             </tr>
           `;
@@ -152,47 +163,51 @@
 
     let playerChart;
     function showChart(type) {
-      ['tabScore','tabPosition','tabSF'].forEach(id=>document.getElementById(id).classList.remove('active'));
+      ['tabScore', 'tabPosition', 'tabSF'].forEach(id => document.getElementById(id).classList.remove('active'));
       document.getElementById('tab' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('active');
 
-      const labels = recs.map(r=>parseDateStr(r.Date).toLocaleDateString());
-      let datasets = [];
-      let options = { responsive:true };
+      const labels = recs.map(r => {
+        const d = parseDateStr(r.Date);
+        return !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB') : '';
+      });
 
-      if(type==='score') {
+      let datasets = [];
+      let options = { responsive: true };
+
+      if (type === 'score') {
         datasets = [
           {
-            label:'Net Score',
-            data: recs.map(r=>parseFloat(r.Score)||0),
-            fill:false,
-            borderColor:'#005c41',
-            tension:0.2,
-            pointStyle: recs.map(r=>parseInt(r.Position)===1?'🏆':'circle'),
-            pointRadius:6
+            label: 'Net Score',
+            data: recs.map(r => parseFloat(r.Score) || 0),
+            fill: false,
+            borderColor: '#005c41',
+            tension: 0.2,
+            pointRadius: 5
           },
           {
-            label:'Par 32',
+            label: 'Par 32',
             data: new Array(labels.length).fill(32),
-            borderDash:[5,5],
-            fill:false,
-            borderColor:'#888'
+            borderDash: [5, 5],
+            fill: false,
+            borderColor: '#888'
           }
         ];
-      } else if(type==='position') {
+      } else if (type === 'position') {
         datasets = [
-          { label:'Position', data: recs.map(r=>parseInt(r.Position)||0), fill:false, borderColor:'#ff6600', tension:0.2 }
+          { label: 'Position', data: recs.map(r => parseInt(r.Position) || 0), fill: false, borderColor: '#ff6600', tension: 0.2 }
         ];
-        options.scales = { y: { reverse:true, title:{display:true,text:'Finishing Position'} } };
-      } else if(type==='sf') {
+        options.scales = { y: { reverse: true, title: { display: true, text: 'Finishing Position' } } };
+      } else if (type === 'sf') {
         datasets = [
-          { label:'Stableford Points', data: recs.map(r=>parseInt(r['Stableford Points'])||0), backgroundColor:'#008080' }
+          { label: 'Stableford Points', data: recs.map(r => parseInt(r['Stableford Points']) || 0), backgroundColor: '#008080' }
         ];
       }
 
       const ctx = document.getElementById('playerChart').getContext('2d');
-      if(playerChart) playerChart.destroy();
-      playerChart = new Chart(ctx, { type:type==='sf'?'bar':'line', data:{ labels, datasets }, options });
+      if (playerChart) playerChart.destroy();
+      playerChart = new Chart(ctx, { type: type === 'sf' ? 'bar' : 'line', data: { labels, datasets }, options });
     }
   </script>
+
 </body>
 </html>

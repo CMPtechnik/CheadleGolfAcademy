@@ -77,7 +77,25 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    // ✅ FIXED DATE PARSER (handles Excel serials + text)
+    function parseDateStr(s) {
+      if (!s) return new Date('Invalid');
+      // Excel serial (e.g. 45789)
+      if (!isNaN(s) && Number(s) > 20000 && Number(s) < 80000) {
+        return new Date((Number(s) - 25569) * 86400 * 1000);
+      }
+      // dd/mm/yyyy or d/m/yyyy text
+      if (typeof s === 'string' && s.includes('/')) {
+        const [d, m, y] = s.split(/[\/\-]/).map(v => parseInt(v));
+        return new Date(y, m - 1, d);
+      }
+      // fallback
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? new Date('Invalid') : d;
+    }
+
     const getParForCompetition = (name) => {
+      if (!name) return 32;
       if (name.includes("Sixes")) return 22;
       if (name.includes("Bruntwood 9")) return 27;
       if (name.includes("Bruntwood 18")) return 54;
@@ -85,7 +103,7 @@
     };
 
     async function fetchData() {
-      const res = await fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx");
+      const res = await fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + Date.now());
       const ab = await res.arrayBuffer();
       const wb = XLSX.read(ab, { type: "array" });
       const sheet = wb.Sheets[wb.SheetNames[0]];
@@ -105,8 +123,8 @@
       const playerStats = Object.keys(players).map(name => {
         const rounds = players[name];
         const handicaps = rounds.map(r => (r.score - getParForCompetition(r.competition)) * 0.93);
-        const best3 = [...handicaps].sort((a,b)=>a-b).slice(0,3);
-        const current = (best3.reduce((a,b)=>a+b,0)/best3.length).toFixed(1);
+        const best3 = [...handicaps].sort((a, b) => a - b).slice(0, 3);
+        const current = (best3.reduce((a, b) => a + b, 0) / best3.length).toFixed(1);
         const lowest = Math.min(...handicaps).toFixed(1);
         return { name, current: parseFloat(current), lowest: parseFloat(lowest), roundsPlayed: rounds.length, rounds };
       });
@@ -133,24 +151,24 @@
       document.querySelectorAll(".open-modal").forEach(btn => {
         btn.addEventListener("click", e => {
           const name = e.target.dataset.name;
-          const player = players.find(p=>p.name===name);
+          const player = players.find(p => p.name === name);
           openModal(name, player.rounds);
         });
       });
 
       // Sorting
       document.querySelectorAll(".sortable").forEach(th => {
-        if(th.asc === undefined) th.asc = true; // initialize per column
+        if (th.asc === undefined) th.asc = true;
         th.addEventListener("click", () => {
           const key = th.dataset.sort;
           const asc = th.asc;
           th.asc = !asc;
 
-          players.sort((a,b) => {
-            if(key === 'name'){
+          players.sort((a, b) => {
+            if (key === 'name') {
               return asc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
             } else {
-              return asc ? a[key]-b[key] : b[key]-a[key];
+              return asc ? a[key] - b[key] : b[key] - a[key];
             }
           });
           renderTable(players);
@@ -166,7 +184,7 @@
         ...r,
         hcap: ((r.score - getParForCompetition(r.competition)) * 0.93).toFixed(1)
       }));
-      const best3Hcap = [...handicaps].sort((a,b) => a.hcap-b.hcap).slice(0,3).map(r=>r.hcap);
+      const best3Hcap = [...handicaps].sort((a, b) => a.hcap - b.hcap).slice(0, 3).map(r => r.hcap);
 
       const content = document.getElementById("modalContent");
       content.innerHTML = `
@@ -177,31 +195,40 @@
             </tr>
           </thead>
           <tbody>
-            ${handicaps.map(r=>`
-              <tr class="${best3Hcap.includes(r.hcap) ? 'best-round' : ''}">
-                <td>${r.date}</td>
-                <td>${r.competition} ${best3Hcap.includes(r.hcap) ? '🏆' : ''}</td>
-                <td>${r.score}</td>
-                <td>${getParForCompetition(r.competition)}</td>
-                <td>${r.hcap}</td>
-              </tr>
-            `).join("")}
+            ${handicaps.map(r => {
+              const d = parseDateStr(r.date);
+              const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString("en-GB") : '';
+              return `
+                <tr class="${best3Hcap.includes(r.hcap) ? 'best-round' : ''}">
+                  <td>${dateStr}</td>
+                  <td>${r.competition} ${best3Hcap.includes(r.hcap) ? '🏆' : ''}</td>
+                  <td>${r.score}</td>
+                  <td>${getParForCompetition(r.competition)}</td>
+                  <td>${r.hcap}</td>
+                </tr>`;
+            }).join("")}
           </tbody>
         </table>
       `;
 
+      // Chart setup
+      const chartLabels = rounds.map(r => {
+        const d = parseDateStr(r.date);
+        return !isNaN(d.getTime()) ? d.toLocaleDateString("en-GB") : '';
+      });
       const chartData = handicaps.map(r => parseFloat(r.hcap));
+
       const ctx = document.getElementById("handicapChart").getContext("2d");
       if (window.hcapChart) window.hcapChart.destroy();
       window.hcapChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: rounds.map(r => r.date),
+          labels: chartLabels,
           datasets: [{
             label: 'Handicap per Round',
             data: chartData,
             borderColor: '#3273dc',
-            backgroundColor: chartData.map(h => best3Hcap.includes(h) ? '#f6e58d99' : '#3273dc33'),
+            backgroundColor: chartData.map(h => best3Hcap.includes(h.toFixed(1)) ? '#f6e58d99' : '#3273dc33'),
             fill: true,
             tension: 0.3
           }]
@@ -218,5 +245,6 @@
 
     fetchData();
   </script>
+
 </body>
 </html>
