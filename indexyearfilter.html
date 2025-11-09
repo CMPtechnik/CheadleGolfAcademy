@@ -17,45 +17,249 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
-    :root { --primary: #31522F; --accent: #e6f2ef; --text: #1e1e1e; --bg: #fdfdfd; --border: #ccc; --hover: #f1f1f1; }
-    body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; }
-    .dark-mode { --bg: #121212; --text: #f5f5f5; --accent: #1f2b27; --border: #444; --hover: #1e1e1e; }
-    .dark-mode table, .dark-mode th, .dark-mode td, .dark-mode .modal-content { background-color: #1e1e1e; color: var(--text); }
-    .dark-mode th { background-color: #2a2a2a; }
-    .dark-mode .tooltip-bubble { background: #f5f5f5; color: #111; }
-    .dark-mode a { color: #80ffd3; }
+    :root {
+      --primary: #31522F;
+      --accent: #e6f2ef;
+      --text: #1e1e1e;
+      --bg: #fdfdfd;
+      --border: #ccc;
+      --hover: #f1f1f1;
+    }
 
-    header { background: var(--primary); color: white; padding: 1rem; text-align: center; position: relative; }
-    header img { max-height: 350px; }
-    header h1 { margin: 0.5rem 0 0; }
-    #darkModeToggle { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 1.5rem; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
 
-    main { max-width: 1100px; margin: auto; padding: 1rem; }
-    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    th, td { border: 1px solid var(--border); padding: 10px; text-align: center; }
-    th { background: var(--accent); position: sticky; top: 0; z-index: 1; }
-    tbody tr:nth-child(even) { background: #f9f9f9; }
-    tbody tr:hover { background: var(--hover); }
-    a { color: var(--primary); text-decoration: none; font-weight: bold; }
-    .trophy { position: relative; display: inline-block; cursor: pointer; }
-    .tooltip-bubble { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 5px 8px; border-radius: 5px; font-size: 0.75rem; white-space: nowrap; z-index: 1000; }
-    .trophy.show-tooltip .tooltip-bubble { display: block; }
+    .dark-mode {
+      --bg: #121212;
+      --text: #f5f5f5;
+      --accent: #1f2b27;
+      --border: #444;
+      --hover: #1e1e1e;
+    }
 
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
-    .close-btn { float: right; font-size: 20px; cursor: pointer; }
+    .dark-mode table,
+    .dark-mode th,
+    .dark-mode td,
+    .dark-mode .modal-content {
+      background-color: #1e1e1e;
+      color: var(--text);
+    }
 
-    .tabs { text-align: center; margin: 1rem 0; }
-    .tabs button { padding: 0.5rem 1rem; margin: 0 0.25rem; border: none; border-radius: 4px; background: var(--accent); color: var(--primary); font-weight: 600; cursor: pointer; }
-    .tabs button.active { background: var(--primary); color: white; }
+    .dark-mode th {
+      background-color: #2a2a2a;
+    }
 
-    #scoreChart, #positionChart { margin-bottom: 1rem; }
+    .dark-mode .tooltip-bubble {
+      background: #f5f5f5;
+      color: #111;
+    }
 
-    #nextCompetition { text-align: center; padding: 1rem; font-size: 1rem; background: var(--accent); margin: 1rem auto; max-width: 1100px; border-radius: 5px; }
+    .dark-mode a {
+      color: #80ffd3;
+    }
 
-    @media screen and (max-width: 768px) { table { display: block; overflow-x: auto; white-space: nowrap; } .tabs { display: flex; flex-direction: column; gap: 8px; } }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      position: relative;
+    }
 
-    .update-bar, .info-links, .info-btn { /* existing styling */ }
+    header img {
+      max-height: 350px;
+    }
+
+    header h1 {
+      margin: 0.5rem 0 0;
+    }
+
+    #darkModeToggle {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    .info-bar {
+      background: var(--accent);
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: var(--accent);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    tbody tr:hover {
+      background: var(--hover);
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .trophy {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .tooltip-bubble {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      z-index: 1000;
+    }
+
+    .trophy.show-tooltip .tooltip-bubble {
+      display: block;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .close-btn {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .tabs {
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    .tabs button {
+      padding: 0.5rem 1rem;
+      margin: 0 0.25rem;
+      border: none;
+      border-radius: 4px;
+      background: var(--accent);
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    #scoreChart, #positionChart {
+      margin-bottom: 1rem;
+    }
+
+    #nextCompetition {
+      text-align: center;
+      padding: 1rem;
+      font-size: 1rem;
+      background: var(--accent);
+      margin: 1rem auto;
+      max-width: 1100px;
+      border-radius: 5px;
+    }
+
+    @media screen and (max-width: 768px) {
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .tabs {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+
+    .info-links {
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .info-btn {
+      background: var(--primary);
+      color: white;
+      padding: 0.6rem 1.0rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 800;
+      transition: background 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.9rem;
+    }
+
+    .info-btn:hover {
+      background: #24401f;
+    }
   </style>
 </head>
 <body>
@@ -72,22 +276,31 @@
   <br><center>⬅️➡️ Scroll to view full table</center>
   <br><center>Click Player Name To View Stats</center>
 
-  <!-- Year Filter -->
-  <div style="text-align:center; margin:1rem 0;">
-    Show historic results for year:
-    <select id="year-select">
-      <option value="">Current Year</option>
-    </select>
-  </div>
+  <main>
+    <div style="text-align:center; margin: 1rem;">
+      <label for="seasonSelect" style="font-weight:600;">Season:</label>
+      <select id="seasonSelect" onchange="changeSeason(this.value)" style="padding:0.4rem; border-radius:5px;">
+        <option value="">Loading...</option>
+      </select>
+    </div>
 
-  <main id="tables-container">
-    <!-- League tables will be dynamically injected here -->
+    <table id="league-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Name</th>
+          <th>Games</th>
+          <th>Win %</th>
+          <th>Total Points</th>
+          <th>Wins</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </main>
 
   <div id="nextCompetition">
     Next Competition: <span id="nextCompetitionText">TBD</span>
-    <div id="weather-widget" class="rounded-xl p-4 shadow-md text-center text-sm" style="max-width:600px;margin:1rem auto;background:var(--accent);color:var(--text);"></div>
-    <div id="weatherDetails" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">Loading weather...</div>
   </div>
 
   <div class="modal" id="scoreModal">
@@ -97,7 +310,6 @@
       <div class="tabs">
         <button id="tabNet" onclick="showTab('net')" class="active">Scores</button>
         <button id="tabPositions" onclick="showTab('positions')">Competition History</button>
-        <button id="tabHistory" onclick="showTab('history')">Results History</button>
       </div>
       <canvas id="scoreChart" height="200"></canvas>
       <canvas id="positionChart" height="200" style="display:none;"></canvas>
@@ -107,89 +319,122 @@
   </div>
 
   <script>
-    let history = {};
-    let currentYear = new Date().getFullYear();
+    let history = [];
+    let selectedYear = null;
+    let currentSeason = null;
 
     function parseDateStr(dateStr) {
       if (typeof dateStr === 'string' && dateStr.includes('/')) {
         const parts = dateStr.split('/');
         return new Date(parts[2], parts[1] - 1, parts[0]);
-      } else return new Date(dateStr);
+      } else {
+        return new Date(dateStr);
+      }
     }
 
-    function renderTableForYear(year) {
-      const tableContainer = document.getElementById('tables-container');
-      tableContainer.innerHTML = '';
-      if (!history[year]) return;
+    function getYearFromEntry(entry) {
+      const date = parseDateStr(entry.Date);
+      return date instanceof Date && !isNaN(date) ? date.getFullYear() : null;
+    }
 
-      const table = document.createElement('table');
-      table.innerHTML = `
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Name</th>
-            <th>Games</th>
-            <th>Win %</th>
-            <th>Total Points</th>
-            <th>Wins</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      `;
-      const tbody = table.querySelector('tbody');
+    function populateSeasonDropdown(data) {
+      const years = [...new Set(data.map(getYearFromEntry).filter(y => y))].sort((a, b) => b - a);
+      const dropdown = document.getElementById('seasonSelect');
+      dropdown.innerHTML = years.map(y => `<option value="${y}">${y} Season</option>`).join('');
+      selectedYear = currentSeason && years.includes(currentSeason) ? currentSeason : years[0];
+      dropdown.value = selectedYear;
+    }
 
-      const data = history[year].map((p,i) => {
-        const won = history[year].filter(e=>e.Name===p.name&&parseInt(e.Position)===1)
-                          .map(e=>e.Competition);
-        const span = won.length
-          ? `<span class="trophy" onclick="toggleTooltip(this)">${'🏆'.repeat(won.length)}
-               <span class="tooltip-bubble">${won.join(', ')}</span>
-             </span>` : '';
-        return `<tr>
-          <td>${i+1}</td>
-          <td><a href="#" onclick="showPlayerModal('${p.name}')">${p.name}</a></td>
-          <td>${p.games}</td>
-          <td>${p.winPct}%</td>
-          <td>${p.points}</td>
-          <td>${span}</td>
-        </tr>`;
-      });
-      tbody.innerHTML = data.join('');
-      tableContainer.appendChild(table);
+    function changeSeason(year) {
+      selectedYear = parseInt(year);
+      updateLeague(history);
     }
 
     fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + new Date().getTime())
       .then(res => res.arrayBuffer())
       .then(buffer => {
         const workbook = XLSX.read(buffer, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet);
+        const settingsSheet = workbook.Sheets['Settings'];
 
-        // Group by year
-        rows.forEach(r => {
-          const yr = parseDateStr(r.Date).getFullYear();
-          if (!history[yr]) history[yr] = [];
-          history[yr].push(r);
-        });
+        if (settingsSheet) {
+          const settingsData = XLSX.utils.sheet_to_json(settingsSheet, { header: 1 });
+          let nextCompetition, currentSeasonValue;
 
-        // Populate year dropdown for historic years
-        const yearSelect = document.getElementById('year-select');
-        Object.keys(history).filter(y=>y<currentYear).sort((a,b)=>b-a)
-          .forEach(y=>{
-            const opt = document.createElement('option');
-            opt.value = y;
-            opt.textContent = y;
-            yearSelect.appendChild(opt);
+          settingsData.forEach(row => {
+            if (!row[0]) return;
+            const key = row[0].toString().toLowerCase();
+            if (key.includes('next competition')) nextCompetition = row[1];
+            if (key.includes('current season')) currentSeasonValue = parseInt(row[1]);
           });
 
-        // Render current year by default
-        renderTableForYear(currentYear);
+          if (nextCompetition) {
+            document.getElementById('nextCompetitionText').innerText = nextCompetition;
+          }
+          if (currentSeasonValue && !isNaN(currentSeasonValue)) {
+            currentSeason = currentSeasonValue;
+          }
+        }
 
-        yearSelect.addEventListener('change', e => {
-          const yr = e.target.value ? parseInt(e.target.value) : currentYear;
-          renderTableForYear(yr);
-        });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        history = XLSX.utils.sheet_to_json(sheet);
+        populateSeasonDropdown(history);
+        updateLeague(history);
       });
+
+    function updateLeague(data) {
+      const filtered = selectedYear ? data.filter(e => getYearFromEntry(e) === selectedYear) : data;
+      const netScores = {}, netWins = {}, totalPoints = {}, rounds = {};
+
+      filtered.forEach(entry => {
+        const { Name, Score, Position, Points, Competition } = entry;
+        const net = parseFloat(Score);
+        if (isNaN(net)) return;
+        netScores[Name] = netScores[Name] || [];
+        rounds[Competition] = rounds[Competition] || [];
+        netScores[Name].push(net);
+        rounds[Competition].push({ name: Name, position: parseInt(Position) });
+        totalPoints[Name] = (totalPoints[Name] || 0) + (parseFloat(Points) || 0);
+      });
+
+      Object.values(rounds).forEach(players =>
+        players.filter(p => p.position === 1).forEach(p =>
+          netWins[p.name] = (netWins[p.name] || 0) + 1
+        )
+      );
+
+      const players = Object.keys(netScores).map(name => {
+        const games = netScores[name].length;
+        const wins = netWins[name] || 0;
+        const winPct = ((wins / games) * 100).toFixed(1);
+        return { name, games, winPct, points: totalPoints[name], trophies: wins };
+      }).sort((a,b) => b.points - a.points || b.trophies - a.trophies || b.winPct - a.winPct);
+
+      renderTable(players);
+    }
+
+    function renderTable(data) {
+      const tbody = document.querySelector("#league-table tbody");
+      tbody.innerHTML = '';
+      data.forEach((p,i) => {
+        const won = history.filter(e => e.Name === p.name && parseInt(e.Position) === 1 && getYearFromEntry(e) === selectedYear)
+                           .map(e => e.Competition);
+        const span = won.length
+          ? `<span class="trophy" onclick="toggleTooltip(this)">
+               ${'🏆'.repeat(won.length)}
+               <span class="tooltip-bubble">${won.join(', ')}</span>
+             </span>`
+          : '';
+        tbody.innerHTML += `
+          <tr>
+            <td>${i+1}</td>
+            <td><a href="#" onclick="showPlayerModal('${p.name}')">${p.name}</a></td>
+            <td>${p.games}</td>
+            <td>${p.winPct}%</td>
+            <td>${p.points}</td>
+            <td>${span}</td>
+          </tr>`;
+      });
+    }
 
     function toggleTooltip(el){
       document.querySelectorAll('.trophy.show-tooltip').forEach(t=>{
@@ -197,15 +442,74 @@
       });
       el.classList.toggle('show-tooltip');
     }
+
     document.addEventListener('click',e=>{
       if(!e.target.closest('.trophy'))
         document.querySelectorAll('.trophy.show-tooltip').forEach(t=>t.classList.remove('show-tooltip'));
     });
 
-    function showPlayerModal(name){ /* existing modal code */ }
-    function showTab(tab){ /* existing tab switch code */ }
-    function closeModal(){ document.getElementById('scoreModal').style.display='none'; }
-    function toggleDarkMode(){ document.body.classList.toggle('dark-mode'); }
+    function closeModal(){
+      document.getElementById('scoreModal').style.display='none';
+    }
+
+    function toggleDarkMode(){
+      document.body.classList.toggle('dark-mode');
+    }
+
+    function showPlayerModal(name){
+      const scores = history.filter(e=>e.Name===name && getYearFromEntry(e)===selectedYear)
+        .map(e=>({competition:e.Competition,score:parseFloat(e.Score),position:e.Position,points:parseFloat(e.Points)||0,date:e.Date}))
+        .sort((a,b)=>parseDateStr(a.date)-parseDateStr(b.date));
+
+      document.getElementById('modalTitle').innerText = `${name}'s ${selectedYear} Score History`;
+      const scoreList = document.getElementById('scoreList');
+      const posList   = document.getElementById('positionList');
+      scoreList.innerHTML = '';
+      posList.innerHTML = '';
+
+      scores.forEach(s=>{
+        const trophy = s.position==1?' 🏆':'';
+        scoreList.innerHTML   += `<li>${s.competition}: ${s.score} (${s.position}${trophy})</li>`;
+        posList.innerHTML     += `<li>${s.competition}: Finished ${s.position}, Points ${s.points}${trophy}</li>`;
+      });
+
+      const labels = scores.map(s=>s.competition);
+      const netData = scores.map(s=>s.score);
+      const posData = scores.map(s=>s.position);
+
+      const ctxNet = document.getElementById('scoreChart').getContext('2d');
+      if(window.scoreChart instanceof Chart) window.scoreChart.destroy();
+      window.scoreChart = new Chart(ctxNet,{ type:'line', data:{labels,datasets:[
+          {label:'Score',data:netData,fill:false,borderColor:'#007bff'}
+        ]}, options:{responsive:true} });
+
+      const ctxPos = document.getElementById('positionChart').getContext('2d');
+      if(window.positionChart instanceof Chart) window.positionChart.destroy();
+      window.positionChart = new Chart(ctxPos,{ type:'line', data:{labels,datasets:[
+          {label:'Result',data:posData,fill:false,borderColor:'#28a745'}
+        ]}, options:{scales:{y:{reverse:true,title:{display:true,text:'Finishing Position'}}}} });
+
+      showTab('net');
+      document.getElementById('scoreModal').style.display='flex';
+    }
+
+    function showTab(tab){
+      document.getElementById('tabNet').classList.remove('active');
+      document.getElementById('tabPositions').classList.remove('active');
+      if(tab==='net'){
+        document.getElementById('tabNet').classList.add('active');
+        document.getElementById('scoreChart').style.display='block';
+        document.getElementById('scoreList').style.display='block';
+        document.getElementById('positionChart').style.display='none';
+        document.getElementById('positionList').style.display='none';
+      }else{
+        document.getElementById('tabPositions').classList.add('active');
+        document.getElementById('scoreChart').style.display='none';
+        document.getElementById('scoreList').style.display='none';
+        document.getElementById('positionChart').style.display='block';
+        document.getElementById('positionList').style.display='block';
+      }
+    }
   </script>
 </body>
 </html>
