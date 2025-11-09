@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Cheadle Juniors</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <meta name="theme-color" content="#005c41" />
+
+  <!-- Chart.js & XLSX -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #31522F;
+      --accent: #e6f2ef;
+      --text: #1e1e1e;
+      --bg: #fdfdfd;
+      --border: #ccc;
+      --hover: #f1f1f1;
+    }
+    body { font-family:'Segoe UI',sans-serif; margin:0; background:var(--bg); color:var(--text); }
+    .dark-mode { --bg:#121212; --text:#f5f5f5; --accent:#1f2b27; --border:#444; --hover:#1e1e1e; }
+
+    header { background:var(--primary); color:#fff; padding:1rem; text-align:center; position:relative; }
+    header img { max-height:320px; }
+    #darkModeToggle { position:absolute; top:10px; right:15px; cursor:pointer; font-size:1.5rem; }
+
+    .info-links { margin-top:0.5rem; display:flex; justify-content:center; gap:0.5rem; flex-wrap:wrap; }
+    .info-btn { background:var(--primary); color:white; padding:0.6rem 1rem; border-radius:6px; text-decoration:none; font-weight:800; display:inline-flex; gap:0.4rem; align-items:center; }
+
+    main { max-width:1100px; margin:auto; padding:1rem; }
+
+    .controls-row { display:flex; justify-content:center; gap:0.6rem; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+    .btn { background:var(--primary); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:700; }
+    .btn.secondary { background:#fff; color:var(--primary); border:1px solid var(--border); }
+
+    .season-row { text-align:center; margin: 12px 0; }
+
+    table { width:100%; border-collapse:collapse; background:white; box-shadow:0 2px 6px rgba(0,0,0,0.05); }
+    th, td { border:1px solid var(--border); padding:10px; text-align:center; }
+    th { background:var(--accent); position:sticky; top:0; z-index:1; }
+    tbody tr:nth-child(even){ background:#f9f9f9; }
+    tbody tr:hover { background:var(--hover); }
+
+    a.player-link { color:var(--primary); text-decoration:none; font-weight:700; cursor:pointer; }
+    .medal { margin-right:6px; font-size:1.1rem; }
+
+    /* glassy drawer */
+    .backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); opacity:0; pointer-events:none; transition:opacity .25s; z-index:1200; backdrop-filter:blur(2px); }
+    .backdrop.show { opacity:1; pointer-events:auto; }
+    .drawer {
+      position:fixed; left:10%; right:10%; bottom:0; height:75vh; max-height:92vh;
+      transform:translateY(110%); transition:transform .28s cubic-bezier(.2,.9,.2,1);
+      z-index:1300; display:flex; flex-direction:column; border-top-left-radius:12px; border-top-right-radius:12px;
+      overflow:hidden;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.6), rgba(255,255,255,0.95));
+      backdrop-filter: blur(8px) saturate(120%);
+      box-shadow:0 -20px 40px rgba(0,0,0,0.25);
+    }
+    .drawer.fullwidth { left:0; right:0; }
+    .drawer.show { transform: translateY(0%); }
+    .drawer-header { padding:12px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.06); }
+    .drawer-body { padding:12px 16px; overflow:auto; }
+
+    .breakdown-table { width:100%; border-collapse:collapse; margin-top:0.6rem; }
+    .breakdown-table th, .breakdown-table td { text-align:left; padding:8px; border-bottom:1px solid rgba(0,0,0,0.06); }
+    .breakdown-table th { background:transparent; font-weight:700; }
+
+    .panel-chart { margin-top:12px; height:400px; }
+    .panel-chart canvas { width:100% !important; height:100% !important; }
+
+    /* Next Competition area (moved below table) */
+    .next-block { text-align:center; padding:1rem; font-size:1rem; background:var(--accent); margin:1rem auto; max-width:1100px; border-radius:5px; }
+
+    @media (max-width:900px) { .drawer { left:4%; right:4%; } }
+    @media (max-width:640px) { .drawer { left:0; right:0; height:82vh; } table { display:block; overflow-x:auto; white-space:nowrap; } }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logowhite.png" alt="League Logo" />
+    <a id="darkModeToggle" onclick="toggleDarkMode()">🌗</a>
+  </header>
+
+  <div class="info-links">
+    <a href="results.html" class="info-btn">📊 Results</a>
+    <a href="calendar.html" class="info-btn">📅 Calendar</a>
+  </div>
+  <p>
+    <!-- Controls above season dropdown -->
+    <div class="controls-row">
+      <button id="printBtn" class="btn">🖨️ Print</button>
+      <button id="exportBtn" class="btn">📁 Export CSV</button>
+    </div>
+ <main>
+    <br><center>⬅️➡️ Scroll to view full table</center>
+    <br><center> Click Player Name To View Points Breakdown</center>
+    <!-- Season selector -->
+    <div class="season-row">
+      <label for="seasonSelect" style="font-weight:600;">Season:</label>
+      <select id="seasonSelect" style="padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--border);"></select>
+    </div>
+
+    <!-- Leaderboard table -->
+    <div id="leaderboardArea">
+      <table id="leaderboardTable" aria-label="Season leaderboard">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Games</th>
+            <th>Win %</th>
+            <th>Total Points</th>
+            <th>Wins</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <<!-- Next Competition / Weather / Last Updated — BELOW the table -->
+<div class="next-block" id="nextBlock" style="margin-top: 1.5rem; text-align: center;">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 0.6rem;">
+    <div><strong>Next Competition:</strong> <span id="nextCompetitionText">TBD</span></div>
+    <div>
+      <strong>Weather (Cheadle Golf Club):</strong>
+      <span id="weatherText">Loading…</span>
+      <span id="weatherEmoji" style="margin-left: 0.5rem;"></span>
+    </div>
+    <div><strong>Last Updated:</strong> <span id="lastUpdatedText"></span></div>
+  </div>
+
+  <div id="weatherDetails" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-top: 0.6rem;"></div>
+</div>
+
+  <!-- glassy slide-up drawer -->
+  <div id="drawerBackdrop" class="backdrop" aria-hidden="true"></div>
+  <div id="drawer" class="drawer" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="drawer-header">
+      <div id="drawerTitle"><strong>Player breakdown</strong></div>
+      <div>
+        <button id="downloadPlayerCsv" class="btn secondary">⬇️ CSV</button>
+        <button id="closeDrawer" class="btn secondary">Close</button>
+      </div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </div>
+
+  <script>
+    // ---------- Config ----------
+    const WORKBOOK_URL = 'https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=' + Date.now();
+    const WEATHER_API_KEY = "e583bd0c194bbfeb3deb92f6bfdad11a";
+    const WEATHER_LOCATION = "Cheadle,UK"; // used for API calls when needed
+    const scoring = [0,10,8,6,5,4,3,2,1];
+
+    // emoji mapping: use main or description keywords
+    const emojiMap = [
+      {match: ['clear'], emoji: '☀️'},
+      {match: ['clouds','cloudy','overcast'], emoji: '☁️'},
+      {match: ['partly','few','scattered','broken','mostly'], emoji: '🌤️'},
+      {match: ['rain','drizzle','shower'], emoji: '🌧️'},
+      {match: ['thunder','thunderstorm'], emoji: '⛈️'},
+      {match: ['snow','sleet'], emoji: '❄️'},
+      {match: ['mist','fog','haze'], emoji: '🌫️'},
+    ];
+    function mapToEmoji(text){
+      if(!text) return '';
+      const t = text.toLowerCase();
+      for(const item of emojiMap){
+        for(const k of item.match){
+          if(t.includes(k)) return item.emoji;
+        }
+      }
+      return '🌤️';
+    }
+
+    // ---------- State ----------
+    let allRows = [];
+    let availableYears = [];
+    let currentSeason = null;
+    let selectedYear = null;
+    let leaderboardPlayers = [];
+    let currentCsvRows = [];
+
+    // ---------- DOM refs ----------
+    const seasonSelect = document.getElementById('seasonSelect');
+    const leaderboardTbody = document.querySelector('#leaderboardTable tbody');
+    const printBtn = document.getElementById('printBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const nextCompetitionText = document.getElementById('nextCompetitionText');
+    const weatherText = document.getElementById('weatherText');
+    const weatherEmoji = document.getElementById('weatherEmoji');
+    const lastUpdatedText = document.getElementById('lastUpdatedText');
+    const weatherDetails = document.getElementById('weatherDetails');
+
+    const drawerBackdrop = document.getElementById('drawerBackdrop');
+    const drawer = document.getElementById('drawer');
+    const drawerBody = document.getElementById('drawerBody');
+    const drawerTitle = document.getElementById('drawerTitle');
+    const closeDrawerBtn = document.getElementById('closeDrawer');
+    const downloadPlayerCsvBtn = document.getElementById('downloadPlayerCsv');
+
+    // ---------- Helpers ----------
+    function toGB(date){ if(!date) return ''; return date.toLocaleDateString('en-GB'); }
+
+    function parseDateStr(v){
+      if (v === null || v === undefined || v === '') return null;
+      if (v instanceof Date && !isNaN(v)) return v;
+      if (typeof v === 'number' && isFinite(v)) {
+        const epoch = new Date(1899,11,30);
+        return new Date(epoch.getTime() + v * 86400000);
+      }
+      if (typeof v === 'string') {
+        const m = v.match(/^\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\s*$/);
+        if (m) {
+          let d = parseInt(m[1],10);
+          let mon = parseInt(m[2],10)-1;
+          let y = parseInt(m[3],10);
+          if (y < 100) y += 2000;
+          return new Date(y, mon, d);
+        }
+        const dt = new Date(v);
+        if (!isNaN(dt)) return dt;
+        const parsed = Date.parse(v.replace(/(\d+)\s+([A-Za-z]+)\s+(\d{4})/,'$1 $2 $3'));
+        if (!isNaN(parsed)) return new Date(parsed);
+      }
+      return null;
+    }
+
+    function calculateLeaguePoints(position){
+      if (position === null || position === undefined || position === '') return 0;
+      const p = parseInt(position,10);
+      if (isNaN(p) || p <= 0) return 0;
+      if (p < scoring.length) return scoring[p];
+      return 1;
+    }
+
+    function escapeHtml(s){ if (s === null || s === undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function downloadCSV(filename, rows){
+      if (!rows || !rows.length) return;
+      const headers = Object.keys(rows[0]);
+      const csv = [
+        headers.join(','),
+        ...rows.map(r => headers.map(h => `"${String(r[h] ?? '').replace(/"/g,'""')}"`).join(','))
+      ].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // drawer open/close
+    function openDrawer(){ drawerBackdrop.classList.add('show'); drawer.classList.add('show'); drawer.setAttribute('aria-hidden','false'); drawerBackdrop.setAttribute('aria-hidden','false'); }
+    function closeDrawer(){ drawerBackdrop.classList.remove('show'); drawer.classList.remove('show'); drawer.setAttribute('aria-hidden','true'); drawerBackdrop.setAttribute('aria-hidden','true'); drawerBody.innerHTML=''; drawerTitle.innerHTML='Player breakdown'; destroyDrawerChart(); }
+    closeDrawerBtn.addEventListener('click', closeDrawer);
+    drawerBackdrop.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') closeDrawer(); });
+
+    // ---------- Init ----------
+    lastUpdatedText.innerText = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' });
+
+    (async function init(){
+      try {
+        const res = await fetch(WORKBOOK_URL);
+        const buf = await res.arrayBuffer();
+        const wb = XLSX.read(buf, { type: 'array' });
+
+        // Settings sheet
+        const settingsSheet = wb.Sheets['Settings'];
+        let nextCompRaw = null;
+        if (settingsSheet) {
+          const settings = XLSX.utils.sheet_to_json(settingsSheet, { header: 1 });
+          settings.forEach(row => {
+            if (!row[0]) return;
+            const key = String(row[0]).toLowerCase();
+            if (key.includes('next competition') && row[1]) nextCompRaw = row[1];
+            if (key.includes('current season') && row[1] !== undefined && row[1] !== null && row[1] !== '') currentSeason = parseInt(row[1],10);
+          });
+        }
+        if (nextCompRaw) nextCompetitionText.innerText = nextCompRaw;
+
+        // Results sheet
+        const resultsSheet = wb.Sheets['Results'] || wb.Sheets[wb.SheetNames[0]];
+        allRows = XLSX.utils.sheet_to_json(resultsSheet, { defval: '' });
+
+        // Available years
+        availableYears = Array.from(new Set(allRows.map(r => {
+          const d = parseDateStr(r.Date);
+          return d ? d.getFullYear() : null;
+        }).filter(y => y))).sort((a,b)=>b-a);
+
+        if (!availableYears.length) {
+          seasonSelect.innerHTML = '<option value="">No seasons</option>';
+        } else {
+          seasonSelect.innerHTML = availableYears.map(y => `<option value="${y}">${y} Season</option>`).join('');
+          const defaultYear = (currentSeason && availableYears.includes(currentSeason)) ? currentSeason : availableYears[0];
+          seasonSelect.value = defaultYear;
+          selectedYear = parseInt(seasonSelect.value,10);
+          buildLeaderboard(selectedYear);
+        }
+
+        // Weather: decide between forecast for next competition date or current
+        if (nextCompetitionText.innerText && nextCompetitionText.innerText !== 'TBD') {
+          const compDate = extractDateFromText(nextCompetitionText.innerText);
+          if (compDate) {
+            const today = new Date();
+            const compMidday = new Date(compDate.getFullYear(), compDate.getMonth(), compDate.getDate(), 12, 0, 0);
+            if (compMidday > today) {
+              // fetch forecast (5-day) and pick the closest time to midday for comp date
+              try {
+                const fRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(WEATHER_LOCATION)}&appid=${WEATHER_API_KEY}&units=metric`);
+                const fJson = await fRes.json();
+                if (fJson && fJson.list) {
+                  // find forecast entries with same day
+                  const sameDay = fJson.list.filter(item => {
+                    const d = new Date(item.dt_txt);
+                    return d.getDate() === compDate.getDate() && d.getMonth() === compDate.getMonth() && d.getFullYear() === compDate.getFullYear();
+                  });
+                  // prefer 12:00, else 15:00, else first
+                  let forecast = sameDay.find(i => i.dt_txt.includes('12:00:00')) || sameDay.find(i => i.dt_txt.includes('15:00:00')) || sameDay[0] || null;
+                  if (!forecast && fJson.list.length) forecast = fJson.list[0];
+                  if (forecast) {
+                    const cond = forecast.weather && forecast.weather[0] && (forecast.weather[0].main || forecast.weather[0].description) || '';
+                    const t = Math.round(forecast.main.temp);
+                    const emoji = mapToEmoji(cond);
+                    weatherText.innerText = `${t}°C, ${cond}`;
+                    weatherEmoji.innerText = emoji;
+                    weatherDetails.innerHTML = `<div style="font-size:0.9rem;color:var(--text);">Forecast for ${toGB(compDate)}</div>`;
+                    return;
+                  }
+                }
+              } catch (e) {
+                console.warn('Forecast fetch failed, falling back to current weather', e);
+              }
+            }
+          }
+        }
+
+        // Default fallback: fetch current weather
+        try {
+          const cur = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(WEATHER_LOCATION)}&appid=${WEATHER_API_KEY}&units=metric`);
+          const cj = await cur.json();
+          if (cj && cj.main && cj.weather && cj.weather[0]) {
+            const t = Math.round(cj.main.temp);
+            const cond = cj.weather[0].main || cj.weather[0].description || '';
+            const emoji = mapToEmoji(cond);
+            weatherText.innerText = `${t}°C, ${cond}`;
+            weatherEmoji.innerText = emoji;
+            weatherDetails.innerHTML = `<div style="font-size:0.9rem;color:var(--text);">Current at Cheadle Golf Club</div>`;
+          } else {
+            weatherText.innerText = 'Unavailable';
+          }
+        } catch (e) {
+          console.error('Current weather fetch error', e);
+          weatherText.innerText = 'Unavailable';
+        }
+
+      } catch (err) {
+        console.error('Workbook load error', err);
+      }
+    })();
+
+    // ---------- Leaderboard build ----------
+    function buildLeaderboard(year){
+      leaderboardTbody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
+      if (!allRows.length) return;
+
+      const seasonRows = allRows.filter(r => {
+        const d = parseDateStr(r.Date);
+        return d && d.getFullYear() === parseInt(year,10);
+      });
+
+      const agg = {};
+      seasonRows.forEach(r => {
+        const name = (r.Name || '').trim();
+        if (!name) return;
+        const pos = parseInt(r.Position,10);
+        const pts = calculateLeaguePoints(pos);
+        if (!agg[name]) agg[name] = { total:0, games:0, wins:0, rounds:[] };
+        agg[name].total += pts;
+        agg[name].games += 1;
+        if (pos === 1) agg[name].wins++;
+        agg[name].rounds.push({
+          date: parseDateStr(r.Date),
+          competition: r.Competition || r.Title || '',
+          position: isNaN(pos) ? '' : pos,
+          points: pts,
+          score: r.Score || '',
+          raw: r
+        });
+      });
+
+      const players = Object.keys(agg).map(name => ({
+        name,
+        total: agg[name].total,
+        games: agg[name].games,
+        wins: agg[name].wins,
+        rounds: agg[name].rounds.sort((a,b)=>a.date - b.date)
+      })).sort((a,b) => {
+        if (b.total !== a.total) return b.total - a.total;
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        return a.name.localeCompare(b.name);
+      });
+
+      leaderboardPlayers = players;
+      renderLeaderboard(players);
+    }
+
+    function renderLeaderboard(players){
+      leaderboardTbody.innerHTML = '';
+      if (!players.length) {
+        leaderboardTbody.innerHTML = '<tr><td colspan="6">No players found.</td></tr>';
+        return;
+      }
+
+      players.forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        let medal = '';
+        if (idx === 0) medal = '🥇 ';
+        else if (idx === 1) medal = '🥈 ';
+        else if (idx === 2) medal = '🥉 ';
+        const nameHtml = `<a class="player-link" data-player="${escapeHtml(p.name)}">${escapeHtml(medal + p.name)}</a>`;
+
+        const winPct = p.games ? ((p.wins / p.games) * 100).toFixed(1) : '0.0';
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${nameHtml}</td>
+          <td>${p.games}</td>
+          <td>${winPct}%</td>
+          <td>${p.total}</td>
+          <td>${'🏆'.repeat(p.wins)}</td>
+        `;
+        leaderboardTbody.appendChild(tr);
+      });
+
+      // wire player clicks
+      leaderboardTbody.querySelectorAll('.player-link').forEach(a=>{
+        a.addEventListener('click', (e)=>{
+          const name = a.getAttribute('data-player');
+          const player = leaderboardPlayers.find(x => x.name === name);
+          if (player) showPlayerDrawer(player, selectedYear);
+        });
+      });
+    }
+
+    seasonSelect.addEventListener('change', (e)=>{
+      selectedYear = parseInt(e.target.value,10);
+      buildLeaderboard(selectedYear);
+    });
+
+    // ---------- Drawer content & chart ----------
+    let drawerChart = null;
+    function destroyDrawerChart(){ if (drawerChart){ drawerChart.destroy(); drawerChart = null; } }
+
+    function showPlayerDrawer(player, year){
+      drawerTitle.innerHTML = `<strong>${escapeHtml(player.name)}</strong> — ${escapeHtml(String(year))} — Total: ${player.total} pts`;
+
+      const container = document.createElement('div');
+      const meta = document.createElement('div');
+      meta.innerHTML = `<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:8px;">
+        <div><strong>Games:</strong> ${player.games}</div>
+        <div><strong>Wins:</strong> ${player.wins}</div>
+        <div><strong>Total Points:</strong> ${player.total}</div>
+      </div>`;
+      container.appendChild(meta);
+
+      // breakdown table includes Score
+      const tbl = document.createElement('table');
+      tbl.className = 'breakdown-table';
+      tbl.style.width = '100%';
+      const thead = document.createElement('thead');
+      thead.innerHTML = `<tr><th>Date</th><th>Competition</th><th>Position</th><th>Points</th><th>Score</th></tr>`;
+      tbl.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      currentCsvRows = [];
+
+      player.rounds.forEach(r => {
+        const d = toGB(r.date);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${escapeHtml(d)}</td><td>${escapeHtml(r.competition)}</td><td>${escapeHtml(String(r.position))}</td><td>${escapeHtml(String(r.points))}</td><td>${escapeHtml(String(r.score))}</td>`;
+        tbody.appendChild(tr);
+        currentCsvRows.push({ Date: d, Competition: r.competition, Position: r.position, Points: r.points, Score: r.score });
+      });
+
+      tbl.appendChild(tbody);
+      container.appendChild(tbl);
+
+      // chart container (bigger)
+      const chartWrap = document.createElement('div');
+      chartWrap.className = 'panel-chart';
+      chartWrap.innerHTML = `<canvas id="drawerChart" height="400"></canvas>`;
+      container.appendChild(chartWrap);
+
+      drawerBody.innerHTML = '';
+      drawerBody.appendChild(container);
+
+      // wire CSV download
+      downloadPlayerCsvBtn.onclick = ()=> {
+        if (currentCsvRows.length) downloadCSV(`${player.name.replace(/\s+/g,'_')}_${year}_breakdown.csv`, currentCsvRows);
+      };
+
+      // chart: points per round + cumulative
+      destroyDrawerChart();
+      const labels = player.rounds.map(r => toGB(r.date) + ' — ' + r.competition);
+      const points = player.rounds.map(r => r.points);
+      const cumulative = [];
+      let running = 0;
+      points.forEach(p => { running += p; cumulative.push(running); });
+
+      const ctx = document.getElementById('drawerChart').getContext('2d');
+      drawerChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { type: 'bar', label: 'Points this round', data: points, backgroundColor: 'rgba(49,82,47,0.9)' },
+            { type: 'line', label: 'Cumulative points', data: cumulative, borderColor: '#FF7A18', fill:false, tension:0.25, borderWidth:2 }
+          ]
+        },
+        options: {
+          responsive:true,
+          maintainAspectRatio:false,
+          interaction: { mode:'index', intersect:false },
+          scales: { y: { beginAtZero:true, title: { display:true, text:'Points' } } },
+          plugins: { legend: { position:'top' } }
+        }
+      });
+
+      // open drawer, full width on small screens
+      if (window.innerWidth <= 640) drawer.classList.add('fullwidth'); else drawer.classList.remove('fullwidth');
+      openDrawer();
+    }
+
+    // ---------- Export & Print ----------
+    exportBtn.addEventListener('click', ()=>{
+      if (!leaderboardPlayers || !leaderboardPlayers.length) return;
+      const rows = leaderboardPlayers.map((p, idx) => ({
+        Rank: idx+1,
+        Player: p.name,
+        Games: p.games,
+        Wins: p.wins,
+        'Win %': p.games ? ((p.wins / p.games) * 100).toFixed(1) : '0.0',
+        'Total Points': p.total
+      }));
+      downloadCSV(`CheadleJuniors_Leaderboard_${selectedYear || 'NA'}.csv`, rows);
+    });
+    printBtn.addEventListener('click', ()=> window.print());
+
+    // ---------- small util: parse date text from Settings value ----------
+    function extractDateFromText(text) {
+      if (!text) return null;
+      // try dd/mm/yyyy
+      const slashMatch = text.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/);
+      if (slashMatch) {
+        const d = parseInt(slashMatch[1],10), m = parseInt(slashMatch[2],10)-1, y = parseInt(slashMatch[3],10);
+        return new Date(y,m,d);
+      }
+      // try "12 April 2026" or "12 April"
+      const wordMatch = text.match(/\b(\d{1,2})\s([A-Za-z]+)\s?(\d{4})?/);
+      if (wordMatch) {
+        const day = parseInt(wordMatch[1],10);
+        const monthName = wordMatch[2];
+        const year = wordMatch[3] ? parseInt(wordMatch[3],10) : (new Date()).getFullYear();
+        const dt = new Date(`${day} ${monthName} ${year}`);
+        return isNaN(dt) ? null : dt;
+      }
+      return null;
+    }
+
+    // ---------- resize chart on window resize ----------
+    window.addEventListener('resize', ()=> { try{ if (drawerChart) drawerChart.resize(); }catch(e){} });
+
+    // ---------- dark mode ----------
+    function toggleDarkMode(){ document.body.classList.toggle('dark-mode'); try{ if (drawerChart) drawerChart.resize(); }catch(e){} }
+
+  </script>
+
+  <br>
+  <center><img src="logocja.png" alt="League Logo" /> <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="cgc Logo" width="100" height="100"/></center>
+  <br>
+  <center>Build v1.0.0 | Unified Leaderboard</center>
+  <br>
+  <center><a href="https://www.theapplegeek.co.uk" target="_blank">The Apple Geek Data Solutions</a></center>
+</body>
+</html>

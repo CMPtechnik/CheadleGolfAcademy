@@ -310,6 +310,15 @@
   <br><center>⬅️➡️ Scroll to view full table</center>
 <br><center> Click Player Name To View Stats</center>
   <main>
+
+    <!-- Season dropdown (defaults to Current Season if present in Settings) -->
+    <div style="text-align:center; margin: 1rem;">
+      <label for="seasonSelect" style="font-weight:600;">Season:</label>
+      <select id="seasonSelect" onchange="changeSeason(this.value)" style="padding:0.4rem; border-radius:5px;">
+        <option value="">Loading...</option>
+      </select>
+    </div>
+
     <table id="league-table">
       <thead>
         <tr>
@@ -348,57 +357,134 @@
   </div>
 
   <script>
+    // ————— State —————
     let history = [];
+    let selectedYear = null;
+    let currentSeason = null;
 
-    function parseDateStr(dateStr) {
-      if (typeof dateStr === 'string' && dateStr.includes('/')) {
-        const parts = dateStr.split('/');
-        return new Date(parts[2], parts[1] - 1, parts[0]);
-      } else {
-        return new Date(dateStr);
+    // Robust date parser: handles Excel serial numbers, dd/mm/yyyy, text like "12 April 2026", and native Date strings
+    function parseDateStr(value) {
+      if (value === null || value === undefined || value === '') return null;
+
+      // If the XLSX output gives a JavaScript Date already
+      if (value instanceof Date && !isNaN(value)) return value;
+
+      // Excel serial date (numbers) — detect finite numbers (integers or floats)
+      if (Number.isFinite(value)) {
+        // Excel's epoch: 1899-12-30 (note: Excel incorrectly treats 1900 as leap year but this is standard conversion)
+        const excelEpoch = new Date(1899, 11, 30);
+        return new Date(excelEpoch.getTime() + value * 86400000);
       }
+
+      // If string like "dd/mm/yyyy"
+      if (typeof value === 'string') {
+        // Try common UK format dd/mm/yyyy or d/m/yyyy
+        const slashMatch = value.match(/^\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\s*$/);
+        if (slashMatch) {
+          const d = parseInt(slashMatch[1], 10);
+          const m = parseInt(slashMatch[2], 10) - 1;
+          let y = parseInt(slashMatch[3], 10);
+          if (y < 100) y += 2000;
+          return new Date(y, m, d);
+        }
+
+        // Try JS Date parser (ISO or "12 Apr 2026")
+        const tryDate = new Date(value);
+        if (!isNaN(tryDate)) return tryDate;
+
+        // Fallback: attempt to pull "12 April 2026" style
+        const parsed = Date.parse(value.replace(/(\d+)\s+([A-Za-z]+)\s+(\d{4})/, '$1 $2 $3'));
+        if (!isNaN(parsed)) return new Date(parsed);
+      }
+
+      return null;
     }
 
+    function getYearFromEntry(entry) {
+      const date = parseDateStr(entry.Date);
+      return date instanceof Date && !isNaN(date) ? date.getFullYear() : null;
+    }
+
+    // Populate season dropdown from history years, default to currentSeason if available
+    function populateSeasonDropdown(data) {
+      const years = [...new Set(data.map(getYearFromEntry).filter(y => y))].sort((a, b) => b - a);
+      const dropdown = document.getElementById('seasonSelect');
+
+      if (!years.length) {
+        dropdown.innerHTML = '<option value="">No seasons</option>';
+        selectedYear = null;
+        return;
+      }
+
+      dropdown.innerHTML = years.map(y => `<option value="${y}">${y} Season</option>`).join('');
+      selectedYear = (currentSeason && years.includes(currentSeason)) ? currentSeason : years[0];
+      dropdown.value = selectedYear;
+    }
+
+    function changeSeason(year) {
+      selectedYear = parseInt(year);
+      updateLeague(history);
+    }
+
+    // Fetch workbook from GitHub and initialize
     fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + new Date().getTime())
       .then(res => res.arrayBuffer())
       .then(buffer => {
         const workbook = XLSX.read(buffer, { type: 'array' });
+
+        // Read Settings sheet for Next Competition and Current Season
         const settingsSheet = workbook.Sheets['Settings'];
         if (settingsSheet) {
           const settingsData = XLSX.utils.sheet_to_json(settingsSheet, { header: 1 });
-          let nextCompetition;
+          let nextCompetitionVal, currentSeasonVal;
           settingsData.forEach(row => {
-            if (row[0]) {
-              const key = row[0].toString().toLowerCase();
-              if (key.includes('next competition')) {
-                nextCompetition = row[1];
-              }
-            }
+            if (!row[0]) return;
+            const key = row[0].toString().toLowerCase().trim();
+            if (key.includes('next competition')) nextCompetitionVal = row[1];
+            if (key.includes('current season')) currentSeasonVal = parseInt(row[1]);
           });
-          if (nextCompetition) {
-            document.getElementById('nextCompetitionText').innerText = nextCompetition;
-          }
+          if (nextCompetitionVal) document.getElementById('nextCompetitionText').innerText = nextCompetitionVal;
+          if (currentSeasonVal && !isNaN(currentSeasonVal)) currentSeason = currentSeasonVal;
         }
 
+        // Read main sheet (first sheet) into history
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         history = XLSX.utils.sheet_to_json(sheet);
 
-        const lastCompetitionEntry = history.reduce((latest, entry) =>
-          parseDateStr(entry.Date) > parseDateStr(latest.Date) ? entry : latest
-        , history[0]);
+        // populate dropdown and render
+        populateSeasonDropdown(history);
 
-        const lastCompetition = lastCompetitionEntry.Competition;
-        const lastUpdate = parseDateStr(lastCompetitionEntry.Date).toLocaleDateString();
-        document.querySelector(".info-bar h4").innerHTML =
-          `<font color="#FF0000">Last Update - ${lastUpdate}</font> | Last Competition: ${lastCompetition}`;
+        // set last update text in info-bar if possible
+        try {
+          const lastCompetitionEntry = history.reduce((latest, entry) =>
+            (parseDateStr(entry.Date) && parseDateStr(entry.Date) > parseDateStr(latest.Date)) ? entry : latest
+          , history[0]);
+
+          if (lastCompetitionEntry) {
+            const lastCompetition = lastCompetitionEntry.Competition || '';
+            const lastUpdateDate = parseDateStr(lastCompetitionEntry.Date);
+            const lastUpdate = lastUpdateDate ? lastUpdateDate.toLocaleDateString() : '';
+            const infoBar = document.querySelector(".info-bar h4");
+            if (infoBar) {
+              infoBar.innerHTML = `<font color="#FF0000">Last Update - ${lastUpdate}</font> | Last Competition: ${lastCompetition}`;
+            }
+          }
+        } catch (e) {
+          // ignore if info-bar not present or history empty
+        }
 
         updateLeague(history);
+      })
+      .catch(err => {
+        console.error("Error loading workbook:", err);
       });
 
+    // Main stats computation — now filters by selectedYear
     function updateLeague(data) {
+      const filtered = selectedYear ? data.filter(e => getYearFromEntry(e) === selectedYear) : data;
       const netScores = {}, netWins = {}, totalPoints = {}, rounds = {};
 
-      data.forEach(entry => {
+      filtered.forEach(entry => {
         const { Name, Score, Position, Points, Competition } = entry;
         const net = parseFloat(Score);
         if (isNaN(net)) return;
@@ -418,8 +504,8 @@
       const players = Object.keys(netScores).map(name => {
         const games = netScores[name].length;
         const wins = netWins[name]||0;
-        const winPct = ((wins/games)*100).toFixed(1);
-        return { name, games, winPct, points: totalPoints[name], trophies: wins };
+        const winPct = games ? ((wins/games)*100).toFixed(1) : '0.0';
+        return { name, games, winPct, points: totalPoints[name] || 0, trophies: wins };
       }).sort((a,b) => {
         if (b.points !== a.points) return b.points - a.points;
         if (b.trophies !== a.trophies) return b.trophies - a.trophies;
@@ -435,8 +521,8 @@
       const tbody = document.querySelector("#league-table tbody");
       tbody.innerHTML = '';
       data.forEach((p,i) => {
-        const won = history.filter(e=>e.Name===p.name&&parseInt(e.Position)===1)
-                           .map(e=>e.Competition);
+        const won = history.filter(e => e.Name===p.name && parseInt(e.Position)===1 && getYearFromEntry(e) === selectedYear)
+                           .map(e => e.Competition);
         const span = won.length
           ? `<span class="trophy" onclick="toggleTooltip(this)">
                ${'🏆'.repeat(won.length)}
@@ -446,13 +532,19 @@
         tbody.innerHTML += `
           <tr>
             <td>${i+1}</td>
-            <td><a href="#" onclick="showPlayerModal('${p.name}')">${p.name}</a></td>
+            <td><a href="#" onclick="showPlayerModal('${escapeHtml(p.name)}'); return false;">${escapeHtml(p.name)}</a></td>
             <td>${p.games}</td>
             <td>${p.winPct}%</td>
             <td>${p.points}</td>
             <td>${span}</td>
           </tr>`;
       });
+    }
+
+    // small helper to avoid breaking quotes in names
+    function escapeHtml(str) {
+      if (!str && str !== 0) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     function toggleTooltip(el){
@@ -467,7 +559,7 @@
     });
 
     function showPlayerModal(name){
-      const scores = history.filter(e=>e.Name===name)
+      const scores = history.filter(e=>e.Name===name && getYearFromEntry(e) === selectedYear)
         .map(e=>({competition:e.Competition,score:parseFloat(e.Score),
                  position:e.Position, points:parseFloat(e.Points)||0, date:e.Date}))
         .sort((a,b)=>parseDateStr(a.date)-parseDateStr(b.date));
@@ -507,8 +599,11 @@
     }
 
     function showTab(tab){
-      ['tabNet','tabPositions','tabHistory'].forEach(id=>document.getElementById(id).classList.remove('active'));
-      document.getElementById('tab'+(tab==='net'?'Net':tab==='positions'?'Positions':'History')).classList.add('active');
+      ['tabNet','tabPositions','tabHistory'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+      const target = tab==='net'?'Net':tab==='positions'?'Positions':'History';
+      const tabEl = document.getElementById('tab'+target);
+      if(tabEl) tabEl.classList.add('active');
+
       document.getElementById('scoreList').style.display = tab==='net'?'block':'none';
       document.getElementById('positionList').style.display = tab==='positions'?'block':'none';
       document.getElementById('scoreChart').style.display  = tab==='net'?'block':'none';
@@ -523,6 +618,7 @@
       document.body.classList.toggle('dark-mode');
     }
   </script>
+
   <script>
     const WEATHER_API_KEY = "e583bd0c194bbfeb3deb92f6bfdad11a";
     const LOCATION = "Cheadle,UK";
@@ -534,10 +630,10 @@
         const [_, day, month, year] = slashMatch;
         date = new Date(`${year}-${month}-${day}`);
       } else {
-        const wordMatch = text.match(/\b(\d{1,2})\s(\w+)/);
+        const wordMatch = text.match(/\b(\d{1,2})\s([A-Za-z]+)\s?(\d{4})?/);
         if (wordMatch) {
-          const [_, day, monthName] = wordMatch;
-          const year = new Date().getFullYear();
+          const [_, day, monthName, yearPart] = wordMatch;
+          const year = yearPart ? yearPart : new Date().getFullYear();
           date = new Date(`${day} ${monthName} ${year}`);
         }
       }
@@ -599,6 +695,7 @@
     });
     observer.observe(nextCompEl, { childList: true });
   </script>
+
   <div class="info-bar">
     <h4><font color="#FF0000">Loading update...</font></h4>
   </div>
