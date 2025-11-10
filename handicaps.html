@@ -12,6 +12,8 @@
     .modal-content { padding: 20px; max-width: 800px; width: 95%; }
     .best-round { background-color: #ffeaa7; font-weight: bold; }
     .sortable:hover { cursor: pointer; text-decoration: underline; }
+    #adminSection { text-align:center; margin:20px 0; }
+    #adminSection input { padding:0.4rem; border-radius:6px; border:1px solid #ccc; }
     @media screen and (max-width: 768px) {
       .modal-content { width: 95%; padding: 10px; }
     }
@@ -20,10 +22,12 @@
 <body>
   <section class="section">
     <div class="container">
-    <center><h1 class="title">Junior Handicap Tracker</h1></center>
-    <center><p class="mb-4">Click on a player’s <strong>View</strong> button to see per-round details and chart.</p></center>
-    <br><center>⬅️➡️ Scroll to view full table on mobile</center>
-<b><center>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</center></b>
+      <center>  <a href="index.html"><button title="Return home" class="btn-primary">🏠 Home</button></a> </center>
+      <p>
+      <center><h1 class="title">Junior Handicap Tracker</h1></center>
+      <center><p class="mb-4">Click on a player’s <strong>View button</strong> to see per-round details and chart.</p></center>
+      <b><center>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</center></b>
+      <br><center>⬅️➡️ Scroll to view full table on mobile</center>
       <table class="table is-striped is-fullwidth" id="handicapTable">
         <thead>
           <tr>
@@ -38,6 +42,18 @@
       </table>
     </div>
   </section>
+
+  <!-- 🔒 Admin control -->
+  <div id="adminSection">
+    <input type="password" id="adminPassword" placeholder="Enter admin password...">
+    <button id="adminLogin" class="button is-small is-primary">Unlock</button>
+    <div id="adminToggle" style="display:none;margin-top:0.8rem;">
+      <label style="font-weight:bold;">
+        <input type="checkbox" id="showAll"> Show inactive members
+      </label>
+    </div>
+  </div>
+
 
   <section class="section">
     <div class="container">
@@ -77,19 +93,13 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // ✅ FIXED DATE PARSER (handles Excel serials + text)
     function parseDateStr(s) {
       if (!s) return new Date('Invalid');
-      // Excel serial (e.g. 45789)
-      if (!isNaN(s) && Number(s) > 20000 && Number(s) < 80000) {
-        return new Date((Number(s) - 25569) * 86400 * 1000);
-      }
-      // dd/mm/yyyy or d/m/yyyy text
+      if (!isNaN(s) && Number(s) > 20000 && Number(s) < 80000) return new Date((Number(s) - 25569) * 86400 * 1000);
       if (typeof s === 'string' && s.includes('/')) {
         const [d, m, y] = s.split(/[\/\-]/).map(v => parseInt(v));
         return new Date(y, m - 1, d);
       }
-      // fallback
       const d = new Date(s);
       return isNaN(d.getTime()) ? new Date('Invalid') : d;
     }
@@ -101,6 +111,9 @@
       if (name.includes("Bruntwood 18")) return 54;
       return 32;
     };
+
+    let allPlayers = [];
+    let showAll = false;
 
     async function fetchData() {
       const res = await fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + Date.now());
@@ -115,21 +128,32 @@
         const score = parseFloat(row.Score);
         const comp = row.Competition;
         const date = row.Date;
+        const active = row.Active || row.Status || ""; // NEW: active flag column
         if (!name || isNaN(score)) return;
-        if (!players[name]) players[name] = [];
-        players[name].push({ score, competition: comp, date });
+        if (!players[name]) players[name] = { rounds: [], active };
+        const pos = row.Position || row.Result || row.Place || "";
+        players[name].rounds.push({ score, competition: comp, date, Position: pos });
       });
 
-      const playerStats = Object.keys(players).map(name => {
-        const rounds = players[name];
+      allPlayers = Object.keys(players).map(name => {
+        const rounds = players[name].rounds;
+        const active = (players[name].active || "").toString().trim().toLowerCase();
         const handicaps = rounds.map(r => (r.score - getParForCompetition(r.competition)) * 0.93);
         const best3 = [...handicaps].sort((a, b) => a - b).slice(0, 3);
         const current = (best3.reduce((a, b) => a + b, 0) / best3.length).toFixed(1);
         const lowest = Math.min(...handicaps).toFixed(1);
-        return { name, current: parseFloat(current), lowest: parseFloat(lowest), roundsPlayed: rounds.length, rounds };
+        return { name, current: parseFloat(current), lowest: parseFloat(lowest), roundsPlayed: rounds.length, rounds, active };
       });
 
-      renderTable(playerStats);
+      updateTable();
+    }
+
+    function updateTable() {
+      const visiblePlayers = showAll
+        ? allPlayers
+        : allPlayers.filter(p => ["yes", "true", "✅", "active"].includes(p.active));
+
+      renderTable(visiblePlayers);
     }
 
     function renderTable(players) {
@@ -155,25 +179,6 @@
           openModal(name, player.rounds);
         });
       });
-
-      // Sorting
-      document.querySelectorAll(".sortable").forEach(th => {
-        if (th.asc === undefined) th.asc = true;
-        th.addEventListener("click", () => {
-          const key = th.dataset.sort;
-          const asc = th.asc;
-          th.asc = !asc;
-
-          players.sort((a, b) => {
-            if (key === 'name') {
-              return asc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-            } else {
-              return asc ? a[key] - b[key] : b[key] - a[key];
-            }
-          });
-          renderTable(players);
-        });
-      });
     }
 
     function openModal(name, rounds) {
@@ -182,53 +187,50 @@
 
       const handicaps = rounds.map(r => ({
         ...r,
-        hcap: ((r.score - getParForCompetition(r.competition)) * 0.93).toFixed(1)
+        hcap: ((r.score - getParForCompetition(r.competition)) * 0.93).toFixed(1),
+        position: r.Position ? String(r.Position).trim() : ""
       }));
       const best3Hcap = [...handicaps].sort((a, b) => a.hcap - b.hcap).slice(0, 3).map(r => r.hcap);
 
       const content = document.getElementById("modalContent");
       content.innerHTML = `
         <table class="table is-fullwidth is-narrow">
-          <thead>
-            <tr>
-              <th>Date</th><th>Competition</th><th>Score</th><th>Par</th><th>Handicap</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Date</th><th>Competition</th><th>Score</th><th>Par</th><th>Handicap</th><th>Result</th></tr></thead>
           <tbody>
             ${handicaps.map(r => {
               const d = parseDateStr(r.date);
               const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString("en-GB") : '';
+              let icons = [];
+              if (best3Hcap.includes(r.hcap)) icons.push("✅");
+              if (r.position && /^1(st)?$/i.test(r.position)) icons.push("🏆");
               return `
                 <tr class="${best3Hcap.includes(r.hcap) ? 'best-round' : ''}">
                   <td>${dateStr}</td>
-                  <td>${r.competition} ${best3Hcap.includes(r.hcap) ? '🏆' : ''}</td>
+                  <td>${r.competition}</td>
                   <td>${r.score}</td>
                   <td>${getParForCompetition(r.competition)}</td>
                   <td>${r.hcap}</td>
+                  <td>${icons.join(" ")}</td>
                 </tr>`;
             }).join("")}
           </tbody>
         </table>
       `;
 
-      // Chart setup
-      const chartLabels = rounds.map(r => {
-        const d = parseDateStr(r.date);
-        return !isNaN(d.getTime()) ? d.toLocaleDateString("en-GB") : '';
-      });
-      const chartData = handicaps.map(r => parseFloat(r.hcap));
-
       const ctx = document.getElementById("handicapChart").getContext("2d");
       if (window.hcapChart) window.hcapChart.destroy();
       window.hcapChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: chartLabels,
+          labels: rounds.map(r => {
+            const d = parseDateStr(r.date);
+            return !isNaN(d.getTime()) ? d.toLocaleDateString("en-GB") : '';
+          }),
           datasets: [{
             label: 'Handicap per Round',
-            data: chartData,
+            data: handicaps.map(r => parseFloat(r.hcap)),
             borderColor: '#3273dc',
-            backgroundColor: chartData.map(h => best3Hcap.includes(h.toFixed(1)) ? '#f6e58d99' : '#3273dc33'),
+            backgroundColor: handicaps.map(h => best3Hcap.includes(h.hcap) ? '#f6e58d99' : '#3273dc33'),
             fill: true,
             tension: 0.3
           }]
@@ -243,8 +245,24 @@
       document.getElementById("modal").close();
     });
 
+    document.getElementById("adminLogin").addEventListener("click", () => {
+      const entered = document.getElementById("adminPassword").value.trim();
+      if (entered === "golfadmin") {
+        document.getElementById("adminPassword").style.display = "none";
+        document.getElementById("adminLogin").style.display = "none";
+        document.getElementById("adminToggle").style.display = "block";
+        alert("Admin mode unlocked ✅");
+      } else {
+        alert("Incorrect password ❌");
+      }
+    });
+
+    document.getElementById("showAll").addEventListener("change", e => {
+      showAll = e.target.checked;
+      updateTable();
+    });
+
     fetchData();
   </script>
-
 </body>
 </html>
