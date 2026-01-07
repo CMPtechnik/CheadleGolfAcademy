@@ -419,7 +419,11 @@
       }
 
       dropdown.innerHTML = years.map(y => `<option value="${y}">${y} Season</option>`).join('');
-      selectedYear = (currentSeason && years.includes(currentSeason)) ? currentSeason : years[0];
+      const thisYear = new Date().getFullYear();
+selectedYear =
+  years.includes(thisYear) ? thisYear :
+  (currentSeason && years.includes(currentSeason)) ? currentSeason :
+  years[0];
       dropdown.value = selectedYear;
     }
 
