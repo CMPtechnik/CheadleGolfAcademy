@@ -11,34 +11,206 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    :root{--primary:#005c41;--accent:#e6f2ef;--text:#111;--bg:#fff}
-    body{font-family:Segoe UI,Segoe,Arial,sans-serif;margin:0;background:var(--bg);color:var(--text);padding:18px}
-    header{background:var(--primary);color:#fff;padding:14px;border-radius:6px}
-    header h1{margin:0;font-size:1.1rem}
-    .sub { font-size:0.9rem; color:#f0f7f3; margin-top:6px; }
-    .controls{display:flex;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap}
-    select,input[type="checkbox"]{padding:8px 10px;border-radius:6px;border:1px solid #ddd}
-    button{padding:8px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer}
-    button.btn-primary{background:var(--primary);color:#fff;border:none}
-    .right{margin-left:auto;display:flex;gap:8px;align-items:center}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{border:1px solid #e6e6e6;padding:8px;text-align:center}
-    th{background:var(--accent)}
-    tbody tr:hover{background:#f6f9f6}
-    .winner{background:linear-gradient(90deg,#fff9e6,#fff);border-left:4px solid gold}
-    .small{font-size:0.9rem;color:#666}
-    .export-row{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:8px}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:1000}
-    .modal{background:#fff;padding:18px;border-radius:8px;max-width:900px;width:95%;max-height:85vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.25)}
-    .close-btn{float:right;border:none;background:transparent;font-size:1.1rem;cursor:pointer}
-    .toggle { display:flex; align-items:center; gap:6px; font-size:0.95rem; }
-    @media (max-width:720px){ .controls{flex-direction:column;align-items:stretch} table{font-size:0.95rem} }
+  :root{
+    --primary:#00c896;
+    --primary-dark:#008f6a;
+    --accent:#eafff8;
+    --text:#0f172a;
+    --bg:#f8fafc;
+    --card:#ffffff;
+    --border:rgba(0,0,0,0.08);
+    --hover:rgba(0,0,0,0.04);
+    --radius:14px;
+
+    --shadow-1:0 10px 25px rgba(0,0,0,0.08);
+    --shadow-2:0 20px 40px rgba(0,0,0,0.10);
+  }
+
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #d1fae5, transparent),
+      radial-gradient(800px 400px at 90% 10%, #ccfbf1, transparent),
+      var(--bg);
+    color:var(--text);
+  }
+
+  /* ===== HEADER ===== */
+  header{
+    background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff;
+    padding:1.6rem 1rem 2.6rem;
+    text-align:center;
+    border-bottom-left-radius:28px;
+    border-bottom-right-radius:28px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.18);
+  }
+
+  header h1{
+    margin:0;
+    font-size:1.6rem;
+    font-weight:900;
+  }
+
+  .sub{
+    margin-top:0.4rem;
+    font-weight:700;
+    opacity:0.9;
+  }
+
+  /* ===== CONTROLS CARD ===== */
+  .controls{
+    margin:-1.8rem auto 1.2rem;
+    max-width:1100px;
+    padding:1rem;
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-2);
+    border:1px solid var(--border);
+
+    display:flex;
+    gap:1rem;
+    align-items:flex-end;
+    flex-wrap:wrap;
+  }
+
+  .controls label{
+    font-weight:800;
+  }
+
+  /* ===== FORM ELEMENTS ===== */
+  select,
+  input[type="checkbox"]{
+    padding:0.55rem 0.9rem;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#fff;
+    font-weight:700;
+  }
+
+  /* ===== BUTTONS ===== */
+  button{
+    padding:0.55rem 0.95rem;
+    border-radius:999px;
+    border:none;
+    font-weight:900;
+    cursor:pointer;
+  }
+
+  .btn-primary{
+    background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff;
+    box-shadow:var(--shadow-1);
+  }
+
+  .btn-primary:hover{
+    transform:translateY(-1px);
+  }
+
+  /* ===== LAYOUT ===== */
+  .right{
+    margin-left:auto;
+    display:flex;
+    gap:0.5rem;
+    flex-wrap:wrap;
+  }
+
+  main{
+    max-width:1100px;
+    margin:auto;
+    padding:1rem;
+  }
+
+  /* ===== TABLE ===== */
+  table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    background:var(--card);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:var(--shadow-2);
+    border:1px solid var(--border);
+  }
+
+  th,td{
+    padding:12px;
+    text-align:center;
+    border-bottom:1px solid var(--border);
+  }
+
+  th{
+    background:var(--accent);
+    text-transform:uppercase;
+    font-size:0.75rem;
+    letter-spacing:0.05em;
+    font-weight:900;
+  }
+
+  tbody tr:hover{
+    background:var(--hover);
+  }
+
+  .winner{
+    background:linear-gradient(90deg,#fff6d8,#ffffff);
+    border-left:5px solid gold;
+  }
+
+  .small{
+    font-size:0.95rem;
+    margin:0.5rem 0;
+    color:#475569;
+  }
+
+  /* ===== MODAL (UNCHANGED) ===== */
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+  }
+
+  .modal{
+  background:#fff;
+  padding:16px;
+  border-radius:16px;
+
+  /* 👇 smaller + nicer */
+  width:min(92vw, 820px);
+  max-height:min(90vh, 760px);
+
+  overflow:auto;
+  box-shadow:0 12px 40px rgba(0,0,0,.25);
+}
+
+  .close-btn{
+    border:none;
+    background:none;
+    font-size:1.2rem;
+    cursor:pointer;
+    margin-left:auto;
+  }
+
+  #modalBody{
+    overflow:auto;
+    margin-top:0.5rem;
+  }
+
+  @media(max-width:768px){
+    table{display:block;overflow-x:auto;white-space:nowrap;}
+    .controls{flex-direction:column;align-items:stretch;}
+  }
   </style>
-</head>
 <body>
   <header>
     <h1>Season Series Results — Cheadle Juniors</h1>
-    <div class="sub">Spring: Apr &amp; May · Summer: Jun, Jul, Aug · Autumn: Sep, Oct, Nov</div>
+    <div class="sub">
+      Spring: Apr &amp; May · Summer: Jun, Jul, Aug · Autumn: Sep, Oct, Nov
+    </div>
   </header>
 
   <div class="controls" aria-label="controls">
@@ -198,7 +370,16 @@ async function init(){
     }).filter(y=>y))).sort((a,b)=>b-a);
 
     yearSelect.innerHTML = availableYears.map(y => `<option value="${y}">${y}</option>`).join('');
-    const defaultYear = (currentSeasonFromSettings && availableYears.includes(currentSeasonFromSettings)) ? currentSeasonFromSettings : (availableYears[0] || (new Date()).getFullYear());
+
+    const thisYear = new Date().getFullYear();
+
+    const defaultYear =
+      availableYears.includes(thisYear)
+        ? thisYear
+        : (currentSeasonFromSettings && availableYears.includes(currentSeasonFromSettings))
+            ? currentSeasonFromSettings
+            : availableYears[0];
+
     yearSelect.value = defaultYear;
 
     // set sensible default series based on current month
