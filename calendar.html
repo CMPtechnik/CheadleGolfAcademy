@@ -1,114 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cheadle Juniors – Competition Calendar</title>
-  <link rel="icon" href="favicon.png" type="image/png">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      background: #fdfdfd;
-      color: #1e1e1e;
-    }
-    header {
-      background: #31522F;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-    }
-    section {
-      max-width: 900px;
-      margin: 2rem auto;
-      padding: 1rem;
-    }
-    h2 {
-      text-align: center;
-      color: #31522F;
-    }
-    .calendar-grid {
-      display: grid;
-      gap: 1.5rem;
-    }
-    .calendar-card {
-      background: #e6f2ef;
-      padding: 1rem 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .calendar-card h3 {
-      margin: 0;
-      color: #31522F;
-    }
-    .calendar-card ul {
-      margin: 0.5rem 0 0;
-      padding-left: 1.2rem;
-      line-height: 1.6;
-    }
-    footer {
-      text-align: center;
-      margin: 2rem 0;
-      font-size: 0.9rem;
-      color: #555;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cheadle Juniors – Competition Calendar</title>
+
+<link rel="icon" href="favicon.png" type="image/png">
+<meta name="theme-color" content="#00c896" />
+
+<style>
+/* ================= DESIGN SYSTEM (MATCHES INDEX) ================= */
+:root{
+  --primary:#00c896;
+  --primary-dark:#008f6a;
+  --accent:#eafff8;
+  --text:#0f172a;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --border:rgba(0,0,0,0.08);
+  --radius:16px;
+
+  --shadow-1:0 10px 25px rgba(0,0,0,0.08);
+  --shadow-2:0 20px 40px rgba(0,0,0,0.10);
+}
+
+/* ================= BASE ================= */
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #d1fae5, transparent),
+    radial-gradient(800px 400px at 90% 10%, #ccfbf1, transparent),
+    var(--bg);
+  color:var(--text);
+}
+
+/* ================= HEADER ================= */
+header{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  padding:1.6rem 1rem 2.6rem;
+  text-align:center;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.18);
+}
+
+header h1{
+  margin:0;
+  font-size:1.6rem;
+  font-weight:900;
+}
+
+header nav{
+  margin-top:0.6rem;
+}
+
+header nav a{
+  color:#ffffff;
+  text-decoration:none;
+  font-weight:800;
+  opacity:0.95;
+}
+
+/* ================= MAIN ================= */
+main{
+  max-width:900px;
+  margin:-1.8rem auto 1.5rem;
+  padding:1rem;
+}
+
+/* ================= DOWNLOAD CARD ================= */
+.download-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-2);
+  border:1px solid var(--border);
+  padding:1rem;
+  text-align:center;
+  margin-bottom:1.2rem;
+}
+
+.download-card a{
+  text-decoration:none;
+  font-weight:900;
+  color:var(--primary-dark);
+}
+
+.download-card .hint{
+  font-size:0.95rem;
+  color:#475569;
+}
+
+/* ================= CALENDAR GRID ================= */
+.calendar-grid{
+  display:grid;
+  gap:1rem;
+}
+
+.calendar-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-2);
+  border:1px solid var(--border);
+  padding:1rem 1.2rem;
+}
+
+.calendar-card h2{
+  margin:0 0 0.6rem;
+  font-size:1.2rem;
+  font-weight:900;
+  color:var(--primary-dark);
+  text-align:center;
+}
+
+.calendar-card ul{
+  margin:0;
+  padding-left:1.1rem;
+  line-height:1.7;
+  font-size:0.95rem;
+}
+
+.calendar-card li{
+  margin-bottom:0.4rem;
+}
+
+/* ================= FOOTER ================= */
+footer{
+  text-align:center;
+  padding:1.5rem 1rem;
+  font-size:0.9rem;
+  color:#475569;
+}
+
+footer img{
+  height:56px;
+  margin:0 0.3rem;
+}
+
+footer a{
+  color:var(--primary-dark);
+  font-weight:800;
+  text-decoration:none;
+}
+
+/* ================= MOBILE TWEAKS ================= */
+@media (max-width:600px){
+  header h1{ font-size:1.4rem; }
+  .calendar-card h2{ font-size:1.1rem; }
+  .calendar-card ul{ font-size:0.95rem; }
+}
+</style>
 </head>
+
 <body>
-  <header>
-    <h1>📅 Competition Calendar 2026</h1>
-    <nav>
- <a href="index.html" style="color:white;text-decoration:none;">⬅ Back to Home</a>
-    </nav>
-  </header>
-    <center><a href="https://github.com/CMPtechnik/CheadleGolfAcademy/blob/main/Juniorcomps2026.ics" download><h3>📅 Download the 2026 Dates (.ics)</h3></a></center>
-  <center>Import into your digial calendar</center>
-  <section>
+
+<header>
+  <h1>📅 Competition Calendar 2026</h1>
+  <nav>
+    <a href="index.html">⬅ Back to Home</a>
+  </nav>
+</header>
+
+<main>
+
+  <div class="download-card">
+    <a href="https://raw.githubusercontent.com/CMPtechnik/CheadleGolfAcademy/main/Juniorcomps2026.ics"
+     download="Juniorcomps2026.ics">
+    📥 Download 2026 Dates (.ics)
+  </a>
+    <div class="hint">Import directly into your phone or computer calendar</div>
+  </div>
+
+  <div class="calendar-grid">
+
     <div class="calendar-card">
-      <center><h2>🌱 Spring Series 2026</h2></center>
+      <h2>🌱 Spring Series</h2>
       <ul>
-      <li><b>April 12th</b> – Tee Times 13:00–14:00</li>
-      <li><b>May 10th</b> – Tee Times 13:00–14:00</li>
-    </ul>
+        <li><b>April 12th</b> — Tee Times 13:00–14:00</li>
+        <li><b>May 10th</b> — Tee Times 13:00–14:00</li>
+      </ul>
     </div>
-    <br>
+
     <div class="calendar-card">
-      <center><h2>☀️ Summer Series 2026</h2></center>
+      <h2>☀️ Summer Series</h2>
       <ul>
-      <li><b>June 14th</b> – Tee Times 13:00–14:00</li>
-      <li><b>July 12th</b> – Tee Times 13:00–14:00</li>
-      <li><b>August 9th</b> – Tee Times 13:00–14:00</li>
-    </ul>
+        <li><b>June 14th</b> — Tee Times 13:00–14:00</li>
+        <li><b>July 12th</b> — Tee Times 13:00–14:00</li>
+        <li><b>August 9th</b> — Tee Times 13:00–14:00</li>
+      </ul>
     </div>
-    <br>
-    <div class="calendar-grid">
-      <div class="calendar-card">
-        <center><h2>🍂 Autumn Series 2026</h2></center>
-        <ul>
-          <li><b>September 13th</b> – Tee Times 13:00–14:00</li>
-          <li><b>October 11th</b> – Tee Times 13:00–14:00</li>
-          <li><b>November 8th</b> – Tee Times 13:00–14:00</li>
-        </ul>
-      </div>
-<div class="calendar-card">
-  <center><h2>🌟 Other Key Dates 2026</h2></center>
-  <ul>
-    <li><b>November 29th</b> – Presentation Afternoon</li>
-  </ul>
-</div>
 
-  </section>
+    <div class="calendar-card">
+      <h2>🍂 Autumn Series</h2>
+      <ul>
+        <li><b>September 13th</b> — Tee Times 13:00–14:00</li>
+        <li><b>October 11th</b> — Tee Times 13:00–14:00</li>
+        <li><b>November 8th</b> — Tee Times 13:00–14:00</li>
+      </ul>
+    </div>
 
-  <center> Sign up sheets will be displayed on the Junior Noticeboard </center>
+    <div class="calendar-card">
+      <h2>🌟 Other Key Dates</h2>
+      <ul>
+        <li><b>November 29th</b> — Presentation Afternoon</li>
+      </ul>
+    </div>
 
-  <footer>
-    <p>Build v1.0.0 | Cheadle Juniors</p>
-    <p>
-      <img src="logocja.png" alt="League Logo" height="60"/>
-      <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png"
-           alt="CGC Logo" height="60"/>
-    </p>
-    <p><a href="https://www.theapplegeek.co.uk" target="_blank">The Apple Geek Data Solutions</a></p>
-  </footer>
+  </div>
+
+  <p style="text-align:center;margin-top:1.2rem;font-weight:700;">
+    Sign-up sheets will be displayed on the Junior Noticeboard
+  </p>
+
+</main>
+
+<footer>
+  <p>Build v1.0.0 | Cheadle Juniors</p>
+  <p>
+    <img src="logocja.png" alt="Cheadle Juniors Logo"/>
+    <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo"/>
+  </p>
+  <p>
+    <a href="https://www.theapplegeek.co.uk" target="_blank">
+      The Apple Geek Data Solutions
+    </a>
+  </p>
+</footer>
+
 </body>
 </html>
