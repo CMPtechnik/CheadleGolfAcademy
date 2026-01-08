@@ -17,14 +17,71 @@
     @media screen and (max-width: 768px) {
       .modal-content { width: 95%; padding: 10px; }
     }
+    /* ================= SHARED HEADER STYLE ================= */
+:root{
+  --primary:#00c896;
+  --primary-dark:#008f6a;
+  --radius:14px;
+  --shadow:0 10px 25px rgba(0,0,0,0.12);
+}
+
+.app-header{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  padding:1.6rem 1rem 2.4rem;
+  text-align:center;
+  border-bottom-left-radius:24px;
+  border-bottom-right-radius:24px;
+  box-shadow:0 12px 30px rgba(0,0,0,0.18);
+}
+
+.app-header h1{
+  margin:0;
+  font-size:1.7rem;
+  font-weight:900;
+}
+
+.app-header .sub{
+  margin-top:0.4rem;
+  font-weight:700;
+  opacity:0.9;
+}
+
+/* ================= TOP ACTION BAR ================= */
+.top-bar{
+  margin:-1.6rem auto 1rem;
+  max-width:1100px;
+  padding:1rem;
+  text-align:center;
+}
+
+.btn-primary{
+  padding:0.55rem 1.1rem;
+  border-radius:999px;
+  border:none;
+  font-weight:900;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+}
   </style>
 </head>
+<header class="app-header">
+  <h1>Junior Handicap Tracker</h1>
+  <div class="sub">
+    Cheadle Golf Club Junior Section · Progress &amp; Leveler (Non-WHS)
+  </div>
+</header>
+
+<div class="top-bar">
+  <a href="index.html">
+    <button class="btn-primary">🏠 Home</button>
+  </a>
+</div>
 <body>
   <section class="section">
     <div class="container">
-      <center>  <a href="index.html"><button title="Return home" class="btn-primary">🏠 Home</button></a> </center>
-      <p>
-      <center><h1 class="title">Junior Handicap Tracker</h1></center>
       <center><p class="mb-4">Click on a player’s <strong>View button</strong> to see per-round details and chart.</p></center>
       <b><center>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</center></b>
       <br><center>⬅️➡️ Scroll to view full table on mobile</center>
@@ -71,7 +128,7 @@
           <li>⛳ <strong>Bruntwood 18</strong>: Par 54</li>
         </ul>
         <p>
-          Handicaps are shown to 1 decimal place and updated after each new round. The best 3 scores are used to calculate the current handicap.
+          Handicaps are shown to 1 decimal place and updated after each new round. The best 3 scores are used to calculate the current handicap. (Playing 9 holes off Yellow Tees)
         </p>
         <p>
           <b>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</b>
