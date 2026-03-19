@@ -60,29 +60,28 @@
 <div class="box">
   <h2>Cheadle Juniors</h2>
   <input type="password" id="password" placeholder="Password">
-  <button id="loginBtn">Enter</button>
+  <button onclick="login()">Enter</button>
   <div id="error" class="error"></div>
 </div>
 
 <script>
-  const PASSWORD = "cheadle2026";
+function login() {
+  const input = document.getElementById("password").value.trim();
 
-  document.getElementById("loginBtn").addEventListener("click", login);
-
-  document.getElementById("password").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") login();
-  });
-
-  function login() {
-    const input = document.getElementById("password").value.trim();
-
-    if (input === PASSWORD) {
-      localStorage.setItem("auth", "true");
-      window.location.href = "./index.html";
-    } else {
-      document.getElementById("error").innerText = "Wrong password";
-    }
+  if (input === "cheadle2026") {
+    localStorage.setItem("auth", "true");
+    window.location.href = "index.html";
+  } else {
+    document.getElementById("error").innerText = "Wrong password";
   }
+}
+
+// Enter key support
+document.getElementById("password").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    login();
+  }
+});
 </script>
 
 </body>
