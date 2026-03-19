@@ -506,6 +506,9 @@
 
   <!-- ===================== APP LOGIC (ORIGINAL FEATURES RESTORED) ===================== -->
   <script>
+  if (localStorage.getItem("auth") !== "true") {
+  window.location.href = "login.html";
+}
     // ————— State —————
     let history = [];
     let selectedYear = null;
