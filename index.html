@@ -442,11 +442,13 @@
 </head>
 
 <body>
-
 <!-- 🔐 AUTH GUARD (FIXED) -->
 <script>
-  if (localStorage.getItem("auth") !== "true") {
-    window.location.replace("login.html");
+  // ONLY protect if NOT on login page
+  if (!window.location.pathname.includes("login.html")) {
+    if (localStorage.getItem("auth") !== "true") {
+      window.location.href = "login.html";
+    }
   }
 </script>
   <header>
