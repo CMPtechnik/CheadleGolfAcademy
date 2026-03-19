@@ -442,6 +442,13 @@
 </head>
 
 <body>
+
+<!-- 🔐 AUTH GUARD (FIXED) -->
+<script>
+  if (localStorage.getItem("auth") !== "true") {
+    window.location.replace("login.html");
+  }
+</script>
   <header>
     <img src="logowhite.png" alt="League Logo" />
     <span id="darkModeToggle" onclick="toggleDarkMode()">🌗</span>
@@ -506,9 +513,6 @@
 
   <!-- ===================== APP LOGIC (ORIGINAL FEATURES RESTORED) ===================== -->
   <script>
-  if (localStorage.getItem("auth") !== "true") {
-  window.location.href = "login.html";
-}
     // ————— State —————
     let history = [];
     let selectedYear = null;
@@ -948,6 +952,25 @@
       <a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a>
     </div>
   </div>
+  <div style="text-align:center;margin-top:20px;">
+    <button onclick="logout()" style="
+      padding:10px 18px;
+      border-radius:10px;
+      border:none;
+      background:#ff4d4d;
+      color:white;
+      font-weight:800;
+      cursor:pointer;
+    ">
+      Logout
+    </button>
+  </div>
 
+  <script>
+  function logout() {
+    localStorage.removeItem("auth");
+    window.location.replace("./login.html");
+  }
+  </script>
 </body>
 </html>
