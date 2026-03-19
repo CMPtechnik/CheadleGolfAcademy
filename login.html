@@ -1,87 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cheadle Juniors Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
 
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: system-ui, -apple-system, sans-serif;
-      background: linear-gradient(135deg, #00c896, #008f6a);
-      color: white;
-    }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-    .box {
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      padding: 2rem;
-      border-radius: 16px;
-      text-align: center;
-      width: 280px;
-    }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 300px;
+        }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-top: 1rem;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-    }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-    button {
-      width: 100%;
-      margin-top: 1rem;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      background: white;
-      color: #008f6a;
-      font-weight: bold;
-      cursor: pointer;
-    }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
 
-    .error {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #ffdede;
-    }
-  </style>
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #005fcc;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            display: none;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="box">
-  <h2>Cheadle Juniors</h2>
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="login()">Enter</button>
-  <div id="error" class="error"></div>
+<div class="login-container">
+    <h2>Login</h2>
+
+    <div class="error" id="errorMsg">Invalid login</div>
+
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
 </div>
 
 <script>
-function login() {
-  const input = document.getElementById("password").value.trim();
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-  if (input === "cheadle2026") {
-    localStorage.setItem("auth", "true");
-    window.location.href = "index.html";
-  } else {
-    document.getElementById("error").innerText = "Wrong password";
-  }
-}
+        // Simple test credentials
+        const validUser = "admin";
+        const validPass = "1234";
 
-// Enter key support
-document.getElementById("password").addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    login();
-  }
-});
+        if (username === validUser && password === validPass) {
+            // Redirect to home page
+            window.location.href = "home.html";
+        } else {
+            document.getElementById('errorMsg').style.display = "block";
+        }
+    }
 </script>
 
 </body>
