@@ -3,578 +3,397 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Cheadle Juniors – Results History</title>
-
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
-
 <meta name="theme-color" content="#00c896" />
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 <style>
-
-:root{
-  --primary:#00c896;
-  --primary-dark:#008f6a;
-  --accent:#eafff8;
-  --text:#0f172a;
-  --bg:#f8fafc;
-  --card:#ffffff;
-  --border:rgba(0,0,0,0.08);
-  --hover:rgba(0,0,0,0.04);
-  --radius:14px;
-
-  --shadow-1:0 10px 25px rgba(0,0,0,0.08);
-  --shadow-2:0 20px 40px rgba(0,0,0,0.10);
+:root {
+  --primary: #00c896;
+  --primary-dark: #008f6a;
+  --accent: #eafff8;
+  --text: #0f172a;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --border: rgba(0,0,0,0.08);
+  --hover: rgba(0,0,0,0.04);
+  --radius: 14px;
+  --shadow-1: 0 10px 25px rgba(0,0,0,0.08);
+  --shadow-2: 0 20px 40px rgba(0,0,0,0.10);
 }
 
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
-
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
   background:
     radial-gradient(1200px 600px at 10% -10%, #d1fae5, transparent),
     radial-gradient(800px 400px at 90% 10%, #ccfbf1, transparent),
     var(--bg);
-
-  color:var(--text);
+  color: var(--text);
 }
 
-/* HEADER */
-
-header{
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-  color:#fff;
-  padding:1.4rem 1rem 2rem;
-  text-align:center;
-
-  border-bottom-left-radius:24px;
-  border-bottom-right-radius:24px;
-
-  box-shadow:0 10px 30px rgba(0,0,0,0.15);
+header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  padding: 1.4rem 1rem 2rem;
+  text-align: center;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
-header h1{
-  margin:0.25rem 0 0;
-  font-size:1.6rem;
-  font-weight:900;
+header h1 {
+  margin: 0.25rem 0 0;
+  font-size: 1.6rem;
+  font-weight: 900;
 }
 
-.header-sub{
-  margin-top:0.35rem;
-  font-weight:700;
-  opacity:0.9;
+.header-sub {
+  margin-top: 0.35rem;
+  font-weight: 700;
+  opacity: 0.9;
 }
 
-/* NAV */
-
-.nav{
-  margin-top:-1.1rem;
-  display:flex;
-  justify-content:center;
-  gap:0.75rem;
-  flex-wrap:wrap;
+.nav {
+  margin-top: -1.1rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.nav a{
-  background:var(--card);
-  color:var(--text);
-  padding:0.55rem 0.9rem;
-  border-radius:999px;
-  text-decoration:none;
-  font-weight:900;
-  box-shadow:var(--shadow-1);
-  border:1px solid var(--border);
+.nav a {
+  background: var(--card);
+  color: var(--text);
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 900;
+  box-shadow: var(--shadow-1);
+  border: 1px solid var(--border);
 }
-
-/* FILTERS */
 
 #seasonFilterContainer,
-#typeFilterContainer{
-  margin:1rem auto 0.5rem;
-  text-align:center;
+#typeFilterContainer {
+  margin: 1rem auto 0.5rem;
+  text-align: center;
 }
 
 #seasonFilter,
-#typeFilter{
-  padding:0.6rem 1rem;
-  border-radius:999px;
-  border:1px solid var(--border);
-  background:var(--card);
-  font-weight:800;
+#typeFilter {
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-weight: 800;
 }
 
-/* MAIN */
-
-main{
-  max-width:1100px;
-  margin:auto;
-  padding:1rem;
+main {
+  max-width: 1100px;
+  margin: auto;
+  padding: 1rem;
 }
 
-/* SECTION */
-
-section{
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow-2);
-  border:1px solid var(--border);
-  padding:1rem;
-  margin-bottom:1.5rem;
-  position:relative;
+section {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  position: relative;
 }
 
-/* TABLE */
-
-table{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0;
-  margin-top:0.5rem;
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 0.5rem;
 }
 
-th,td{
-  padding:12px;
-  text-align:center;
-  border-bottom:1px solid var(--border);
+th, td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
 }
 
-th{
-  background:var(--accent);
-  text-transform:uppercase;
-  font-size:0.75rem;
-  letter-spacing:0.05em;
+th {
+  background: var(--accent);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
 }
 
-tbody tr:hover{
-  background:var(--hover);
+tbody tr:hover { background: var(--hover); }
+
+tbody tr:first-child {
+  background: #ecfdf5;
+  font-weight: 800;
 }
 
-tbody tr:first-child{
-  background:#ecfdf5;
-  font-weight:800;
+.print-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
 }
 
-/* PRINT */
-
-.print-btn{
-  position:absolute;
-  top:0.75rem;
-  right:0.75rem;
-
-  padding:0.4rem 0.8rem;
-
-  border:none;
-  border-radius:999px;
-
-  background:var(--primary);
-  color:#fff;
-
-  font-weight:900;
-  cursor:pointer;
+@media print {
+  body * { visibility: hidden !important; }
+  .print-target, .print-target * { visibility: visible !important; }
+  .print-btn { display: none !important; }
+  @page { margin: 1cm; }
 }
 
-.logo,.print-domain{
-  display:none;
-}
-
-@media print{
-
-  body *{
-    visibility:hidden!important;
-  }
-
-  .print-target,
-  .print-target *{
-    visibility:visible!important;
-  }
-
-  .print-btn{
-    display:none!important;
-  }
-
-  @page{
-    margin:1cm;
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 }
-
-/* MOBILE */
-
-@media(max-width:768px){
-
-  table{
-    display:block;
-    overflow-x:auto;
-    white-space:nowrap;
-  }
-}
-
 </style>
 </head>
 
 <body>
 
 <header>
-
   <div class="nav">
-    <a href="home.html">🏠 Home</a>
+    <a href="index.html">🏠 Home</a>
     <a href="#">📊 Results</a>
   </div>
-
   <h1>Results History</h1>
-
-  <div class="header-sub">
-    ⬅️➡️ Scroll to view full table
-  </div>
-
+  <div class="header-sub">⬅️➡️ Scroll to view full table</div>
 </header>
 
 <div id="seasonFilterContainer">
-
   <label><strong>Season</strong></label><br>
-
   <select id="seasonFilter"></select>
-
 </div>
 
 <div id="typeFilterContainer">
-
   <label><strong>Competition Type</strong></label><br>
-
   <select id="typeFilter">
-
     <option value="all">All Competitions</option>
     <option value="9 hole">9 Hole</option>
     <option value="sixes">Sixes</option>
     <option value="stableford">Stableford</option>
-    
-
   </select>
-
 </div>
 
 <main id="content"></main>
 
 <script>
-
-function parseDateStr(s){
-
-  if(!s) return new Date('Invalid');
-
-  if(typeof s==='number'){
-    return new Date(Math.round((s-25569)*86400*1000));
-  }
-
-  if(typeof s==='string' && s.includes('/')){
-
-    const p=s.split('/');
-
-    return new Date(p[2],p[1]-1,p[0]);
-  }
-
-  const d=new Date(s);
-
-  return isNaN(d)
-    ? new Date('Invalid')
-    : d;
-}
-
-let allCompetitions=[];
-let currentSeason=null;
-
-fetch('https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v='+Date.now())
-
-.then(r=>r.arrayBuffer())
-
-.then(buf=>{
-
-  const wb=XLSX.read(buf,{type:'array'});
-
-  const settings=wb.Sheets['Settings'];
-
-  if(settings){
-
-    XLSX.utils.sheet_to_json(settings,{header:1})
-
-    .forEach(r=>{
-
-      if(
-        r[0] &&
-        r[0].toString().toLowerCase().includes('current season')
-      ){
-        currentSeason=r[1];
-      }
-    });
-  }
-
-  const sheet=wb.Sheets[wb.SheetNames[0]];
-
-  const rows=XLSX.utils.sheet_to_json(sheet);
-
-  allCompetitions=rows;
-
-  const years=[
-    ...new Set(
-      rows.map(r=>
-        parseDateStr(r.Date).getFullYear()
-      )
-    )
-  ].sort((a,b)=>b-a);
-
-  const dd=document.getElementById('seasonFilter');
-
-  years.forEach(y=>{
-
-    const o=document.createElement('option');
-
-    o.value=y;
-    o.textContent=y;
-
-    dd.appendChild(o);
-  });
-
-  const thisYear=new Date().getFullYear();
-
-  const defaultYear=
-    years.includes(thisYear)
-      ? thisYear
-      : (
-          currentSeason &&
-          years.includes(parseInt(currentSeason))
-        )
-          ? parseInt(currentSeason)
-          : years[0];
-
-  dd.value=defaultYear;
-
-  renderSeason(defaultYear);
-
-  dd.onchange=()=>{
-    renderSeason(dd.value);
-  };
-
-  document.getElementById('typeFilter').onchange=()=>{
-    renderSeason(dd.value);
-  };
-
-});
-
-function renderSeason(year){
-
-  const c=document.getElementById('content');
-
-  c.innerHTML='';
-
-  const selectedType=
-    document.getElementById('typeFilter').value;
-
-  const data=allCompetitions.filter(r=>{
-
-    const matchesYear=
-      parseDateStr(r.Date).getFullYear()==year;
-
-    if(!matchesYear) return false;
-
-    if(selectedType==='all') return true;
-
-    const title=
-      (r.Title || r.Competition || '')
-      .toLowerCase();
-
-    return title.includes(selectedType);
-
-  });
-
-  if(!data.length){
-
-    c.innerHTML=`
-      <p style="text-align:center;">
-        No results found
-      </p>
-    `;
-
-    return;
-  }
-
-  const groups={};
-
-  data.forEach(r=>{
-
-    const k=
-      r.Title ||
-      r.Competition ||
-      'Unknown';
-
-    (groups[k]=groups[k]||[]).push(r);
-
-  });
-
-  Object.keys(groups)
-
-  .sort((a,b)=>
-    parseDateStr(groups[b][0].Date) -
-    parseDateStr(groups[a][0].Date)
-  )
-
-  .forEach(title=>{
-
-    const recs=groups[title];
-
-    const d=parseDateStr(recs[0].Date);
-
-    const sec=document.createElement('section');
-
-    const h=document.createElement('h2');
-
-    h.textContent=
-      `${title} — ${d.toLocaleDateString('en-GB')}`;
-
-    sec.appendChild(h);
-
-    const btn=document.createElement('button');
-
-    btn.textContent='Print PDF';
-
-    btn.className='print-btn';
-
-    btn.onclick=()=>{
-
-      document.querySelectorAll('.print-target')
-
-      .forEach(e=>e.classList.remove('print-target'));
-
-      sec.classList.add('print-target');
-
-      window.print();
-    };
-
-    sec.appendChild(btn);
-
-    const t=document.createElement('table');
-
-    const isStable=
-      title.toLowerCase().includes('stableford');
-
-    if(isStable){
-
-      recs.sort(
-        (a,b)=>
-          (b['Stableford Points']||0) -
-          (a['Stableford Points']||0)
-      );
-
-    } else {
-
-      recs.forEach(r=>{
-
-        const gross=
-          parseInt(r.Score || 0);
-
-        const handicap=
-          parseInt(r['Playing Handicap'] || 0);
-
-        r.NetScore=
-          gross - handicap;
-
-      });
-
-      recs.sort(
-        (a,b)=>
-          a.NetScore - b.NetScore
-      );
+  // ————— Robust date parser (matches index.html logic) —————
+  // Handles: Excel serial numbers, dd/mm/yyyy, "12 April 2026", ISO strings
+  function parseDateStr(value) {
+    if (value === null || value === undefined || value === '') return new Date('Invalid');
+    if (value instanceof Date && !isNaN(value)) return value;
+
+    // Excel serial number
+    if (Number.isFinite(value)) {
+      const excelEpoch = new Date(1899, 11, 30);
+      return new Date(excelEpoch.getTime() + value * 86400000);
     }
 
-    recs.forEach((r,index)=>{
-      r.CalculatedPosition=index+1;
+    if (typeof value === 'string') {
+      // dd/mm/yyyy or d/m/yyyy or dd-mm-yyyy
+      const slashMatch = value.match(/^\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\s*$/);
+      if (slashMatch) {
+        const d = parseInt(slashMatch[1], 10);
+        const m = parseInt(slashMatch[2], 10) - 1;
+        let y   = parseInt(slashMatch[3], 10);
+        if (y < 100) y += 2000;
+        return new Date(y, m, d);
+      }
+
+      // ISO or other standard formats
+      const tryDate = new Date(value);
+      if (!isNaN(tryDate)) return tryDate;
+
+      // "12 April 2026" style
+      const parsed = Date.parse(value.replace(/(\d+)\s+([A-Za-z]+)\s+(\d{4})/, '$1 $2 $3'));
+      if (!isNaN(parsed)) return new Date(parsed);
+    }
+
+    return new Date('Invalid');
+  }
+
+  let allRows      = [];
+  let currentSeason = null;
+
+  fetch('https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=' + Date.now())
+    .then(r => r.arrayBuffer())
+    .then(buf => {
+      const wb = XLSX.read(buf, { type: 'array' });
+
+      // Read Settings sheet
+      const settingsSheet = wb.Sheets['Settings'];
+      if (settingsSheet) {
+        XLSX.utils.sheet_to_json(settingsSheet, { header: 1 }).forEach(row => {
+          if (row[0] && row[0].toString().toLowerCase().includes('current season')) {
+            currentSeason = parseInt(row[1], 10);
+          }
+        });
+      }
+
+      // Read main data sheet
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      allRows = XLSX.utils.sheet_to_json(sheet);
+
+      // Build season dropdown from valid years only
+      const years = [...new Set(
+        allRows
+          .map(r => parseDateStr(r.Date))
+          .filter(d => !isNaN(d))
+          .map(d => d.getFullYear())
+      )].sort((a, b) => b - a);
+
+      const dd = document.getElementById('seasonFilter');
+      years.forEach(y => {
+        const o = document.createElement('option');
+        o.value = y;
+        o.textContent = y + ' Season';
+        dd.appendChild(o);
+      });
+
+      const thisYear = new Date().getFullYear();
+      const defaultYear =
+        years.includes(thisYear)           ? thisYear :
+        currentSeason && years.includes(currentSeason) ? currentSeason :
+        years[0];
+
+      dd.value = defaultYear;
+      renderSeason(defaultYear);
+
+      dd.onchange = () => renderSeason(dd.value);
+      document.getElementById('typeFilter').onchange = () => renderSeason(dd.value);
+    })
+    .catch(err => {
+      console.error('Failed to load workbook:', err);
+      document.getElementById('content').innerHTML = '<p style="text-align:center;">Failed to load results.</p>';
     });
 
-    t.innerHTML=`
+  function renderSeason(year) {
+    const c = document.getElementById('content');
+    c.innerHTML = '';
 
-      <thead>
+    const selectedType = document.getElementById('typeFilter').value;
+    const yearInt      = parseInt(year, 10);
 
-        <tr>
-  
-          <th>Position</th>
-
-          <th>Name</th>
-
-          ${
-            isStable
-
-            ? `
-              <th>Stableford</th>
-            `
-
-            : `
-              <th>Gross</th>
-              <th>HCP</th>
-              <th>Net</th>
-            `
-          }
-
-          <th>Points</th>
-
-          <th>Trophy</th>
-
-        </tr>
-
-      </thead>
-    `;
-
-    const tb=document.createElement('tbody');
-
-    recs.forEach(r=>{
-
-      const pos=r.CalculatedPosition;
-
-      const trophy=
-        pos==1 ? '🏆' :
-        pos==2 ? '🥈' :
-        pos==3 ? '🥉' : '';
-
-      tb.innerHTML+=`
-
-        <tr>
-
-
-          <td>${pos}</td>
-
-          <td>${r.Name || ''}</td>
-
-          ${
-            isStable
-
-            ? `
-              <td>${r['Stableford Points'] || 0}</td>
-            `
-
-            : `
-              <td>${r.Score || ''}</td>
-              <td>${r['Playing Handicap'] || 0}</td>
-              <td>${r.NetScore || ''}</td>
-            `
-          }
-
-          <td>${r.Points || ''}</td>
-
-          <td>${trophy}</td>
-
-        </tr>
-      `;
+    const data = allRows.filter(r => {
+      const d = parseDateStr(r.Date);
+      if (isNaN(d) || d.getFullYear() !== yearInt) return false;
+      if (selectedType === 'all') return true;
+      const title = (r.Title || r.Competition || '').toLowerCase();
+      return title.includes(selectedType);
     });
 
-    t.appendChild(tb);
+    if (!data.length) {
+      c.innerHTML = '<p style="text-align:center;">No results found for this season.</p>';
+      return;
+    }
 
-    sec.appendChild(t);
+    // Group by competition name
+    const groups = {};
+    data.forEach(r => {
+      const k = r.Title || r.Competition || 'Unknown';
+      (groups[k] = groups[k] || []).push(r);
+    });
 
-    c.appendChild(sec);
+    // Sort competitions newest first
+    Object.keys(groups)
+      .sort((a, b) => parseDateStr(groups[b][0].Date) - parseDateStr(groups[a][0].Date))
+      .forEach(title => {
+        const recs     = groups[title];
+        const compDate = parseDateStr(recs[0].Date);
+        const isStable = title.toLowerCase().includes('stableford');
 
-  });
+        // ————— Sort and calculate net scores —————
+        // FIX: use parseFloat consistently (matches index.html).
+        // Only subtract handicap when handicap > 0, same rule as the league table.
+        if (isStable) {
+          recs.sort((a, b) =>
+            (parseFloat(b['Stableford Points']) || 0) -
+            (parseFloat(a['Stableford Points']) || 0)
+          );
+        } else {
+          recs.forEach(r => {
+            const gross    = parseFloat(r.Score    || 0);
+            const handicap = parseFloat(r['Playing Handicap'] || 0);
+            r._net = handicap > 0 ? gross - handicap : gross;
+          });
+          recs.sort((a, b) => a._net - b._net);
+        }
 
-}
+        // Assign positions after sort
+        recs.forEach((r, i) => { r._pos = i + 1; });
 
+        // Build section
+        const sec = document.createElement('section');
+
+        const h = document.createElement('h2');
+        h.textContent = `${title} — ${isNaN(compDate) ? '' : compDate.toLocaleDateString('en-GB')}`;
+        sec.appendChild(h);
+
+        const btn = document.createElement('button');
+        btn.textContent = 'Print PDF';
+        btn.className   = 'print-btn';
+        btn.onclick = () => {
+          document.querySelectorAll('.print-target').forEach(e => e.classList.remove('print-target'));
+          sec.classList.add('print-target');
+          window.print();
+        };
+        sec.appendChild(btn);
+
+        const t = document.createElement('table');
+        t.innerHTML = `
+          <thead>
+            <tr>
+              <th>Position</th>
+              <th>Name</th>
+              ${isStable
+                ? '<th>Stableford</th>'
+                : '<th>Gross</th><th>HCP</th><th>Net</th>'
+              }
+              <th>Points</th>
+              <th>Trophy</th>
+            </tr>
+          </thead>`;
+
+        const tb = document.createElement('tbody');
+        recs.forEach(r => {
+          const pos    = r._pos;
+          const trophy = pos === 1 ? '🏆' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : '';
+
+          const scoreCell = isStable
+            ? `<td>${parseFloat(r['Stableford Points']) || 0}</td>`
+            : `<td>${r.Score || ''}</td>
+               <td>${parseFloat(r['Playing Handicap']) || 0}</td>
+               <td>${r._net !== undefined ? r._net : ''}</td>`;
+
+          tb.innerHTML += `
+            <tr>
+              <td>${pos}</td>
+              <td>${r.Name || ''}</td>
+              ${scoreCell}
+              <td>${r.Points || ''}</td>
+              <td>${trophy}</td>
+            </tr>`;
+        });
+
+        t.appendChild(tb);
+        sec.appendChild(t);
+        c.appendChild(sec);
+      });
+  }
 </script>
 
 </body>
