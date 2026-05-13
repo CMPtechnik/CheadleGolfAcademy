@@ -468,364 +468,544 @@
   </div>
 
   <script>
-    // ————— State —————
-    let history = [];
-    let selectedYear = null;
-    let currentSeason = null;
+  let history = [];
+  let selectedYear = null;
+  let currentSeason = null;
 
-    // ————— Date parser —————
-    function parseDateStr(value) {
-      if (value === null || value === undefined || value === '') return null;
-      if (value instanceof Date && !isNaN(value)) return value;
-      if (Number.isFinite(value)) {
-        const excelEpoch = new Date(1899, 11, 30);
-        return new Date(excelEpoch.getTime() + value * 86400000);
+  function parseDateStr(value) {
+
+    if (!value) return null;
+
+    if (value instanceof Date && !isNaN(value)) {
+      return value;
+    }
+
+    if (Number.isFinite(value)) {
+      const excelEpoch = new Date(1899, 11, 30);
+      return new Date(excelEpoch.getTime() + value * 86400000);
+    }
+
+    if (typeof value === 'string') {
+
+      const slashMatch = value.match(/^(\d{1,2})/-/-$/);
+
+      if (slashMatch) {
+
+        let d = parseInt(slashMatch[1], 10);
+        let m = parseInt(slashMatch[2], 10) - 1;
+        let y = parseInt(slashMatch[3], 10);
+
+        if (y < 100) y += 2000;
+
+        return new Date(y, m, d);
       }
-      if (typeof value === 'string') {
-        const slashMatch = value.match(/^\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\s*$/);
-        if (slashMatch) {
-          const d = parseInt(slashMatch[1], 10);
-          const m = parseInt(slashMatch[2], 10) - 1;
-          let y = parseInt(slashMatch[3], 10);
-          if (y < 100) y += 2000;
-          return new Date(y, m, d);
+
+      const tryDate = new Date(value);
+
+      if (!isNaN(tryDate)) {
+        return tryDate;
+      }
+    }
+
+    return null;
+  }
+
+  function getYearFromEntry(entry) {
+
+    const date = parseDateStr(entry.Date);
+
+    return date instanceof Date && !isNaN(date)
+      ? date.getFullYear()
+      : null;
+  }
+
+  function escapeHtml(str) {
+
+    if (!str && str !== 0) return '';
+
+    return String(str)
+      .replace(/&/g, '&')
+      .replace(/"/g, '"')
+      .replace(/</g, '<')
+      .replace(/>/g, '>');
+  }
+
+  function populateSeasonDropdown(data) {
+
+    const years = [
+      ...new Set(
+        data.map(getYearFromEntry).filter(y => y)
+      )
+    ].sort((a,b)=>b-a);
+
+    const dropdown =
+      document.getElementById('seasonSelect');
+
+    dropdown.innerHTML =
+      years.map(y =>
+        <option value="${y}">${y} Season</option>
+      ).join('');
+
+    const thisYear =
+      new Date().getFullYear();
+
+    selectedYear =
+      years.includes(thisYear)
+        ? thisYear
+        : years[0];
+
+    dropdown.value = selectedYear;
+  }
+
+  function changeSeason(year) {
+
+    selectedYear = parseInt(year,10);
+
+    updateLeague(history);
+  }
+
+  fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + new Date().getTime())
+
+  .then(res => res.arrayBuffer())
+
+  .then(buffer => {
+
+    const workbook =
+      XLSX.read(buffer, { type:'array' });
+
+    const settingsSheet =
+      workbook.Sheets['Settings'];
+
+    if(settingsSheet){
+
+      const settingsData =
+        XLSX.utils.sheet_to_json(settingsSheet,{header:1});
+
+      settingsData.forEach(row => {
+
+        if(!row[0]) return;
+
+        const key =
+          row[0].toString().toLowerCase();
+
+        if(key.includes('next competition')){
+          document.getElementById('nextCompetitionText').innerText = row[1];
         }
-        const tryDate = new Date(value);
-        if (!isNaN(tryDate)) return tryDate;
-        const parsed = Date.parse(value.replace(/(\d+)\s+([A-Za-z]+)\s+(\d{4})/, '$1 $2 $3'));
-        if (!isNaN(parsed)) return new Date(parsed);
-      }
-      return null;
-    }
 
-    function getYearFromEntry(entry) {
-      const date = parseDateStr(entry.Date);
-      return date instanceof Date && !isNaN(date) ? date.getFullYear() : null;
-    }
-
-    // ————— Season dropdown —————
-    function populateSeasonDropdown(data) {
-      const years = [...new Set(data.map(getYearFromEntry).filter(y => y))].sort((a, b) => b - a);
-      const dropdown = document.getElementById('seasonSelect');
-      if (!years.length) {
-        dropdown.innerHTML = '<option value="">No seasons</option>';
-        selectedYear = null;
-        return;
-      }
-      dropdown.innerHTML = years.map(y => `<option value="${y}">${y} Season</option>`).join('');
-      const thisYear = new Date().getFullYear();
-      selectedYear =
-        years.includes(thisYear) ? thisYear :
-        (currentSeason && years.includes(currentSeason)) ? currentSeason :
-        years[0];
-      dropdown.value = selectedYear;
-    }
-
-    function changeSeason(year) {
-      selectedYear = parseInt(year, 10);
-      updateLeague(history);
-    }
-
-    // ————— Load workbook —————
-    fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + new Date().getTime())
-      .then(res => res.arrayBuffer())
-      .then(buffer => {
-        const workbook = XLSX.read(buffer, { type: 'array' });
-
-        // Settings sheet
-        const settingsSheet = workbook.Sheets['Settings'];
-        if (settingsSheet) {
-          const settingsData = XLSX.utils.sheet_to_json(settingsSheet, { header: 1 });
-          let nextCompetitionVal, currentSeasonVal;
-          settingsData.forEach(row => {
-            if (!row[0]) return;
-            const key = row[0].toString().toLowerCase().trim();
-            if (key.includes('next competition')) nextCompetitionVal = row[1];
-            if (key.includes('current season')) currentSeasonVal = parseInt(row[1], 10);
-          });
-          if (nextCompetitionVal) document.getElementById('nextCompetitionText').innerText = nextCompetitionVal;
-          if (currentSeasonVal && !isNaN(currentSeasonVal)) currentSeason = currentSeasonVal;
+        if(key.includes('current season')){
+          currentSeason = parseInt(row[1],10);
         }
 
-        // Main data sheet
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        history = XLSX.utils.sheet_to_json(sheet);
+      });
 
-        populateSeasonDropdown(history);
-
-        // Info bar last update
-        try {
-          const lastEntry = history.reduce((latest, entry) =>
-            (parseDateStr(entry.Date) && parseDateStr(entry.Date) > parseDateStr(latest.Date)) ? entry : latest
-          , history[0]);
-          if (lastEntry) {
-            const lastDate = parseDateStr(lastEntry.Date);
-            const lastUpdate = lastDate ? lastDate.toLocaleDateString() : '';
-            const infoBar = document.querySelector(".info-bar h4");
-            if (infoBar) {
-              infoBar.innerHTML = `<span style="color:#ff2d55;font-weight:900;">Last Update - ${lastUpdate}</span> <span style="opacity:0.7;">|</span> Last Competition: ${escapeHtml(lastEntry.Competition || '')}`;
-            }
-          }
-        } catch (e) { /* ignore */ }
-
-        updateLeague(history);
-      })
-      .catch(err => console.error("Error loading workbook:", err));
-
-    // ————— Helper: escape HTML safely —————
-    function escapeHtml(str) {
-      if (!str && str !== 0) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-      // NOTE: single quotes are intentionally NOT escaped here so data-name attributes work correctly
     }
 
-    // ————— Compute stats —————
-    function updateLeague(data) {
-      const filtered = selectedYear
+    const sheet =
+      workbook.Sheets[workbook.SheetNames[0]];
+
+    history =
+      XLSX.utils.sheet_to_json(sheet);
+
+    populateSeasonDropdown(history);
+
+    updateLeague(history);
+
+  })
+
+  .catch(err => {
+    console.error(err);
+  });
+
+  function updateLeague(data){
+
+    const filtered =
+      selectedYear
         ? data.filter(e => getYearFromEntry(e) === selectedYear)
         : data;
 
-      const netScores  = {};
-      const netWins    = {};
-      const totalPoints = {};
-      const rounds     = {};
+    const netScores = {};
+    const netWins = {};
+    const totalPoints = {};
+    const rounds = {};
 
-      filtered.forEach(entry => {
-        const { Name, Score, Points, Competition } = entry;
-        const gross    = parseFloat(Score);
-        const handicap = parseFloat(entry['Playing Handicap'] || 0);
-        const net      = handicap > 0 ? gross - handicap : gross;
+    filtered.forEach(entry => {
 
-        if (isNaN(net)) return;
+      const name =
+        entry.Name;
 
-        netScores[Name]  = netScores[Name]  || [];
-        rounds[Competition] = rounds[Competition] || [];
+      const gross =
+        parseFloat(entry.Score);
 
-        netScores[Name].push(net);
-        rounds[Competition].push({ name: Name, net });
+      const handicap =
+        parseFloat(entry['Playing Handicap'] || 0);
 
-        totalPoints[Name] = (totalPoints[Name] || 0) + (parseFloat(Points) || 0);
+      const net =
+        handicap > 0
+          ? gross - handicap
+          : gross;
+
+      if(isNaN(net)) return;
+
+      const competition =
+        entry.Competition || 'Unknown';
+
+      netScores[name] =
+        netScores[name] || [];
+
+      rounds[competition] =
+        rounds[competition] || [];
+
+      netScores[name].push(net);
+
+      rounds[competition].push({
+        name,
+        net
       });
 
-      // Determine competition winners
-      Object.values(rounds).forEach(players => {
-        players.sort((a, b) => a.net - b.net);
-        const winner = players[0];
-        if (winner) {
-          netWins[winner.name] = (netWins[winner.name] || 0) + 1;
-        }
-      });
+      totalPoints[name] =
+        (totalPoints[name] || 0) +
+        (parseFloat(entry.Points) || 0);
 
-      const players = Object.keys(netScores).map(name => {
-        const games  = netScores[name].length;
-        const wins   = netWins[name] || 0;
-        const winPct = games ? ((wins / games) * 100).toFixed(1) : '0.0';
-        return { name, games, winPct, points: totalPoints[name] || 0, trophies: wins };
-      }).sort((a, b) => {
-        if (b.points     !== a.points)     return b.points     - a.points;
-        if (b.trophies   !== a.trophies)   return b.trophies   - a.trophies;
-        if (parseFloat(b.winPct) !== parseFloat(a.winPct)) return parseFloat(b.winPct) - parseFloat(a.winPct);
-        return a.name.localeCompare(b.name);
-      });
-
-      // Pass rounds map to renderTable so trophy tooltips use the same data
-      renderTable(players, rounds);
-    }
-
-    // ————— Render table —————
-    // playerIndex maps table-row index → original player name for safe lookup
-    const playerIndex = {};
-
-    function renderTable(data, rounds) {
-
-      // Build winner → [comp names] map from the rounds already computed
-      const winnerComps = {};
-      Object.entries(rounds).forEach(([comp, players]) => {
-        const sorted = [...players].sort((a, b) => a.net - b.net);
-        if (sorted[0]) {
-          const w = sorted[0].name;
-          winnerComps[w] = winnerComps[w] || [];
-          winnerComps[w].push(comp);
-        }
-      });
-
-      const tbody = document.querySelector("#league-table tbody");
-      tbody.innerHTML = '';
-
-      // Clear previous index
-      Object.keys(playerIndex).forEach(k => delete playerIndex[k]);
-
-      data.forEach((p, i) => {
-        // Store the RAW name in playerIndex keyed by row number.
-        // The data-index attribute carries only a safe integer — no string escaping needed.
-        playerIndex[i] = p.name;
-
-        const won = winnerComps[p.name] || [];
-        const span = won.length
-          ? `<span class="trophy" onclick="toggleTooltip(this)">
-               ${'🏆'.repeat(won.length)}
-               <span class="tooltip-bubble">${won.map(escapeHtml).join(', ')}</span>
-             </span>`
-          : '';
-
-        tbody.innerHTML += `
-          <tr>
-            <td>${i + 1}</td>
-            <td><a href="#" class="player-link" data-index="${i}">${escapeHtml(p.name)}</a></td>
-            <td>${p.games}</td>
-            <td>${p.winPct}%</td>
-            <td>${p.points}</td>
-            <td>${span}</td>
-          </tr>`;
-      });
-    }
-
-    // Delegated click listener — resolves player name via index, never via string parsing
-    document.addEventListener('click', e => {
-      const link = e.target.closest('.player-link');
-      if (link) {
-        e.preventDefault();
-        const name = playerIndex[parseInt(link.dataset.index, 10)];
-        if (name !== undefined) showPlayerModal(name);
-        return;
-      }
-      // Close trophy tooltips when clicking elsewhere
-      if (!e.target.closest('.trophy')) {
-        document.querySelectorAll('.trophy.show-tooltip').forEach(t => t.classList.remove('show-tooltip'));
-      }
     });
 
-    function toggleTooltip(el) {
-      document.querySelectorAll('.trophy.show-tooltip').forEach(t => {
-        if (t !== el) t.classList.remove('show-tooltip');
-      });
-      el.classList.toggle('show-tooltip');
-    }
+    Object.values(rounds).forEach(players => {
 
-    // ————— Player modal —————
-    function showPlayerModal(name) {
-      const trimmed = name.trim().toLowerCase();
+      players.sort((a,b)=>a.net - b.net);
 
-      // Filter: case-insensitive name match + year match (cast both to int to avoid string/number mismatch)
-      const yearInt = parseInt(selectedYear, 10);
-      const scores = history
-        .filter(e => {
-          if (!e.Name) return false;
-          const nameMatch = e.Name.trim().toLowerCase() === trimmed;
-          const yearMatch = getYearFromEntry(e) === yearInt;
-          return nameMatch && yearMatch;
-        })
-        .map(e => ({
-          competition: e.Competition,
-          score: parseFloat(e.Score),
-          position: parseInt(e.Position, 10),
-          points: parseFloat(e.Points) || 0,
-          date: e.Date
-        }))
-        .filter(s => !isNaN(s.score) && s.competition)
-        .sort((a, b) => (parseDateStr(a.date) || 0) - (parseDateStr(b.date) || 0));
+      const winner = players[0];
 
-      // Display name: get the original casing from history rather than the lowercased version
-      const displayName = (history.find(e => e.Name && e.Name.trim().toLowerCase() === trimmed) || {}).Name || name;
-      document.getElementById('modalTitle').innerText = `${displayName.trim()}'s Score History`;
+      if(winner){
 
-      const scoreList = document.getElementById('scoreList');
-      const posList   = document.getElementById('positionList');
-      scoreList.innerHTML = '';
-      posList.innerHTML   = '';
+        netWins[winner.name] =
+          (netWins[winner.name] || 0) + 1;
 
-      scores.forEach(s => {
-        const trophy = s.position === 1 ? ' 🏆' : '';
-        scoreList.innerHTML += `<li>${escapeHtml(s.competition)}: Gross ${s.score}, Position ${s.position}${trophy}</li>`;
-        posList.innerHTML   += `<li>${escapeHtml(s.competition)}: Finished ${s.position}, Points ${s.points}${trophy}</li>`;
-      });
+      }
 
-      const labels  = scores.map(s => s.competition);
-      const netData = scores.map(s => s.score);
-      const posData = scores.map(s => s.position);
+    });
 
-      const ctxNet = document.getElementById('scoreChart').getContext('2d');
-      if (window.scoreChart instanceof Chart) window.scoreChart.destroy();
-      window.scoreChart = new Chart(ctxNet, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            { label: 'Score',   data: netData, fill: false, tension: 0.25 },
-            { label: 'Par 64',  data: new Array(labels.length).fill(64), borderDash: [6,6], fill: false, tension: 0 },
-            { label: 'Par 32',  data: new Array(labels.length).fill(32), borderDash: [6,6], fill: false, tension: 0 }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
+    const players =
+      Object.keys(netScores)
+
+      .map(name => {
+
+        const games =
+          netScores[name].length;
+
+        const wins =
+          netWins[name] || 0;
+
+        return {
+
+          name,
+
+          games,
+
+          winPct:
+            games
+              ? ((wins / games) * 100).toFixed(1)
+              : '0.0',
+
+          points:
+            totalPoints[name] || 0,
+
+          trophies:
+            wins
+
+        };
+
+      })
+
+      .sort((a,b)=>{
+
+        if(b.points !== a.points)
+          return b.points - a.points;
+
+        if(b.trophies !== a.trophies)
+          return b.trophies - a.trophies;
+
+        return a.name.localeCompare(b.name);
+
       });
 
-      const ctxPos = document.getElementById('positionChart').getContext('2d');
-      if (window.positionChart instanceof Chart) window.positionChart.destroy();
-      window.positionChart = new Chart(ctxPos, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            { label: 'Finishing Position', data: posData, fill: false, tension: 0.25 }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: { y: { reverse: true, title: { display: true, text: 'Finishing Position' } } }
+    renderTable(players, rounds);
+  }
+
+  function renderTable(data, rounds){
+
+    const tbody =
+      document.querySelector('#league-table tbody');
+
+    tbody.innerHTML = '';
+
+    data.forEach((p,i)=>{
+
+      const won = [];
+
+      Object.entries(rounds).forEach(([comp, players]) => {
+
+        const sorted =
+          [...players].sort((a,b)=>a.net - b.net);
+
+        const winner =
+          sorted[0];
+
+        if(winner && winner.name === p.name){
+          won.push(comp);
         }
+
+      });
+
+      const trophies =
+        won.length
+          ?           <span class="trophy" onclick="toggleTooltip(this)">             ${'🏆'.repeat(won.length)}             <span class="tooltip-bubble">               ${won.join(', ')}             </span>           </span>        
+          : '';
+
+      tbody.innerHTML +=       <tr>         <td>${i + 1}</td>          <td>           <a href="#"              onclick="showPlayerModal('${p.name.replace(/'/g,"\\'")}');return false;">             ${escapeHtml(p.name)}           </a>         </td>          <td>${p.games}</td>         <td>${p.winPct}%</td>         <td>${p.points}</td>         <td>${trophies}</td>       </tr>    ;
+
+    });
+
+  }
+
+  function showPlayerModal(name){
+
+    const scores =
+      history
+
+      .filter(e =>
+        e.Name === name &&
+        getYearFromEntry(e) === selectedYear
+      )
+
+      .map(e => ({
+
+        competition:
+          e.Competition,
+
+        score:
+          parseFloat(e.Score),
+
+        position:
+          parseInt(e.Position,10),
+
+        points:
+          parseFloat(e.Points) || 0,
+
+        date:
+          e.Date
+
+      }))
+
+      .filter(s =>
+        !isNaN(s.score) &&
+        s.competition
+      )
+
+      .sort((a,b)=>
+        (parseDateStr(a.date)||0) -
+        (parseDateStr(b.date)||0)
+      );
+
+    document.getElementById('modalTitle').innerText =
+      ${name}'s Score History;
+
+    const scoreList =
+      document.getElementById('scoreList');
+
+    const posList =
+      document.getElementById('positionList');
+
+    scoreList.innerHTML = '';
+    posList.innerHTML = '';
+
+    scores.forEach(s => {
+
+      const trophy =
+        s.position === 1 ? ' 🏆' : '';
+
+      scoreList.innerHTML +=       <li>         ${s.competition}:         Gross ${s.score},         Position ${s.position}${trophy}       </li>    ;
+
+      posList.innerHTML +=       <li>         ${s.competition}:         Finished ${s.position},         Points ${s.points}${trophy}       </li>    ;
+
+    });
+
+    const labels =
+      scores.map(s => s.competition);
+
+    const netData =
+      scores.map(s => s.score);
+
+    const posData =
+      scores.map(s => s.position);
+
+    document.getElementById('scoreModal').style.display = 'flex';
+
+    setTimeout(()=>{
+
+      if(window.scoreChart instanceof Chart){
+        window.scoreChart.destroy();
+      }
+
+      if(window.positionChart instanceof Chart){
+        window.positionChart.destroy();
+      }
+
+      const ctxNet =
+        document.getElementById('scoreChart').getContext('2d');
+
+      window.scoreChart = new Chart(ctxNet, {
+
+        type:'line',
+
+        data:{
+
+          labels,
+
+          datasets:[
+
+            {
+              label:'Score',
+              data:netData,
+              tension:0.25
+            },
+
+            {
+              label:'Par 64',
+              data:new Array(labels.length).fill(64),
+              borderDash:[6,6],
+              tension:0
+            },
+
+            {
+              label:'Par 32',
+              data:new Array(labels.length).fill(32),
+              borderDash:[6,6],
+              tension:0
+            }
+
+          ]
+
+        },
+
+        options:{
+          responsive:true,
+          maintainAspectRatio:false
+        }
+
+      });
+
+      const ctxPos =
+        document.getElementById('positionChart').getContext('2d');
+
+      window.positionChart = new Chart(ctxPos, {
+
+        type:'line',
+
+        data:{
+
+          labels,
+
+          datasets:[
+
+            {
+              label:'Finishing Position',
+              data:posData,
+              tension:0.25
+            }
+
+          ]
+
+        },
+
+        options:{
+
+          responsive:true,
+          maintainAspectRatio:false,
+
+          scales:{
+            y:{
+              reverse:true
+            }
+          }
+
+        }
+
       });
 
       showTab('net');
-      document.getElementById('scoreModal').style.display = 'flex';
-    }
 
-    function showTab(tab) {
-      ['tabNet', 'tabPositions', 'tabHistory'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove('active');
+    },50);
+
+  }
+
+  function showTab(tab){
+
+    ['tabNet','tabPositions','tabHistory']
+      .forEach(id=>{
+        document.getElementById(id).classList.remove('active');
       });
 
-      const tabEl =
-        tab === 'net'       ? document.getElementById('tabNet') :
-        tab === 'positions' ? document.getElementById('tabPositions') :
-                              document.getElementById('tabHistory');
-      if (tabEl) tabEl.classList.add('active');
+    if(tab === 'net'){
 
-      const scoreList    = document.getElementById('scoreList');
-      const positionList = document.getElementById('positionList');
-      const scoreChart   = document.getElementById('scoreChart');
-      const positionChart = document.getElementById('positionChart');
+      document.getElementById('tabNet').classList.add('active');
 
-      if (tab === 'net') {
-        scoreChart.style.display    = 'block';
-        positionChart.style.display = 'none';
-        scoreList.style.display     = 'block';
-        positionList.style.display  = 'none';
-      } else if (tab === 'positions') {
-        scoreChart.style.display    = 'none';
-        positionChart.style.display = 'block';
-        scoreList.style.display     = 'none';
-        positionList.style.display  = 'block';
-      } else {
-        scoreChart.style.display    = 'none';
-        positionChart.style.display = 'none';
-        scoreList.style.display     = 'block';
-        positionList.style.display  = 'block';
-      }
+      scoreChart.style.display = 'block';
+      positionChart.style.display = 'none';
+
+      scoreList.style.display = 'block';
+      positionList.style.display = 'none';
+
     }
 
-    function closeModal() {
-      document.getElementById('scoreModal').style.display = 'none';
+    else if(tab === 'positions'){
+
+      document.getElementById('tabPositions').classList.add('active');
+
+      scoreChart.style.display = 'none';
+      positionChart.style.display = 'block';
+
+      scoreList.style.display = 'none';
+      positionList.style.display = 'block';
+
     }
 
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
+    else {
+
+      document.getElementById('tabHistory').classList.add('active');
+
+      scoreChart.style.display = 'none';
+      positionChart.style.display = 'none';
+
+      scoreList.style.display = 'block';
+      positionList.style.display = 'block';
+
     }
+
+  }
+
+  function closeModal(){
+    document.getElementById('scoreModal').style.display = 'none';
+  }
+
+  function toggleTooltip(el){
+
+    document.querySelectorAll('.trophy.show-tooltip')
+      .forEach(t => {
+        if(t !== el){
+          t.classList.remove('show-tooltip');
+        }
+      });
+
+    el.classList.toggle('show-tooltip');
+  }
+
+  function toggleDarkMode(){
+    document.body.classList.toggle('dark-mode');
+  }
+
+  // LOGIN PERSISTENCE FIX
+  if(localStorage.getItem("auth") !== "true"){
+    window.location.replace("./login.html");
+  }
   </script>
 
   <!-- ===================== WEATHER ===================== -->
