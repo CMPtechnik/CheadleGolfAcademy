@@ -163,7 +163,11 @@ tbody tr:first-child {
 </head>
 
 <body>
-
+<script>
+  if (localStorage.getItem("auth") !== "true") {
+    window.location.href = "./login.html";
+  }
+</script>
 <header>
   <div class="nav">
     <a href="index.html">🏠 Home</a>
