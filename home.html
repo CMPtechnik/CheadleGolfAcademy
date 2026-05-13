@@ -17,10 +17,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
-    /* =========================================================
-       MODERN TEEN-FRIENDLY UI REFRESH (FUNCTIONALITY UNCHANGED)
-       ========================================================= */
-
     :root {
       --primary: #00c896;
       --primary-dark: #008f6a;
@@ -31,7 +27,6 @@
       --border: rgba(0,0,0,0.08);
       --hover: rgba(0,0,0,0.04);
       --radius: 14px;
-
       --shadow-1: 0 10px 25px rgba(0,0,0,0.08);
       --shadow-2: 0 20px 40px rgba(0,0,0,0.10);
       --shadow-3: 0 30px 80px rgba(0,0,0,0.25);
@@ -55,17 +50,15 @@
       --accent: rgba(15,118,110,0.25);
       --border: rgba(255,255,255,0.12);
       --hover: rgba(255,255,255,0.06);
-
       --shadow-1: 0 10px 25px rgba(0,0,0,0.35);
       --shadow-2: 0 20px 40px rgba(0,0,0,0.45);
       --shadow-3: 0 30px 80px rgba(0,0,0,0.60);
     }
 
-    /* Header */
     header {
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
       color: white;
-      padding: 1.5rem 1rem 2rem;
+      padding: 1.5rem 1rem 2.75rem;
       text-align: center;
       position: relative;
       border-bottom-left-radius: 24px;
@@ -81,7 +74,6 @@
       width: 280px;
       height: 280px;
       background: rgba(255,255,255,0.20);
-      filter: blur(0px);
       border-radius: 999px;
       transform: rotate(15deg);
       pointer-events: none;
@@ -91,9 +83,7 @@
       max-height: 220px;
       filter: drop-shadow(0 10px 20px rgba(0,0,0,0.28));
     }
-    header {
-      padding-bottom: 2.75rem; /* creates space for buttons */
-    }
+
     #darkModeToggle {
       position: absolute;
       top: 14px;
@@ -110,19 +100,16 @@
       opacity: 1;
     }
 
-    /* Nav tiles */
     .info-links {
-    position: relative;
-    z-index: 5;
-
-    margin: 0.75rem auto 1rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 0.75rem;
-
-    max-width: 980px;
-    padding: 0 1rem;
-  }
+      position: relative;
+      z-index: 5;
+      margin: 0.75rem auto 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      max-width: 980px;
+      padding: 0 1rem;
+    }
 
     .info-btn {
       background: var(--card);
@@ -146,7 +133,6 @@
       box-shadow: var(--shadow-2);
     }
 
-    /* helper notices */
     .hint {
       text-align: center;
       margin: 1rem auto 0.5rem;
@@ -160,7 +146,6 @@
       padding: 1rem;
     }
 
-    /* Season selector card */
     .season-card {
       margin: 1rem auto;
       max-width: 980px;
@@ -192,7 +177,6 @@
       box-shadow: 0 4px 14px rgba(0,0,0,0.06);
     }
 
-    /* Table */
     table {
       width: 100%;
       border-collapse: separate;
@@ -244,7 +228,6 @@
       font-weight: 900;
     }
 
-    /* Trophy tooltip */
     .trophy {
       position: relative;
       display: inline-block;
@@ -273,7 +256,6 @@
       display: block;
     }
 
-    /* Next comp card */
     #nextCompetition {
       text-align: center;
       padding: 1rem;
@@ -294,7 +276,6 @@
       margin-top: 0.6rem;
     }
 
-    /* Modal */
     .modal {
       display: none;
       position: fixed;
@@ -307,56 +288,42 @@
       padding: 1rem;
     }
 
-    .modal-content{
+    .modal-content {
       background: var(--card);
       color: var(--text);
-
-      /* smaller + tighter */
       width: min(92vw, 600px);
       max-height: 80vh;
-
       padding: 1rem;
       border-radius: 18px;
-
-      overflow: hidden;             /* important: stop whole modal from scrolling */
+      overflow: hidden;
       box-shadow: var(--shadow-3);
       border: 1px solid var(--border);
       animation: pop 0.22s ease-out;
-
-      display: flex;                /* allow internal sections to scroll */
+      display: flex;
       flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
-    /* tighter tabs */
-.tabs { margin: 0.75rem 0 0.5rem; }
 
-/* make lists scroll inside, not the whole modal */
-#scoreList, #positionList{
-  margin: 0.25rem 0 0;
-  padding-left: 1.1rem;
-  max-height: 220px;            /* adjust this */
-  overflow: auto;
-  border-top: 1px solid var(--border);
-  padding-top: 0.5rem;
-}
+    .tabs { margin: 0.75rem 0 0.5rem; }
 
-/* make charts slightly smaller */
-#scoreChart, #positionChart{
-  height: 400px !important;     /* visual height */
-}
-.modal-content{
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-@keyframes pop {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+    #scoreList, #positionList {
+      margin: 0.25rem 0 0;
+      padding-left: 1.1rem;
+      max-height: 220px;
+      overflow: auto;
+      border-top: 1px solid var(--border);
+      padding-top: 0.5rem;
+    }
+
+    #scoreChart, #positionChart {
+      height: 400px !important;
+    }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
     .close-btn {
       float: right;
@@ -398,13 +365,11 @@
 
     #scoreChart, #positionChart {
       margin-bottom: 0.75rem;
-      background: rgba(0,0,0,0.00);
     }
 
     ul { padding-left: 1.2rem; }
     li { margin: 0.2rem 0; }
 
-    /* Info bar */
     .info-bar {
       background: var(--card);
       max-width: 980px;
@@ -420,7 +385,6 @@
 
     .info-bar h4 { margin: 0; font-weight: 900; }
 
-    /* Footer */
     .footer {
       text-align: center;
       padding: 1rem 0 1.5rem;
@@ -429,7 +393,6 @@
 
     .footer img { vertical-align: middle; }
 
-    /* Mobile */
     @media screen and (max-width: 768px) {
       table {
         display: block;
@@ -504,28 +467,21 @@
     </div>
   </div>
 
-  <!-- ===================== APP LOGIC (ORIGINAL FEATURES RESTORED) ===================== -->
   <script>
     // ————— State —————
     let history = [];
     let selectedYear = null;
     let currentSeason = null;
 
-    // Robust date parser: handles Excel serial numbers, dd/mm/yyyy, text like "12 April 2026", and native Date strings
+    // ————— Date parser —————
     function parseDateStr(value) {
       if (value === null || value === undefined || value === '') return null;
-
-      // If the XLSX output gives a JavaScript Date already
       if (value instanceof Date && !isNaN(value)) return value;
-
-      // Excel serial date (numbers)
       if (Number.isFinite(value)) {
         const excelEpoch = new Date(1899, 11, 30);
         return new Date(excelEpoch.getTime() + value * 86400000);
       }
-
       if (typeof value === 'string') {
-        // dd/mm/yyyy or d/m/yyyy
         const slashMatch = value.match(/^\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\s*$/);
         if (slashMatch) {
           const d = parseInt(slashMatch[1], 10);
@@ -534,16 +490,11 @@
           if (y < 100) y += 2000;
           return new Date(y, m, d);
         }
-
-        // ISO or "12 Apr 2026"
         const tryDate = new Date(value);
         if (!isNaN(tryDate)) return tryDate;
-
-        // Fallback: "12 April 2026"
         const parsed = Date.parse(value.replace(/(\d+)\s+([A-Za-z]+)\s+(\d{4})/, '$1 $2 $3'));
         if (!isNaN(parsed)) return new Date(parsed);
       }
-
       return null;
     }
 
@@ -552,29 +503,21 @@
       return date instanceof Date && !isNaN(date) ? date.getFullYear() : null;
     }
 
-    // Populate season dropdown from history years
-    // Default order:
-    // 1) Current calendar year if present (fixes 2026 visibility)
-    // 2) Current Season from Settings if present
-    // 3) Latest year in data
+    // ————— Season dropdown —————
     function populateSeasonDropdown(data) {
       const years = [...new Set(data.map(getYearFromEntry).filter(y => y))].sort((a, b) => b - a);
       const dropdown = document.getElementById('seasonSelect');
-
       if (!years.length) {
         dropdown.innerHTML = '<option value="">No seasons</option>';
         selectedYear = null;
         return;
       }
-
       dropdown.innerHTML = years.map(y => `<option value="${y}">${y} Season</option>`).join('');
-
       const thisYear = new Date().getFullYear();
       selectedYear =
         years.includes(thisYear) ? thisYear :
         (currentSeason && years.includes(currentSeason)) ? currentSeason :
         years[0];
-
       dropdown.value = selectedYear;
     }
 
@@ -583,226 +526,137 @@
       updateLeague(history);
     }
 
-    // Fetch workbook from GitHub and initialize
+    // ————— Load workbook —————
     fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + new Date().getTime())
       .then(res => res.arrayBuffer())
       .then(buffer => {
         const workbook = XLSX.read(buffer, { type: 'array' });
 
-        // Read Settings sheet for Next Competition and Current Season
+        // Settings sheet
         const settingsSheet = workbook.Sheets['Settings'];
         if (settingsSheet) {
           const settingsData = XLSX.utils.sheet_to_json(settingsSheet, { header: 1 });
           let nextCompetitionVal, currentSeasonVal;
-
           settingsData.forEach(row => {
             if (!row[0]) return;
             const key = row[0].toString().toLowerCase().trim();
             if (key.includes('next competition')) nextCompetitionVal = row[1];
             if (key.includes('current season')) currentSeasonVal = parseInt(row[1], 10);
           });
-
           if (nextCompetitionVal) document.getElementById('nextCompetitionText').innerText = nextCompetitionVal;
           if (currentSeasonVal && !isNaN(currentSeasonVal)) currentSeason = currentSeasonVal;
         }
 
-        // Read main sheet (first sheet) into history
+        // Main data sheet
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         history = XLSX.utils.sheet_to_json(sheet);
 
-        // populate dropdown and render
         populateSeasonDropdown(history);
 
-        // set last update text in info-bar if possible
+        // Info bar last update
         try {
-          const lastCompetitionEntry = history.reduce((latest, entry) =>
+          const lastEntry = history.reduce((latest, entry) =>
             (parseDateStr(entry.Date) && parseDateStr(entry.Date) > parseDateStr(latest.Date)) ? entry : latest
           , history[0]);
-
-          if (lastCompetitionEntry) {
-            const lastCompetition = lastCompetitionEntry.Competition || '';
-            const lastUpdateDate = parseDateStr(lastCompetitionEntry.Date);
-            const lastUpdate = lastUpdateDate ? lastUpdateDate.toLocaleDateString() : '';
+          if (lastEntry) {
+            const lastDate = parseDateStr(lastEntry.Date);
+            const lastUpdate = lastDate ? lastDate.toLocaleDateString() : '';
             const infoBar = document.querySelector(".info-bar h4");
             if (infoBar) {
-              infoBar.innerHTML = `<span style="color:#ff2d55;font-weight:900;">Last Update - ${lastUpdate}</span> <span style="opacity:0.7;">|</span> Last Competition: ${escapeHtml(lastCompetition)}`;
+              infoBar.innerHTML = `<span style="color:#ff2d55;font-weight:900;">Last Update - ${lastUpdate}</span> <span style="opacity:0.7;">|</span> Last Competition: ${escapeHtml(lastEntry.Competition || '')}`;
             }
           }
-        } catch (e) {
-          // ignore
-        }
+        } catch (e) { /* ignore */ }
 
         updateLeague(history);
       })
-      .catch(err => {
-        console.error("Error loading workbook:", err);
-      });
+      .catch(err => console.error("Error loading workbook:", err));
 
-    // Main stats computation — filters by selectedYear
-    function updateLeague(data) {
-
-  const filtered =
-    selectedYear
-      ? data.filter(e => getYearFromEntry(e) === selectedYear)
-      : data;
-
-  const netScores = {};
-  const netWins = {};
-  const totalPoints = {};
-  const rounds = {};
-
-  filtered.forEach(entry => {
-
-    const {
-      Name,
-      Score,
-      Points,
-      Competition
-    } = entry;
-
-    const gross =
-      parseFloat(Score);
-
-    const handicap =
-      parseFloat(entry['Playing Handicap'] || 0);
-
-  const net =
-    handicap > 0
-      ? gross - handicap
-      : gross;
-
-    if (isNaN(net)) return;
-
-    netScores[Name] =
-      netScores[Name] || [];
-
-    rounds[Competition] =
-      rounds[Competition] || [];
-
-    netScores[Name].push(net);
-
-    rounds[Competition].push({
-      name: Name,
-      net: net
-    });
-
-    totalPoints[Name] =
-      (totalPoints[Name] || 0) +
-      (parseFloat(Points) || 0);
-
-  });
-
-  /* =========================
-     CALCULATE COMP WINNERS
-  ========================= */
-
-  Object.values(rounds).forEach(players => {
-
-    players.sort((a,b)=>a.net - b.net);
-
-    const winner = players[0];
-
-    if(winner){
-      netWins[winner.name] =
-        (netWins[winner.name] || 0) + 1;
+    // ————— Helper: escape HTML safely —————
+    function escapeHtml(str) {
+      if (!str && str !== 0) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      // NOTE: single quotes are intentionally NOT escaped here so data-name attributes work correctly
     }
 
-  });
+    // ————— Compute stats —————
+    function updateLeague(data) {
+      const filtered = selectedYear
+        ? data.filter(e => getYearFromEntry(e) === selectedYear)
+        : data;
 
-  const players = Object.keys(netScores)
+      const netScores  = {};
+      const netWins    = {};
+      const totalPoints = {};
+      const rounds     = {};
 
-  .map(name => {
+      filtered.forEach(entry => {
+        const { Name, Score, Points, Competition } = entry;
+        const gross    = parseFloat(Score);
+        const handicap = parseFloat(entry['Playing Handicap'] || 0);
+        const net      = handicap > 0 ? gross - handicap : gross;
 
-    const games =
-      netScores[name].length;
+        if (isNaN(net)) return;
 
-    const wins =
-      netWins[name] || 0;
+        netScores[Name]  = netScores[Name]  || [];
+        rounds[Competition] = rounds[Competition] || [];
 
-    const winPct =
-      games
-        ? ((wins / games) * 100).toFixed(1)
-        : '0.0';
+        netScores[Name].push(net);
+        rounds[Competition].push({ name: Name, net });
 
-    return {
-      name,
-      games,
-      winPct,
-      points: totalPoints[name] || 0,
-      trophies: wins
-    };
+        totalPoints[Name] = (totalPoints[Name] || 0) + (parseFloat(Points) || 0);
+      });
 
-  })
+      // Determine competition winners
+      Object.values(rounds).forEach(players => {
+        players.sort((a, b) => a.net - b.net);
+        const winner = players[0];
+        if (winner) {
+          netWins[winner.name] = (netWins[winner.name] || 0) + 1;
+        }
+      });
 
-  .sort((a,b)=>{
+      const players = Object.keys(netScores).map(name => {
+        const games  = netScores[name].length;
+        const wins   = netWins[name] || 0;
+        const winPct = games ? ((wins / games) * 100).toFixed(1) : '0.0';
+        return { name, games, winPct, points: totalPoints[name] || 0, trophies: wins };
+      }).sort((a, b) => {
+        if (b.points     !== a.points)     return b.points     - a.points;
+        if (b.trophies   !== a.trophies)   return b.trophies   - a.trophies;
+        if (parseFloat(b.winPct) !== parseFloat(a.winPct)) return parseFloat(b.winPct) - parseFloat(a.winPct);
+        return a.name.localeCompare(b.name);
+      });
 
-    if(b.points !== a.points)
-      return b.points - a.points;
+      // Pass rounds map to renderTable so trophy tooltips use the same data
+      renderTable(players, rounds);
+    }
 
-    if(b.trophies !== a.trophies)
-      return b.trophies - a.trophies;
+    // ————— Render table —————
+    // FIX: renderTable now receives the pre-computed rounds map from updateLeague
+    // so win attribution is identical to the league standings calculation.
+    function renderTable(data, rounds) {
 
-    if(parseFloat(b.winPct) !== parseFloat(a.winPct))
-      return parseFloat(b.winPct) - parseFloat(a.winPct);
+      // Build winner → [comp names] map from the rounds already computed
+      const winnerComps = {};
+      Object.entries(rounds).forEach(([comp, players]) => {
+        const sorted = [...players].sort((a, b) => a.net - b.net);
+        if (sorted[0]) {
+          const w = sorted[0].name;
+          winnerComps[w] = winnerComps[w] || [];
+          winnerComps[w].push(comp);
+        }
+      });
 
-    return a.name.localeCompare(b.name);
-
-  });
-
-  renderTable(players);
-}
-
-    function renderTable(data) {
       const tbody = document.querySelector("#league-table tbody");
       tbody.innerHTML = '';
 
       data.forEach((p, i) => {
-      const won = [];
-
-    const competitions = {};
-
-    history
-      .filter(e => getYearFromEntry(e) === selectedYear)
-
-      .forEach(e => {
-
-        const comp =
-          e.Competition || 'Unknown';
-
-        competitions[comp] =
-          competitions[comp] || [];
-
-        const gross =
-          parseFloat(e.Score);
-
-        const handicap =
-          parseFloat(e['Playing Handicap'] || 0);
-
-          const effectiveScore =
-    handicap > 0
-      ? gross - handicap
-      : gross;
-
-  competitions[comp].push({
-    name: e.Name,
-    net: effectiveScore,
-    competition: comp
-  });
-
-      });
-
-    Object.values(competitions).forEach(players => {
-
-      players.sort((a,b)=>a.net - b.net);
-
-      const winner = players[0];
-
-      if(winner && winner.name === p.name){
-        won.push(winner.competition);
-      }
-
-    });
-
+        const won = winnerComps[p.name] || [];
         const span = won.length
           ? `<span class="trophy" onclick="toggleTooltip(this)">
                ${'🏆'.repeat(won.length)}
@@ -810,10 +664,12 @@
              </span>`
           : '';
 
+        // FIX: use data-name attribute instead of inline onclick with escaped quotes
+        // This avoids &#39; breaking the onclick string delimiter.
         tbody.innerHTML += `
           <tr>
             <td>${i + 1}</td>
-            <td><a href="#" onclick="showPlayerModal('${escapeHtml(p.name)}'); return false;">${escapeHtml(p.name)}</a></td>
+            <td><a href="#" class="player-link" data-name="${escapeHtml(p.name)}">${escapeHtml(p.name)}</a></td>
             <td>${p.games}</td>
             <td>${p.winPct}%</td>
             <td>${p.points}</td>
@@ -822,16 +678,20 @@
       });
     }
 
-    // small helper to avoid breaking quotes in names
-    function escapeHtml(str) {
-      if (!str && str !== 0) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-    }
+    // FIX: Single delegated listener handles all player-link clicks safely.
+    // No inline onclick needed, so apostrophes in names cause no issues.
+    document.addEventListener('click', e => {
+      const link = e.target.closest('.player-link');
+      if (link) {
+        e.preventDefault();
+        showPlayerModal(link.dataset.name);
+        return;
+      }
+      // Close trophy tooltips when clicking elsewhere
+      if (!e.target.closest('.trophy')) {
+        document.querySelectorAll('.trophy.show-tooltip').forEach(t => t.classList.remove('show-tooltip'));
+      }
+    });
 
     function toggleTooltip(el) {
       document.querySelectorAll('.trophy.show-tooltip').forEach(t => {
@@ -840,12 +700,7 @@
       el.classList.toggle('show-tooltip');
     }
 
-    document.addEventListener('click', e => {
-      if (!e.target.closest('.trophy')) {
-        document.querySelectorAll('.trophy.show-tooltip').forEach(t => t.classList.remove('show-tooltip'));
-      }
-    });
-
+    // ————— Player modal —————
     function showPlayerModal(name) {
       const scores = history
         .filter(e => e.Name === name && getYearFromEntry(e) === selectedYear)
@@ -862,17 +717,17 @@
       document.getElementById('modalTitle').innerText = `${name}'s Score History`;
 
       const scoreList = document.getElementById('scoreList');
-      const posList = document.getElementById('positionList');
+      const posList   = document.getElementById('positionList');
       scoreList.innerHTML = '';
-      posList.innerHTML = '';
+      posList.innerHTML   = '';
 
       scores.forEach(s => {
         const trophy = s.position === 1 ? ' 🏆' : '';
         scoreList.innerHTML += `<li>${escapeHtml(s.competition)}: Gross ${s.score}, Position ${s.position}${trophy}</li>`;
-        posList.innerHTML += `<li>${escapeHtml(s.competition)}: Finished ${s.position}, Points ${s.points}${trophy}</li>`;
+        posList.innerHTML   += `<li>${escapeHtml(s.competition)}: Finished ${s.position}, Points ${s.points}${trophy}</li>`;
       });
 
-      const labels = scores.map(s => s.competition);
+      const labels  = scores.map(s => s.competition);
       const netData = scores.map(s => s.score);
       const posData = scores.map(s => s.position);
 
@@ -883,9 +738,9 @@
         data: {
           labels,
           datasets: [
-            { label: 'Score', data: netData, fill: false, tension: 0.25 },
-            { label: 'Par 64', data: new Array(labels.length).fill(64), borderDash: [6, 6], fill: false, tension: 0 },
-            { label: 'Par 32', data: new Array(labels.length).fill(32), borderDash: [6, 6], fill: false, tension: 0 }
+            { label: 'Score',   data: netData, fill: false, tension: 0.25 },
+            { label: 'Par 64',  data: new Array(labels.length).fill(64), borderDash: [6,6], fill: false, tension: 0 },
+            { label: 'Par 32',  data: new Array(labels.length).fill(32), borderDash: [6,6], fill: false, tension: 0 }
           ]
         },
         options: { responsive: true, maintainAspectRatio: false }
@@ -904,12 +759,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          scales: {
-            y: {
-              reverse: true,
-              title: { display: true, text: 'Finishing Position' }
-            }
-          }
+          scales: { y: { reverse: true, title: { display: true, text: 'Finishing Position' } } }
         }
       });
 
@@ -917,10 +767,6 @@
       document.getElementById('scoreModal').style.display = 'flex';
     }
 
-    // Tabs:
-    // net -> show score chart + score list
-    // positions -> show position chart + position list
-    // history -> show BOTH lists (no charts) so it behaves like a readable history screen
     function showTab(tab) {
       ['tabNet', 'tabPositions', 'tabHistory'].forEach(id => {
         const el = document.getElementById(id);
@@ -928,32 +774,31 @@
       });
 
       const tabEl =
-        tab === 'net' ? document.getElementById('tabNet') :
+        tab === 'net'       ? document.getElementById('tabNet') :
         tab === 'positions' ? document.getElementById('tabPositions') :
-        document.getElementById('tabHistory');
-
+                              document.getElementById('tabHistory');
       if (tabEl) tabEl.classList.add('active');
 
-      const scoreList = document.getElementById('scoreList');
+      const scoreList    = document.getElementById('scoreList');
       const positionList = document.getElementById('positionList');
-      const scoreChart = document.getElementById('scoreChart');
+      const scoreChart   = document.getElementById('scoreChart');
       const positionChart = document.getElementById('positionChart');
 
       if (tab === 'net') {
-        scoreChart.style.display = 'block';
+        scoreChart.style.display    = 'block';
         positionChart.style.display = 'none';
-        scoreList.style.display = 'block';
-        positionList.style.display = 'none';
+        scoreList.style.display     = 'block';
+        positionList.style.display  = 'none';
       } else if (tab === 'positions') {
-        scoreChart.style.display = 'none';
+        scoreChart.style.display    = 'none';
         positionChart.style.display = 'block';
-        scoreList.style.display = 'none';
-        positionList.style.display = 'block';
+        scoreList.style.display     = 'none';
+        positionList.style.display  = 'block';
       } else {
-        scoreChart.style.display = 'none';
+        scoreChart.style.display    = 'none';
         positionChart.style.display = 'none';
-        scoreList.style.display = 'block';
-        positionList.style.display = 'block';
+        scoreList.style.display     = 'block';
+        positionList.style.display  = 'block';
       }
     }
 
@@ -966,14 +811,13 @@
     }
   </script>
 
-  <!-- ===================== WEATHER (ORIGINAL FEATURE RESTORED) ===================== -->
+  <!-- ===================== WEATHER ===================== -->
   <script>
     const WEATHER_API_KEY = "e583bd0c194bbfeb3deb92f6bfdad11a";
     const LOCATION = "Cheadle,UK";
 
     function extractDateFromText(text) {
       let date = null;
-
       const slashMatch = text.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
       if (slashMatch) {
         const [_, day, month, year] = slashMatch;
@@ -990,7 +834,7 @@
     }
 
     function windDirection(degrees) {
-      const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+      const dirs = ["N","NE","E","SE","S","SW","W","NW"];
       return dirs[Math.round(degrees / 45) % 8];
     }
 
@@ -1003,22 +847,22 @@
         .then(data => {
           const forecasts = (data.list || []).filter(item => {
             const forecastDate = new Date(item.dt_txt);
-            return forecastDate.getDate() === compDate.getDate() &&
-                   forecastDate.getMonth() === compDate.getMonth() &&
+            return forecastDate.getDate()     === compDate.getDate() &&
+                   forecastDate.getMonth()    === compDate.getMonth() &&
                    forecastDate.getFullYear() === compDate.getFullYear();
           });
 
-          let forecast = forecasts.find(f => f.dt_txt.includes('12:00:00')) ||
-                         forecasts.find(f => f.dt_txt.includes('20:00:00')) ||
-                         forecasts[0];
+          const forecast = forecasts.find(f => f.dt_txt.includes('12:00:00')) ||
+                           forecasts.find(f => f.dt_txt.includes('20:00:00')) ||
+                           forecasts[0];
 
           const container = document.getElementById("weatherDetails");
 
           if (forecast && forecast.weather && forecast.weather[0]) {
-            const iconUrl = `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@4x.png`;
+            const iconUrl      = `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@4x.png`;
             const windSpeedMph = (forecast.wind.speed * 2.23694).toFixed(1);
-            const windDir = windDirection(forecast.wind.deg);
-            const arrowStyle = `transform: rotate(${forecast.wind.deg}deg); display:inline-block; transition:transform 0.3s`;
+            const windDir      = windDirection(forecast.wind.deg);
+            const arrowStyle   = `transform: rotate(${forecast.wind.deg}deg); display:inline-block; transition:transform 0.3s`;
 
             container.innerHTML = `
               <img src="${iconUrl}" alt="${forecast.weather[0].description}" style="height:70px;filter:drop-shadow(0 0 3px rgba(0,0,0,0.35));">
@@ -1030,7 +874,7 @@
             container.innerHTML = "<div>No forecast available yet for this date.</div>";
           }
         })
-        .catch((err) => {
+        .catch(err => {
           console.error("Weather API error:", err);
           document.getElementById("weatherDetails").innerHTML = "<div>Unable to load weather.</div>";
         });
@@ -1043,7 +887,6 @@
         observer.disconnect();
       }
     });
-
     observer.observe(nextCompEl, { childList: true, subtree: true });
   </script>
 
@@ -1056,18 +899,17 @@
       <img src="logocja.png" alt="League Logo" style="height:64px;margin-right:10px;" />
       <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo" width="80" height="80"/>
     </div>
-    <div style="font-weight:900;">Build v1.0.0 | Tables and Members</div>
+    <div style="font-weight:900;">Build v1.0.1 | Tables and Members</div>
     <div style="margin-top:0.35rem;">
       <a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a>
     </div>
   </div>
-  </div>
 
   <script>
-  function logout() {
-    localStorage.removeItem("auth");
-    window.location.replace("./login.html");
-  }
+    function logout() {
+      localStorage.removeItem("auth");
+      window.location.replace("./login.html");
+    }
   </script>
 </body>
 </html>
