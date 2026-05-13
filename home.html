@@ -750,7 +750,12 @@
         const winner =
           sorted[0];
 
-        if(winner && winner.name === p.name){
+        if (
+          winner &&
+          winner.name &&
+          p.name &&
+          winner.name.trim() === p.name.trim()
+        ){
           won.push(comp);
         }
 
@@ -768,25 +773,44 @@
           `
           : '';
 
-          tbody.innerHTML += `
-          <tr>
-            <td>${i + 1}</td>
-            <td>
-              <a href="#"
-                 onclick="showPlayerModal('${p.name.replace(/'/g,"\\'")}'); return false;">
-                 ${escapeHtml(p.name)}
-              </a>
-            </td>
-            <td>${p.games}</td>
-            <td>${p.winPct}%</td>
-            <td>${p.points}</td>
-            <td>${trophies}</td>
-          </tr>
-          `;
+      tbody.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+
+        <td>
+          <a href="#"
+             class="player-link"
+             data-player="${escapeHtml(p.name)}">
+             ${escapeHtml(p.name)}
+          </a>
+        </td>
+
+        <td>${p.games}</td>
+        <td>${p.winPct}%</td>
+        <td>${p.points}</td>
+        <td>${trophies}</td>
+      </tr>
+      `;
+
+    });
+
+    // THIS BIT WAS MISSING
+    document.querySelectorAll('.player-link').forEach(link => {
+
+      link.addEventListener('click', function(e) {
+
+        e.preventDefault();
+
+        showPlayerModal(
+          this.dataset.player
+        );
+
+      });
 
     });
 
   }
+
 
   function showPlayerModal(name){
 
