@@ -912,7 +912,7 @@
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
     }
-
+    localStorage.setItem("auth", "true");
     loadWorkbook();
   </script>
 
@@ -1022,10 +1022,10 @@
   </div>
 
   <script>
-    function logout() {
-      localStorage.removeItem("auth");
-      window.location.replace("./login.html");
-    }
+  function logout() {
+    localStorage.removeItem("auth");
+    location.reload();
+  }
   </script>
 </body>
 </html>
