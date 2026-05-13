@@ -488,7 +488,7 @@
 
     if (typeof value === 'string') {
 
-      const slashMatch = value.match(/^(\d{1,2})/-/-$/);
+      const slashMatch = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
 
       if (slashMatch) {
 
@@ -503,9 +503,9 @@
 
       const tryDate = new Date(value);
 
-      if (!isNaN(tryDate)) {
-        return tryDate;
-      }
+  if (!isNaN(tryDate.getTime())) {
+    return tryDate;
+  }
     }
 
     return null;
@@ -525,10 +525,10 @@
     if (!str && str !== 0) return '';
 
     return String(str)
-      .replace(/&/g, '&')
-      .replace(/"/g, '"')
-      .replace(/</g, '<')
-      .replace(/>/g, '>');
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 
   function populateSeasonDropdown(data) {
@@ -542,10 +542,10 @@
     const dropdown =
       document.getElementById('seasonSelect');
 
-    dropdown.innerHTML =
-      years.map(y =>
-        <option value="${y}">${y} Season</option>
-      ).join('');
+      dropdown.innerHTML =
+        years.map(y =>
+          `<option value="${y}">${y} Season</option>`
+        ).join('');
 
     const thisYear =
       new Date().getFullYear();
@@ -758,10 +758,31 @@
 
       const trophies =
         won.length
-          ?           <span class="trophy" onclick="toggleTooltip(this)">             ${'🏆'.repeat(won.length)}             <span class="tooltip-bubble">               ${won.join(', ')}             </span>           </span>        
+          ? `
+            <span class="trophy" onclick="toggleTooltip(this)">
+              ${'🏆'.repeat(won.length)}
+              <span class="tooltip-bubble">
+                ${won.join(', ')}
+              </span>
+            </span>
+          `
           : '';
 
-      tbody.innerHTML +=       <tr>         <td>${i + 1}</td>          <td>           <a href="#"              onclick="showPlayerModal('${p.name.replace(/'/g,"\\'")}');return false;">             ${escapeHtml(p.name)}           </a>         </td>          <td>${p.games}</td>         <td>${p.winPct}%</td>         <td>${p.points}</td>         <td>${trophies}</td>       </tr>    ;
+          tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>
+              <a href="#"
+                 onclick="showPlayerModal('${p.name.replace(/'/g,"\\'")}'); return false;">
+                 ${escapeHtml(p.name)}
+              </a>
+            </td>
+            <td>${p.games}</td>
+            <td>${p.winPct}%</td>
+            <td>${p.points}</td>
+            <td>${trophies}</td>
+          </tr>
+          `;
 
     });
 
@@ -806,8 +827,9 @@
         (parseDateStr(b.date)||0)
       );
 
-    document.getElementById('modalTitle').innerText =
-      ${name}'s Score History;
+  
+      document.getElementById('modalTitle').innerText =
+        `${name}'s Score History`;
 
     const scoreList =
       document.getElementById('scoreList');
@@ -823,9 +845,19 @@
       const trophy =
         s.position === 1 ? ' 🏆' : '';
 
-      scoreList.innerHTML +=       <li>         ${s.competition}:         Gross ${s.score},         Position ${s.position}${trophy}       </li>    ;
+        scoreList.innerHTML += `
+          <li>
+            ${s.competition}: Gross ${s.score},
+            Position ${s.position}${trophy}
+          </li>
+        `;
 
-      posList.innerHTML +=       <li>         ${s.competition}:         Finished ${s.position},         Points ${s.points}${trophy}       </li>    ;
+        posList.innerHTML += `
+          <li>
+            ${s.competition}: Finished ${s.position},
+            Points ${s.points}${trophy}
+          </li>
+        `;
 
     });
 
