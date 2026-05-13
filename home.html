@@ -640,52 +640,168 @@
 
     // Main stats computation — filters by selectedYear
     function updateLeague(data) {
-      const filtered = selectedYear ? data.filter(e => getYearFromEntry(e) === selectedYear) : data;
-      const netScores = {}, netWins = {}, totalPoints = {}, rounds = {};
 
-      filtered.forEach(entry => {
-        const { Name, Score, Position, Points, Competition } = entry;
-        const net = parseFloat(Score);
-        if (isNaN(net)) return;
+  const filtered =
+    selectedYear
+      ? data.filter(e => getYearFromEntry(e) === selectedYear)
+      : data;
 
-        netScores[Name] = netScores[Name] || [];
-        rounds[Competition] = rounds[Competition] || [];
+  const netScores = {};
+  const netWins = {};
+  const totalPoints = {};
+  const rounds = {};
 
-        netScores[Name].push(net);
-        rounds[Competition].push({ name: Name, position: parseInt(Position, 10) });
-        totalPoints[Name] = (totalPoints[Name] || 0) + (parseFloat(Points) || 0);
-      });
+  filtered.forEach(entry => {
 
-      Object.values(rounds).forEach(players =>
-        players.filter(p => p.position === 1).forEach(p =>
-          netWins[p.name] = (netWins[p.name] || 0) + 1
-        )
-      );
+    const {
+      Name,
+      Score,
+      Points,
+      Competition
+    } = entry;
 
-      const players = Object.keys(netScores).map(name => {
-        const games = netScores[name].length;
-        const wins = netWins[name] || 0;
-        const winPct = games ? ((wins / games) * 100).toFixed(1) : '0.0';
-        return { name, games, winPct, points: totalPoints[name] || 0, trophies: wins };
-      }).sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        if (b.trophies !== a.trophies) return b.trophies - a.trophies;
-        if (parseFloat(b.winPct) !== parseFloat(a.winPct)) return parseFloat(b.winPct) - parseFloat(a.winPct);
-        return a.name.localeCompare(b.name);
-      });
+    const gross =
+      parseFloat(Score);
 
-      renderTable(players);
+    const handicap =
+      parseFloat(entry['Playing Handicap'] || 0);
+
+  const net =
+    handicap > 0
+      ? gross - handicap
+      : gross;
+
+    if (isNaN(net)) return;
+
+    netScores[Name] =
+      netScores[Name] || [];
+
+    rounds[Competition] =
+      rounds[Competition] || [];
+
+    netScores[Name].push(net);
+
+    rounds[Competition].push({
+      name: Name,
+      net: net
+    });
+
+    totalPoints[Name] =
+      (totalPoints[Name] || 0) +
+      (parseFloat(Points) || 0);
+
+  });
+
+  /* =========================
+     CALCULATE COMP WINNERS
+  ========================= */
+
+  Object.values(rounds).forEach(players => {
+
+    players.sort((a,b)=>a.net - b.net);
+
+    const winner = players[0];
+
+    if(winner){
+      netWins[winner.name] =
+        (netWins[winner.name] || 0) + 1;
     }
+
+  });
+
+  const players = Object.keys(netScores)
+
+  .map(name => {
+
+    const games =
+      netScores[name].length;
+
+    const wins =
+      netWins[name] || 0;
+
+    const winPct =
+      games
+        ? ((wins / games) * 100).toFixed(1)
+        : '0.0';
+
+    return {
+      name,
+      games,
+      winPct,
+      points: totalPoints[name] || 0,
+      trophies: wins
+    };
+
+  })
+
+  .sort((a,b)=>{
+
+    if(b.points !== a.points)
+      return b.points - a.points;
+
+    if(b.trophies !== a.trophies)
+      return b.trophies - a.trophies;
+
+    if(parseFloat(b.winPct) !== parseFloat(a.winPct))
+      return parseFloat(b.winPct) - parseFloat(a.winPct);
+
+    return a.name.localeCompare(b.name);
+
+  });
+
+  renderTable(players);
+}
 
     function renderTable(data) {
       const tbody = document.querySelector("#league-table tbody");
       tbody.innerHTML = '';
 
       data.forEach((p, i) => {
-        const won = history
-          .filter(e => e.Name === p.name && parseInt(e.Position, 10) === 1 && getYearFromEntry(e) === selectedYear)
-          .map(e => e.Competition)
-          .filter(Boolean);
+      const won = [];
+
+    const competitions = {};
+
+    history
+      .filter(e => getYearFromEntry(e) === selectedYear)
+
+      .forEach(e => {
+
+        const comp =
+          e.Competition || 'Unknown';
+
+        competitions[comp] =
+          competitions[comp] || [];
+
+        const gross =
+          parseFloat(e.Score);
+
+        const handicap =
+          parseFloat(e['Playing Handicap'] || 0);
+
+          const effectiveScore =
+    handicap > 0
+      ? gross - handicap
+      : gross;
+
+  competitions[comp].push({
+    name: e.Name,
+    net: effectiveScore,
+    competition: comp
+  });
+
+      });
+
+    Object.values(competitions).forEach(players => {
+
+      players.sort((a,b)=>a.net - b.net);
+
+      const winner = players[0];
+
+      if(winner && winner.name === p.name){
+        won.push(winner.competition);
+      }
+
+    });
 
         const span = won.length
           ? `<span class="trophy" onclick="toggleTooltip(this)">
