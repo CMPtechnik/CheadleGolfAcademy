@@ -468,6 +468,7 @@
   </div>
 
   <script>
+
   let history = [];
   let selectedYear = null;
   let currentSeason = null;
@@ -944,6 +945,18 @@
         document.getElementById(id).classList.remove('active');
       });
 
+    const scoreChart =
+      document.getElementById('scoreChart');
+
+    const positionChart =
+      document.getElementById('positionChart');
+
+    const scoreList =
+      document.getElementById('scoreList');
+
+    const positionList =
+      document.getElementById('positionList');
+
     if(tab === 'net'){
 
       document.getElementById('tabNet').classList.add('active');
@@ -1002,10 +1015,10 @@
     document.body.classList.toggle('dark-mode');
   }
 
-  // LOGIN PERSISTENCE FIX
   if(localStorage.getItem("auth") !== "true"){
     window.location.replace("./login.html");
   }
+
   </script>
 
   <!-- ===================== WEATHER ===================== -->
