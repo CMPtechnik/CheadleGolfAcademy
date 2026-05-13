@@ -137,6 +137,10 @@ th{
 tbody tr:hover{
   background:var(--hover);
 }
+tbody tr:first-child{
+background:#ecfdf5;
+font-weight:800;
+}
 
 /* ================= PRINT ================= */
 .print-btn{
@@ -247,9 +251,13 @@ fetch('https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data
 });
 
 function renderSeason(year){
+
   const c=document.getElementById('content');
   c.innerHTML='';
-  const data=allCompetitions.filter(r=>parseDateStr(r.Date).getFullYear()==year);
+
+  const data=allCompetitions.filter(
+    r=>parseDateStr(r.Date).getFullYear()==year
+  );
 
   if(!data.length){
     c.innerHTML=`<p style="text-align:center;">No results for ${year}</p>`;
@@ -257,15 +265,24 @@ function renderSeason(year){
   }
 
   const groups={};
+
   data.forEach(r=>{
-    const k=r.Title||r.Competition||'Unknown';
+    const k=r.Title || r.Competition || 'Unknown';
     (groups[k]=groups[k]||[]).push(r);
   });
 
-  Object.keys(groups).sort((a,b)=>parseDateStr(groups[b][0].Date)-parseDateStr(groups[a][0].Date))
+  Object.keys(groups)
+  .sort((a,b)=>
+    parseDateStr(groups[b][0].Date) -
+    parseDateStr(groups[a][0].Date)
+  )
+
   .forEach(title=>{
+
     const recs=groups[title];
+
     const d=parseDateStr(recs[0].Date);
+
     const sec=document.createElement('section');
 
     const h=document.createElement('h2');
@@ -275,37 +292,136 @@ function renderSeason(year){
     const btn=document.createElement('button');
     btn.textContent='Print PDF';
     btn.className='print-btn';
+
     btn.onclick=()=>{
-      document.querySelectorAll('.print-target').forEach(e=>e.classList.remove('print-target'));
+      document.querySelectorAll('.print-target')
+      .forEach(e=>e.classList.remove('print-target'));
+
       sec.classList.add('print-target');
+
       window.print();
     };
+
     sec.appendChild(btn);
 
     const t=document.createElement('table');
-    const isStable=title.toLowerCase().includes('stableford');
-    t.innerHTML=`<thead><tr>
-      <th>Competition</th><th>Position</th><th>Name</th>
-      <th>${isStable?'Stableford':'Score'}</th><th>Points</th><th>Trophy</th>
-    </tr></thead>`;
+
+    const isStable =
+      title.toLowerCase().includes('stableford');
+
+    /* =========================
+       CALCULATE RESULTS
+    ========================= */
+
+    if(isStable){
+
+      // Highest Stableford wins
+      recs.sort(
+        (a,b)=>
+          (b['Stableford Points']||0) -
+          (a['Stableford Points']||0)
+      );
+
+    } else {
+
+      // Calculate Net Score
+      recs.forEach(r=>{
+
+        const gross =
+          parseInt(r.Score || 0);
+
+        const handicap =
+          parseInt(r['Playing Handicap'] || 0);
+
+        r.NetScore = gross - handicap;
+
+      });
+
+      // Lowest net wins
+      recs.sort((a,b)=>a.NetScore - b.NetScore);
+    }
+
+    // Rebuild positions
+    recs.forEach((r,index)=>{
+      r.CalculatedPosition = index + 1;
+    });
+
+    t.innerHTML=`
+      <thead>
+        <tr>
+
+          <th>Competition</th>
+
+          <th>Position</th>
+
+          <th>Name</th>
+
+          ${
+            isStable
+            ? `
+              <th>Stableford</th>
+            `
+            : `
+              <th>Gross</th>
+              <th>HCP</th>
+              <th>Net</th>
+            `
+          }
+
+          <th>Points</th>
+
+          <th>Trophy</th>
+
+        </tr>
+      </thead>
+    `;
+
     const tb=document.createElement('tbody');
 
-    recs.sort((a,b)=>a.Position-b.Position).forEach(r=>{
-      const pos=parseInt(r.Position);
-      const trophy=pos==1?'🏆':pos==2?'🥈':pos==3?'🥉':'';
-      tb.innerHTML+=`<tr>
-        <td>${r.Competition||''}</td>
-        <td>${r.Position}</td>
-        <td>${r.Name||''}</td>
-        <td>${isStable?r['Stableford Points']||0:r.Score||''}</td>
-        <td>${r.Points||''}</td>
-        <td>${trophy}</td>
-      </tr>`;
+    recs.forEach(r=>{
+
+      const pos = r.CalculatedPosition;
+
+      const trophy =
+        pos==1 ? '🏆' :
+        pos==2 ? '🥈' :
+        pos==3 ? '🥉' : '';
+
+      tb.innerHTML += `
+        <tr>
+
+          <td>${r.Competition || ''}</td>
+
+          <td>${pos}</td>
+
+          <td>${r.Name || ''}</td>
+
+          ${
+            isStable
+            ? `
+              <td>${r['Stableford Points'] || 0}</td>
+            `
+            : `
+              <td>${r.Score || ''}</td>
+              <td>${r['Playing Handicap'] || 0}</td>
+              <td>${r.NetScore || ''}</td>
+            `
+          }
+
+          <td>${r.Points || ''}</td>
+
+          <td>${trophy}</td>
+
+        </tr>
+      `;
     });
 
     t.appendChild(tb);
+
     sec.appendChild(t);
+
     c.appendChild(sec);
+
   });
 }
 </script>
