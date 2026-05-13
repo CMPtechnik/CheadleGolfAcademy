@@ -637,8 +637,9 @@
     }
 
     // ————— Render table —————
-    // FIX: renderTable now receives the pre-computed rounds map from updateLeague
-    // so win attribution is identical to the league standings calculation.
+    // playerIndex maps table-row index → original player name for safe lookup
+    const playerIndex = {};
+
     function renderTable(data, rounds) {
 
       // Build winner → [comp names] map from the rounds already computed
@@ -655,7 +656,14 @@
       const tbody = document.querySelector("#league-table tbody");
       tbody.innerHTML = '';
 
+      // Clear previous index
+      Object.keys(playerIndex).forEach(k => delete playerIndex[k]);
+
       data.forEach((p, i) => {
+        // Store the RAW name in playerIndex keyed by row number.
+        // The data-index attribute carries only a safe integer — no string escaping needed.
+        playerIndex[i] = p.name;
+
         const won = winnerComps[p.name] || [];
         const span = won.length
           ? `<span class="trophy" onclick="toggleTooltip(this)">
@@ -664,12 +672,10 @@
              </span>`
           : '';
 
-        // FIX: use data-name attribute instead of inline onclick with escaped quotes
-        // This avoids &#39; breaking the onclick string delimiter.
         tbody.innerHTML += `
           <tr>
             <td>${i + 1}</td>
-            <td><a href="#" class="player-link" data-name="${escapeHtml(p.name)}">${escapeHtml(p.name)}</a></td>
+            <td><a href="#" class="player-link" data-index="${i}">${escapeHtml(p.name)}</a></td>
             <td>${p.games}</td>
             <td>${p.winPct}%</td>
             <td>${p.points}</td>
@@ -678,13 +684,13 @@
       });
     }
 
-    // FIX: Single delegated listener handles all player-link clicks safely.
-    // No inline onclick needed, so apostrophes in names cause no issues.
+    // Delegated click listener — resolves player name via index, never via string parsing
     document.addEventListener('click', e => {
       const link = e.target.closest('.player-link');
       if (link) {
         e.preventDefault();
-        showPlayerModal(link.dataset.name);
+        const name = playerIndex[parseInt(link.dataset.index, 10)];
+        if (name !== undefined) showPlayerModal(name);
         return;
       }
       // Close trophy tooltips when clicking elsewhere
@@ -702,8 +708,17 @@
 
     // ————— Player modal —————
     function showPlayerModal(name) {
+      const trimmed = name.trim().toLowerCase();
+
+      // Filter: case-insensitive name match + year match (cast both to int to avoid string/number mismatch)
+      const yearInt = parseInt(selectedYear, 10);
       const scores = history
-        .filter(e => e.Name === name && getYearFromEntry(e) === selectedYear)
+        .filter(e => {
+          if (!e.Name) return false;
+          const nameMatch = e.Name.trim().toLowerCase() === trimmed;
+          const yearMatch = getYearFromEntry(e) === yearInt;
+          return nameMatch && yearMatch;
+        })
         .map(e => ({
           competition: e.Competition,
           score: parseFloat(e.Score),
@@ -714,7 +729,9 @@
         .filter(s => !isNaN(s.score) && s.competition)
         .sort((a, b) => (parseDateStr(a.date) || 0) - (parseDateStr(b.date) || 0));
 
-      document.getElementById('modalTitle').innerText = `${name}'s Score History`;
+      // Display name: get the original casing from history rather than the lowercased version
+      const displayName = (history.find(e => e.Name && e.Name.trim().toLowerCase() === trimmed) || {}).Name || name;
+      document.getElementById('modalTitle').innerText = `${displayName.trim()}'s Score History`;
 
       const scoreList = document.getElementById('scoreList');
       const posList   = document.getElementById('positionList');
