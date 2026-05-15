@@ -367,6 +367,48 @@
         max-height: 180px;
       }
     }
+    .ticker-wrap {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  z-index: 4;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  padding: 0.55rem 0;
+}
+
+.ticker-track {
+  display: inline-flex;
+  gap: 0;
+  animation: ticker-scroll 30s linear infinite;
+  will-change: transform;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
+.ticker-item {
+  color: white;
+  font-weight: 800;
+  font-size: 0.88rem;
+  padding: 0 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.ticker-item::after {
+  content: "⛳";
+  margin-left: 1.5rem;
+  opacity: 0.7;
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
   </style>
 </head>
 
@@ -375,6 +417,11 @@
     <img src="logowhite.png" alt="League Logo" />
     <span id="darkModeToggle" onclick="toggleDarkMode()">🌗</span>
   </header>
+  <div class="ticker-wrap" id="tickerWrap">
+  <div class="ticker-track" id="tickerTrack">
+    <!-- items injected by JS -->
+  </div>
+</div>
 
   <div class="info-links">
     <a href="results.html" class="info-btn">📊 Results</a>
@@ -1027,5 +1074,28 @@
     location.reload();
   }
   </script>
+  <script>
+  const TICKER_MESSAGES = [
+    "📅 New Competition Added **All Members Day** | See upcoming fixtures in the Calendar",
+    "📈 Series Tables now available — check your standings",
+  ];
+
+  function buildTicker() {
+    const track = document.getElementById("tickerTrack");
+    if (!track) return;
+
+    const doubled = [...TICKER_MESSAGES, ...TICKER_MESSAGES];
+
+    track.innerHTML = doubled
+      .map(msg => `<span class="ticker-item">${msg}</span>`)
+      .join("");
+
+    const singleWidth = track.scrollWidth / 2;
+    const duration = Math.max(20, singleWidth / 60);
+    track.style.animationDuration = duration + "s";
+  }
+
+  buildTicker();
+</script>
 </body>
 </html>
