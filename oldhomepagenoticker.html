@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cheadle Juniors</title>
+
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cheadle Juniors">
+  <meta name="theme-color" content="#00c896" />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #00c896;
+      --primary-dark: #008f6a;
+      --accent: #eafff8;
+      --text: #0f172a;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: rgba(0,0,0,0.08);
+      --hover: rgba(0,0,0,0.04);
+      --radius: 14px;
+      --shadow-1: 0 10px 25px rgba(0,0,0,0.08);
+      --shadow-2: 0 20px 40px rgba(0,0,0,0.10);
+      --shadow-3: 0 30px 80px rgba(0,0,0,0.25);
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      margin: 0;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #d1fae5, transparent),
+        radial-gradient(800px 400px at 90% 10%, #ccfbf1, transparent),
+        var(--bg);
+      color: var(--text);
+    }
+
+    .dark-mode {
+      --bg: #020617;
+      --text: #e5e7eb;
+      --card: #0b1220;
+      --accent: rgba(15,118,110,0.25);
+      --border: rgba(255,255,255,0.12);
+      --hover: rgba(255,255,255,0.06);
+      --shadow-1: 0 10px 25px rgba(0,0,0,0.35);
+      --shadow-2: 0 20px 40px rgba(0,0,0,0.45);
+      --shadow-3: 0 30px 80px rgba(0,0,0,0.60);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 1.5rem 1rem 2.75rem;
+      text-align: center;
+      position: relative;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      inset: -120px -120px auto auto;
+      width: 280px;
+      height: 280px;
+      background: rgba(255,255,255,0.20);
+      border-radius: 999px;
+      transform: rotate(15deg);
+      pointer-events: none;
+    }
+
+    header img {
+      max-height: 220px;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.28));
+      position: relative;
+      z-index: 2;
+    }
+
+    #darkModeToggle {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      cursor: pointer;
+      font-size: 1.6rem;
+      user-select: none;
+      z-index: 3;
+    }
+
+    .info-links {
+      position: relative;
+      z-index: 5;
+      margin: 0.75rem auto 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      max-width: 980px;
+      padding: 0 1rem;
+    }
+
+    .info-btn {
+      background: var(--card);
+      color: var(--text);
+      padding: 0.95rem 1rem;
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-weight: 900;
+      box-shadow: var(--shadow-1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border: 1px solid var(--border);
+    }
+
+    .info-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-2);
+    }
+
+    .hint {
+      text-align: center;
+      margin: 1rem auto 0.5rem;
+      opacity: 0.85;
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 1rem;
+    }
+
+    .season-card {
+      margin: 1rem auto;
+      max-width: 980px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-1);
+      border-radius: var(--radius);
+      padding: 0.9rem 1rem;
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .season-card label {
+      font-weight: 900;
+    }
+
+    select {
+      padding: 0.65rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--card);
+      box-shadow: var(--shadow-2);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    th, td {
+      padding: 14px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--accent);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 900;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(0,0,0,0.015);
+    }
+
+    .dark-mode tbody tr:nth-child(even) {
+      background: rgba(255,255,255,0.03);
+    }
+
+    tbody tr:hover {
+      background: var(--hover);
+    }
+
+    a {
+      color: var(--primary-dark);
+      text-decoration: none;
+      font-weight: 900;
+    }
+
+    .trophy {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tooltip-bubble {
+      display: none;
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.92);
+      color: white;
+      padding: 7px 10px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      white-space: nowrap;
+      z-index: 1000;
+      box-shadow: 0 12px 22px rgba(0,0,0,0.25);
+    }
+
+    .trophy.show-tooltip .tooltip-bubble {
+      display: block;
+    }
+
+    #nextCompetition {
+      text-align: center;
+      padding: 1rem;
+      font-size: 1rem;
+      background: var(--card);
+      margin: 1rem auto 0.75rem;
+      max-width: 980px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-1);
+      border: 1px solid var(--border);
+    }
+
+    #weatherDetails {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: var(--card);
+      color: var(--text);
+      width: min(92vw, 650px);
+      max-height: 85vh;
+      padding: 1rem;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow-3);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .close-btn {
+      align-self: flex-end;
+      font-size: 28px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .tabs {
+      text-align: center;
+      margin: 1rem 0 0.75rem;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .tabs button {
+      padding: 0.55rem 1.15rem;
+      border: none;
+      border-radius: 999px;
+      background: rgba(99,102,241,0.14);
+      color: var(--text);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    #scoreChart, #positionChart {
+      height: 320px !important;
+      margin-bottom: 0.75rem;
+    }
+
+    #scoreList, #positionList {
+      margin: 0.25rem 0 0;
+      padding-left: 1.1rem;
+      max-height: 180px;
+      overflow: auto;
+      border-top: 1px solid var(--border);
+      padding-top: 0.5rem;
+    }
+
+    .info-bar {
+      background: var(--card);
+      max-width: 980px;
+      margin: 0.75rem auto 0.25rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-1);
+      padding: 0.6rem 0.9rem;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .info-bar h4 {
+      margin: 0;
+      font-weight: 900;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 1rem 0 1.5rem;
+      opacity: 0.92;
+    }
+
+    .footer img {
+      vertical-align: middle;
+    }
+
+    @media screen and (max-width: 768px) {
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      header img {
+        max-height: 180px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img src="logowhite.png" alt="League Logo" />
+    <span id="darkModeToggle" onclick="toggleDarkMode()">🌗</span>
+  </header>
+
+  <div class="info-links">
+    <a href="results.html" class="info-btn">📊 Results</a>
+    <a href="calendar.html" class="info-btn">📅 Calendar</a>
+    <a href="seriesresults.html" class="info-btn">📈 Series Tables</a>
+    <a href="handicaps.html" class="info-btn">🏌️ CGC Handicaps</a>
+  </div>
+
+  <div class="hint">⬅️➡️ Scroll to view full table</div>
+  <div class="hint">Tap a player name to view stats</div>
+
+  <main>
+    <div class="season-card">
+      <label for="seasonSelect">Season</label>
+      <select id="seasonSelect">
+        <option value="">Loading...</option>
+      </select>
+    </div>
+
+    <table id="league-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Name</th>
+          <th>Games</th>
+          <th>Win %</th>
+          <th>Total Points</th>
+          <th>Wins</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <div id="nextCompetition">
+    Next Competition: <span id="nextCompetitionText">TBD</span>
+    <div id="weather-widget"
+         style="max-width:600px;margin:0.75rem auto 0;background:var(--accent);color:var(--text);border-radius:14px;border:1px solid var(--border);">
+    </div>
+    <div id="weatherDetails">Loading weather...</div>
+  </div>
+
+  <div class="modal" id="scoreModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modalTitle" style="margin-top:0;"></h2>
+
+      <div class="tabs">
+        <button id="tabNet" onclick="showTab('net')" class="active">Scores</button>
+        <button id="tabPositions" onclick="showTab('positions')">Competition History</button>
+        <button id="tabHistory" onclick="showTab('history')">Results History</button>
+      </div>
+
+      <canvas id="scoreChart"></canvas>
+      <canvas id="positionChart" style="display:none;"></canvas>
+
+      <ul id="scoreList"></ul>
+      <ul id="positionList" style="display:none;"></ul>
+    </div>
+  </div>
+
+  <script>
+    let history = [];
+    let selectedYear = null;
+    let currentSeason = null;
+    let playerNamesByIndex = [];
+    let scoreChartInstance = null;
+    let positionChartInstance = null;
+
+    const DATA_URL = "https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + Date.now();
+
+    function normalise(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function cleanName(value) {
+      return String(value || "").trim();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function parseDateStr(value) {
+      if (!value) return null;
+
+      if (value instanceof Date && !isNaN(value.getTime())) {
+        return value;
+      }
+
+      if (Number.isFinite(value)) {
+        const excelEpoch = new Date(1899, 11, 30);
+        return new Date(excelEpoch.getTime() + value * 86400000);
+      }
+
+      const text = String(value).trim();
+
+      const slashMatch = text.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+      if (slashMatch) {
+        const day = parseInt(slashMatch[1], 10);
+        const month = parseInt(slashMatch[2], 10) - 1;
+        let year = parseInt(slashMatch[3], 10);
+
+        if (year < 100) year += 2000;
+
+        return new Date(year, month, day);
+      }
+
+      const parsed = new Date(text);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function getYearFromEntry(entry) {
+      const date = parseDateStr(entry.Date);
+      return date ? date.getFullYear() : null;
+    }
+
+    function getEffectiveScore(entry) {
+      const gross = parseFloat(entry.Score);
+      const handicap = parseFloat(entry["Playing Handicap"] || 0);
+
+      if (isNaN(gross)) return NaN;
+
+      return handicap > 0 ? gross - handicap : gross;
+    }
+
+    function getPoints(entry) {
+      return parseFloat(entry.Points) || 0;
+    }
+
+    function loadWorkbook() {
+      fetch(DATA_URL)
+        .then(response => response.arrayBuffer())
+        .then(buffer => {
+          const workbook = XLSX.read(buffer, { type: "array" });
+
+          readSettings(workbook);
+
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          history = XLSX.utils.sheet_to_json(sheet);
+
+          populateSeasonDropdown(history);
+          updateInfoBar(history);
+          updateLeague();
+        })
+        .catch(error => {
+          console.error("Workbook load error:", error);
+          document.querySelector("#league-table tbody").innerHTML =
+            `<tr><td colspan="6">Unable to load league data.</td></tr>`;
+        });
+    }
+
+    function readSettings(workbook) {
+      const settingsSheet = workbook.Sheets["Settings"];
+      if (!settingsSheet) return;
+
+      const settingsData = XLSX.utils.sheet_to_json(settingsSheet, { header: 1 });
+
+      settingsData.forEach(row => {
+        if (!row[0]) return;
+
+        const key = String(row[0]).trim().toLowerCase();
+
+        if (key.includes("next competition") && row[1]) {
+          document.getElementById("nextCompetitionText").innerText = row[1];
+        }
+
+        if (key.includes("current season") && row[1]) {
+          const season = parseInt(row[1], 10);
+          if (!isNaN(season)) currentSeason = season;
+        }
+      });
+    }
+
+    function populateSeasonDropdown(data) {
+      const years = [...new Set(data.map(getYearFromEntry).filter(Boolean))]
+        .sort((a, b) => b - a);
+
+      const dropdown = document.getElementById("seasonSelect");
+
+      if (!years.length) {
+        dropdown.innerHTML = `<option value="">No seasons</option>`;
+        return;
+      }
+
+      dropdown.innerHTML = years
+        .map(year => `<option value="${year}">${year} Season</option>`)
+        .join("");
+
+      const thisYear = new Date().getFullYear();
+
+      selectedYear =
+        years.includes(thisYear) ? thisYear :
+        currentSeason && years.includes(currentSeason) ? currentSeason :
+        years[0];
+
+      dropdown.value = selectedYear;
+
+      dropdown.onchange = function () {
+        selectedYear = parseInt(this.value, 10);
+        updateLeague();
+      };
+    }
+
+    function updateInfoBar(data) {
+      try {
+        const valid = data
+          .map(entry => ({ entry, date: parseDateStr(entry.Date) }))
+          .filter(item => item.date)
+          .sort((a, b) => b.date - a.date);
+
+        if (!valid.length) return;
+
+        const latest = valid[0];
+        const dateText = latest.date.toLocaleDateString("en-GB");
+        const compText = latest.entry.Competition || "";
+
+        const infoBar = document.querySelector(".info-bar h4");
+        if (infoBar) {
+          infoBar.innerHTML =
+            `<span style="color:#ff2d55;font-weight:900;">Last Update - ${dateText}</span>
+             <span style="opacity:0.7;">|</span>
+             Last Competition: ${escapeHtml(compText)}`;
+        }
+      } catch (error) {
+        console.error("Info bar error:", error);
+      }
+    }
+
+    function updateLeague() {
+      const filtered = history.filter(entry => getYearFromEntry(entry) === selectedYear);
+
+      const playerStats = {};
+      const rounds = {};
+
+      filtered.forEach(entry => {
+        const name = cleanName(entry.Name);
+        const competition = cleanName(entry.Competition) || "Unknown";
+        const effectiveScore = getEffectiveScore(entry);
+
+        if (!name || isNaN(effectiveScore)) return;
+
+        if (!playerStats[name]) {
+          playerStats[name] = {
+            name,
+            games: 0,
+            points: 0,
+            wins: 0,
+            wonCompetitions: []
+          };
+        }
+
+        playerStats[name].games += 1;
+        playerStats[name].points += getPoints(entry);
+
+        if (!rounds[competition]) rounds[competition] = [];
+        rounds[competition].push({
+          name,
+          effectiveScore
+        });
+      });
+
+      Object.entries(rounds).forEach(([competition, players]) => {
+        players.sort((a, b) => a.effectiveScore - b.effectiveScore);
+
+        const winner = players[0];
+        if (!winner) return;
+
+        const matchingPlayerName = Object.keys(playerStats)
+          .find(name => normalise(name) === normalise(winner.name));
+
+        if (matchingPlayerName) {
+          playerStats[matchingPlayerName].wins += 1;
+          playerStats[matchingPlayerName].wonCompetitions.push(competition);
+        }
+      });
+
+      const players = Object.values(playerStats)
+        .map(player => ({
+          ...player,
+          winPct: player.games ? ((player.wins / player.games) * 100).toFixed(1) : "0.0"
+        }))
+        .sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (b.wins !== a.wins) return b.wins - a.wins;
+          if (parseFloat(b.winPct) !== parseFloat(a.winPct)) {
+            return parseFloat(b.winPct) - parseFloat(a.winPct);
+          }
+          return a.name.localeCompare(b.name);
+        });
+
+      renderTable(players);
+    }
+
+    function renderTable(players) {
+      const tbody = document.querySelector("#league-table tbody");
+      tbody.innerHTML = "";
+      playerNamesByIndex = [];
+
+      if (!players.length) {
+        tbody.innerHTML = `<tr><td colspan="6">No results found for this season.</td></tr>`;
+        return;
+      }
+
+      players.forEach((player, index) => {
+        playerNamesByIndex[index] = player.name;
+
+        const trophies = player.wins > 0
+          ? `<span class="trophy" onclick="toggleTooltip(this)">
+               ${"🏆".repeat(player.wins)}
+               <span class="tooltip-bubble">${player.wonCompetitions.map(escapeHtml).join(", ")}</span>
+             </span>`
+          : "";
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>
+              <a href="#" class="player-link" data-player-index="${index}">
+                ${escapeHtml(player.name)}
+              </a>
+            </td>
+            <td>${player.games}</td>
+            <td>${player.winPct}%</td>
+            <td>${player.points}</td>
+            <td>${trophies}</td>
+          </tr>
+        `;
+      });
+    }
+
+    document.addEventListener("click", function(event) {
+      const playerLink = event.target.closest(".player-link");
+
+      if (playerLink) {
+        event.preventDefault();
+
+        const index = parseInt(playerLink.dataset.playerIndex, 10);
+        const name = playerNamesByIndex[index];
+
+        if (name) showPlayerModal(name);
+        return;
+      }
+
+      if (!event.target.closest(".trophy")) {
+        document.querySelectorAll(".trophy.show-tooltip").forEach(item => {
+          item.classList.remove("show-tooltip");
+        });
+      }
+    });
+
+    function showPlayerModal(playerName) {
+      const scores = history
+        .filter(entry =>
+          normalise(entry.Name) === normalise(playerName) &&
+          getYearFromEntry(entry) === selectedYear
+        )
+        .map(entry => ({
+          competition: entry.Competition || "Unknown",
+          gross: parseFloat(entry.Score),
+          effectiveScore: getEffectiveScore(entry),
+          position: parseInt(entry.Position, 10),
+          points: getPoints(entry),
+          date: entry.Date
+        }))
+        .filter(item => !isNaN(item.gross))
+        .sort((a, b) => (parseDateStr(a.date) || 0) - (parseDateStr(b.date) || 0));
+
+      document.getElementById("modalTitle").innerText = `${playerName}'s Score History`;
+
+      const scoreList = document.getElementById("scoreList");
+      const positionList = document.getElementById("positionList");
+
+      scoreList.innerHTML = "";
+      positionList.innerHTML = "";
+
+      if (!scores.length) {
+        scoreList.innerHTML = `<li>No scores found for this player in ${selectedYear}.</li>`;
+        positionList.innerHTML = `<li>No competition history found.</li>`;
+      }
+
+      scores.forEach(score => {
+        const trophy = score.position === 1 ? " 🏆" : "";
+        const positionText = isNaN(score.position) ? "-" : score.position;
+
+        scoreList.innerHTML += `
+          <li>
+            ${escapeHtml(score.competition)}:
+            Gross ${score.gross},
+            Table Score ${score.effectiveScore}${trophy}
+          </li>
+        `;
+
+        positionList.innerHTML += `
+          <li>
+            ${escapeHtml(score.competition)}:
+            Finished ${positionText},
+            Points ${score.points}${trophy}
+          </li>
+        `;
+      });
+
+      document.getElementById("scoreModal").style.display = "flex";
+
+      setTimeout(() => {
+        drawCharts(scores);
+        showTab("net");
+      }, 100);
+    }
+
+    function drawCharts(scores) {
+      const labels = scores.map(score => score.competition);
+      const scoreData = scores.map(score => score.gross);
+      const positionData = scores.map(score => isNaN(score.position) ? null : score.position);
+
+      if (scoreChartInstance) scoreChartInstance.destroy();
+      if (positionChartInstance) positionChartInstance.destroy();
+
+      const scoreCanvas = document.getElementById("scoreChart");
+      const positionCanvas = document.getElementById("positionChart");
+
+      scoreChartInstance = new Chart(scoreCanvas, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Gross Score",
+              data: scoreData,
+              fill: false,
+              tension: 0.25
+            },
+            {
+              label: "Par 64",
+              data: new Array(labels.length).fill(64),
+              borderDash: [6, 6],
+              fill: false,
+              tension: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+
+      positionChartInstance = new Chart(positionCanvas, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Finishing Position",
+              data: positionData,
+              fill: false,
+              tension: 0.25
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              reverse: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function showTab(tab) {
+      const scoreChart = document.getElementById("scoreChart");
+      const positionChart = document.getElementById("positionChart");
+      const scoreList = document.getElementById("scoreList");
+      const positionList = document.getElementById("positionList");
+
+      document.getElementById("tabNet").classList.remove("active");
+      document.getElementById("tabPositions").classList.remove("active");
+      document.getElementById("tabHistory").classList.remove("active");
+
+      if (tab === "net") {
+        document.getElementById("tabNet").classList.add("active");
+
+        scoreChart.style.display = "block";
+        positionChart.style.display = "none";
+        scoreList.style.display = "block";
+        positionList.style.display = "none";
+
+        if (scoreChartInstance) scoreChartInstance.resize();
+      }
+
+      if (tab === "positions") {
+        document.getElementById("tabPositions").classList.add("active");
+
+        scoreChart.style.display = "none";
+        positionChart.style.display = "block";
+        scoreList.style.display = "none";
+        positionList.style.display = "block";
+
+        if (positionChartInstance) positionChartInstance.resize();
+      }
+
+      if (tab === "history") {
+        document.getElementById("tabHistory").classList.add("active");
+
+        scoreChart.style.display = "none";
+        positionChart.style.display = "none";
+        scoreList.style.display = "block";
+        positionList.style.display = "block";
+      }
+    }
+
+    function closeModal() {
+      document.getElementById("scoreModal").style.display = "none";
+    }
+
+    function toggleTooltip(el) {
+      document.querySelectorAll(".trophy.show-tooltip").forEach(item => {
+        if (item !== el) item.classList.remove("show-tooltip");
+      });
+
+      el.classList.toggle("show-tooltip");
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+    localStorage.setItem("auth", "true");
+    loadWorkbook();
+  </script>
+
+  <script>
+    const WEATHER_API_KEY = "e583bd0c194bbfeb3deb92f6bfdad11a";
+    const LOCATION = "Cheadle,UK";
+
+    function extractDateFromText(text) {
+      let date = null;
+
+      const slashMatch = text.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+      if (slashMatch) {
+        const day = slashMatch[1];
+        const month = slashMatch[2];
+        const year = slashMatch[3];
+        date = new Date(`${year}-${month}-${day}`);
+      } else {
+        const wordMatch = text.match(/\b(\d{1,2})\s([A-Za-z]+)\s?(\d{4})?/);
+        if (wordMatch) {
+          const day = wordMatch[1];
+          const monthName = wordMatch[2];
+          const year = wordMatch[3] ? wordMatch[3] : new Date().getFullYear();
+          date = new Date(`${day} ${monthName} ${year}`);
+        }
+      }
+
+      return date;
+    }
+
+    function windDirection(degrees) {
+      const dirs = ["N","NE","E","SE","S","SW","W","NW"];
+      return dirs[Math.round(degrees / 45) % 8];
+    }
+
+    function fetchWeatherForNextComp(nextCompText) {
+      const compDate = extractDateFromText(nextCompText);
+      if (!compDate) {
+        document.getElementById("weatherDetails").innerHTML = "<div>No competition date found.</div>";
+        return;
+      }
+
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${LOCATION}&appid=${WEATHER_API_KEY}&units=metric`)
+        .then(res => res.json())
+        .then(data => {
+          const forecasts = (data.list || []).filter(item => {
+            const forecastDate = new Date(item.dt_txt);
+            return forecastDate.getDate() === compDate.getDate() &&
+                   forecastDate.getMonth() === compDate.getMonth() &&
+                   forecastDate.getFullYear() === compDate.getFullYear();
+          });
+
+          const forecast = forecasts.find(f => f.dt_txt.includes("12:00:00")) ||
+                           forecasts.find(f => f.dt_txt.includes("20:00:00")) ||
+                           forecasts[0];
+
+          const container = document.getElementById("weatherDetails");
+
+          if (forecast && forecast.weather && forecast.weather[0]) {
+            const iconUrl = `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@4x.png`;
+            const windSpeedMph = (forecast.wind.speed * 2.23694).toFixed(1);
+            const windDir = windDirection(forecast.wind.deg);
+            const arrowStyle = `transform: rotate(${forecast.wind.deg}deg); display:inline-block; transition:transform 0.3s`;
+
+            container.innerHTML = `
+              <img src="${iconUrl}" alt="${forecast.weather[0].description}" style="height:70px;filter:drop-shadow(0 0 3px rgba(0,0,0,0.35));">
+              <div style="font-weight:900;">${forecast.weather[0].main} <span style="opacity:0.8;">(${forecast.weather[0].description})</span></div>
+              <div>Temp: <strong>${Math.round(forecast.main.temp)}°C</strong></div>
+              <div>Wind: <strong>${windSpeedMph} mph</strong> (${windDir}) <span style="${arrowStyle}">⬆️</span></div>
+            `;
+          } else {
+            container.innerHTML = "<div>No forecast available yet for this date.</div>";
+          }
+        })
+        .catch(err => {
+          console.error("Weather API error:", err);
+          document.getElementById("weatherDetails").innerHTML = "<div>Unable to load weather.</div>";
+        });
+    }
+
+    const nextCompEl = document.getElementById("nextCompetitionText");
+
+    const observer = new MutationObserver(() => {
+      if (nextCompEl.innerText && nextCompEl.innerText !== "TBD") {
+        fetchWeatherForNextComp(nextCompEl.innerText);
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(nextCompEl, { childList: true, subtree: true });
+  </script>
+
+  <div class="info-bar">
+    <h4><span style="color:#ff2d55;">Loading update...</span></h4>
+  </div>
+
+  <div class="footer">
+    <div style="margin: 0.75rem 0;">
+      <img src="logocja.png" alt="League Logo" style="height:64px;margin-right:10px;" />
+      <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo" width="80" height="80"/>
+    </div>
+
+    <div style="font-weight:900;">Build v1.0.3 | Tables and Members</div>
+
+    <div style="margin-top:0.35rem;">
+      <a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a>
+    </div>
+  </div>
+
+  <script>
+  function logout() {
+    localStorage.removeItem("auth");
+    location.reload();
+  }
+  </script>
+</body>
+</html>
