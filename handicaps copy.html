@@ -191,15 +191,9 @@
           const score  = parseFloat(row.Score);
           const comp   = row.Competition || row.Title || '';
           const date   = row.Date;
-          const member = row.Member || '';
-if (!name || isNaN(score)) return;
-
-if (!players[name]) {
-  players[name] = {
-    rounds: [],
-    member
-  };
-}
+          const active = row.Active || '';
+          if (!name || isNaN(score)) return;
+          if (!players[name]) players[name] = { rounds: [], active };
           players[name].rounds.push({
             score, competition: comp, date,
             Position: row.Position || ''
@@ -207,20 +201,13 @@ if (!players[name]) {
         });
 
         allPlayers = Object.keys(players).map(name => {
-  const rounds     = players[name].rounds;
-  const member     = String(players[name].member || '').trim().toLowerCase();
+          const rounds     = players[name].rounds;
+          const active     = String(players[name].active || '').trim().toLowerCase();
           const handicaps  = rounds.map(r => (r.score - getParForCompetition(r.competition)) * 0.93);
           const best3      = [...handicaps].sort((a, b) => a - b).slice(0, 3);
           const current    = (best3.reduce((a, b) => a + b, 0) / best3.length).toFixed(1);
           const lowest     = Math.min(...handicaps).toFixed(1);
-          return {
-    name,
-    current: parseFloat(current),
-    lowest: parseFloat(lowest),
-    roundsPlayed: rounds.length,
-    rounds,
-    member
-  };
+          return { name, current: parseFloat(current), lowest: parseFloat(lowest), roundsPlayed: rounds.length, rounds, active };
         });
 
         updateTable();
@@ -236,9 +223,7 @@ if (!players[name]) {
     function updateTable() {
       const visiblePlayers = showAll
         ? allPlayers
-        allPlayers.filter(p =>
-  ['yes','true','✅','member'].includes(p.member)
-);
+        : allPlayers.filter(p => ['yes','true','✅','active'].includes(p.active));
       renderTable(visiblePlayers);
     }
 
@@ -326,9 +311,7 @@ if (!players[name]) {
         sortDir[key] = !sortDir[key];
         const visiblePlayers = showAll
           ? [...allPlayers]
-          allPlayers.filter(p =>
-  ['yes','true','✅','member'].includes(p.member)
-);
+          : allPlayers.filter(p => ['yes','true','✅','active'].includes(p.active));
         visiblePlayers.sort((a, b) => {
           if (key === 'name') return sortDir[key] ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
           return sortDir[key] ? a[key] - b[key] : b[key] - a[key];
