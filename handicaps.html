@@ -279,60 +279,40 @@
 
     function getVisiblePlayers() {
 
-      if (showAll) {
-        return [...allPlayers];
-      }
+  const activePlayers = allPlayers.filter(p => {
 
-      return allPlayers.filter(p =>
-        ['yes', 'true', '✅'].includes(p.member)
-      );
-    }
+    const member = String(p.member || '')
+      .trim()
+      .toLowerCase();
 
-    function updateTable() {
-      renderTable(getVisiblePlayers());
-    }
+    return (
+      member === 'yes' ||
+      member === 'true' ||
+      member === '✅'
+    );
 
-    function renderTable(players) {
+  });
 
-      const tableBody = document.querySelector('#handicapTable tbody');
+  if (!showAll) {
+    return activePlayers;
+  }
 
-      tableBody.innerHTML = '';
+  const inactivePlayers = allPlayers.filter(p => {
 
-      players.forEach(p => {
+    const member = String(p.member || '')
+      .trim()
+      .toLowerCase();
 
-        const tr = document.createElement('tr');
+    return !(
+      member === 'yes' ||
+      member === 'true' ||
+      member === '✅'
+    );
 
-        tr.innerHTML = `
-          <td>${p.name}</td>
-          <td>${p.current.toFixed(1)}</td>
-          <td>${p.lowest.toFixed(1)}</td>
-          <td>${p.roundsPlayed}</td>
-          <td>
-            <button class="button is-small is-info open-modal" data-name="${p.name}">
-              View
-            </button>
-          </td>
-        `;
+  });
 
-        tableBody.appendChild(tr);
-
-      });
-
-      document.querySelectorAll('.open-modal').forEach(btn => {
-
-        btn.addEventListener('click', e => {
-
-          const name = e.target.dataset.name;
-          const player = players.find(p => p.name === name);
-
-          openModal(name, player.rounds);
-
-        });
-
-      });
-
-    }
-
+  return [...activePlayers, ...inactivePlayers];
+}
     /* ── Modal ── */
 
     function openModal(name, rounds) {
