@@ -221,9 +221,14 @@
           if (!players[name]) {
             players[name] = {
               rounds: [],
-              member
+              member: 'no'
             };
           }
+
+  /* Always keep latest non-empty member value */
+        if (member) {
+          players[name].member = member;
+        }
 
           players[name].rounds.push({
             score,
