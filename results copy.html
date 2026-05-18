@@ -164,7 +164,7 @@
 
         // Data — exclude inactive rows
         const dataRows = await fetchSheet('Sheet1!A1:K2000');
-        allRows = rowsToObjects(dataRows);
+        allRows = rowsToObjects(dataRows).filter(r => String(r.Active||'').toLowerCase() !== 'no');
 
         // Build season dropdown
         const years = [...new Set(

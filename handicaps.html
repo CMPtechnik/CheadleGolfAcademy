@@ -187,23 +187,18 @@
 
         const players = {};
         data.forEach(row => {
-        const name   = row.Name;
-        const score  = parseFloat(row.Score);
-        const comp   = row.Competition || row.Title || '';
-        const date   = row.Date;
-        const active = row.Member || '';
-
-        if (!name || isNaN(score)) return;
-
-        if (!players[name]) players[name] = { rounds: [], active };
-
-        players[name].rounds.push({
-          score,
-          competition: comp,
-          date,
-          Position: row.Position || ''
+          const name   = row.Name;
+          const score  = parseFloat(row.Score);
+          const comp   = row.Competition || row.Title || '';
+          const date   = row.Date;
+          const active = row.Active || '';
+          if (!name || isNaN(score)) return;
+          if (!players[name]) players[name] = { rounds: [], active };
+          players[name].rounds.push({
+            score, competition: comp, date,
+            Position: row.Position || ''
+          });
         });
-      });
 
         allPlayers = Object.keys(players).map(name => {
           const rounds     = players[name].rounds;
