@@ -134,8 +134,8 @@
 
   <script>
     /* ── Google Sheets config ── */
-    const SHEET_ID    = '1mU0_DlUn7cv8henOOHFAnF5dVhMHYmT3eYgrNjniHrs';
-    const API_KEY     = 'AIzaSyBTJleDGs7X9184N15_Dm5352WNtWupnYw';
+    const SHEET_ID = '1mU0_DlUn7cv8henOOHFAnF5dVhMHYmT3eYgrNjniHrs';
+    const API_KEY = 'AIzaSyBTJleDGs7X9184N15_Dm5352WNtWupnYw';
     const SHEETS_BASE = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
 
     async function fetchSheet(range) {
@@ -146,126 +146,197 @@
 
     function rowsToObjects(rows) {
       if (!rows.length) return [];
+
       const headers = rows[0];
+
       return rows.slice(1).map(row => {
         const obj = {};
-        headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
+
+        headers.forEach((h, i) => {
+          obj[h] = row[i] !== undefined ? row[i] : '';
+        });
+
         return obj;
       });
     }
 
     /* ── Helpers ── */
+
     function parseDateStr(s) {
       if (!s) return new Date('Invalid');
-      if (!isNaN(s) && Number(s) > 20000 && Number(s) < 80000)
+
+      if (!isNaN(s) && Number(s) > 20000 && Number(s) < 80000) {
         return new Date((Number(s) - 25569) * 86400 * 1000);
-      if (typeof s === 'string' && (s.includes('/') || s.match(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/))) {
+      }
+
+      if (
+        typeof s === 'string' &&
+        (s.includes('/') || s.match(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/))
+      ) {
         const [d, m, y] = s.split(/[\/\-]/).map(v => parseInt(v));
+
         return new Date(y < 100 ? y + 2000 : y, m - 1, d);
       }
+
       const d = new Date(s);
+
       return isNaN(d.getTime()) ? new Date('Invalid') : d;
     }
 
     function getParForCompetition(name) {
       if (!name) return 32;
+
       if (name.includes('Sixes')) return 22;
       if (name.includes('Bruntwood 9')) return 27;
       if (name.includes('Bruntwood 18')) return 54;
+
       return 32;
     }
 
     /* ── State ── */
+
     let allPlayers = [];
-    let showAll    = false;
+    let showAll = false;
 
     /* ── Fetch from Google Sheets ── */
+
     async function fetchData() {
       try {
+
         const dataRows = await fetchSheet('Sheet1!A1:K2000');
         const data = rowsToObjects(dataRows);
 
         const players = {};
-        data.forEach(row => {
-          const name   = row.Name;
-          const score  = parseFloat(row.Score);
-          const comp   = row.Competition || row.Title || '';
-          const date   = row.Date;
-          const member = row.Member || '';
-if (!name || isNaN(score)) return;
 
-if (!players[name]) {
-  players[name] = {
-    rounds: [],
-    member
-  };
-}
+        data.forEach(row => {
+
+          const name = row.Name;
+          const score = parseFloat(row.Score);
+          const comp = row.Competition || row.Title || '';
+          const date = row.Date;
+          const member = String(row.Member || '').trim().toLowerCase();
+
+          if (!name || isNaN(score)) return;
+
+          if (!players[name]) {
+            players[name] = {
+              rounds: [],
+              member
+            };
+          }
+
           players[name].rounds.push({
-            score, competition: comp, date,
+            score,
+            competition: comp,
+            date,
             Position: row.Position || ''
           });
+
         });
 
         allPlayers = Object.keys(players).map(name => {
-  const rounds     = players[name].rounds;
-  const member     = String(players[name].member || '').trim().toLowerCase();
-          const handicaps  = rounds.map(r => (r.score - getParForCompetition(r.competition)) * 0.93);
-          const best3      = [...handicaps].sort((a, b) => a - b).slice(0, 3);
-          const current    = (best3.reduce((a, b) => a + b, 0) / best3.length).toFixed(1);
-          const lowest     = Math.min(...handicaps).toFixed(1);
+
+          const rounds = players[name].rounds;
+          const member = players[name].member;
+
+          const handicaps = rounds.map(r =>
+            (r.score - getParForCompetition(r.competition)) * 0.93
+          );
+
+          const best3 = [...handicaps]
+            .sort((a, b) => a - b)
+            .slice(0, 3);
+
+          const current = (
+            best3.reduce((a, b) => a + b, 0) / best3.length
+          ).toFixed(1);
+
+          const lowest = Math.min(...handicaps).toFixed(1);
+
           return {
-    name,
-    current: parseFloat(current),
-    lowest: parseFloat(lowest),
-    roundsPlayed: rounds.length,
-    rounds,
-    member
-  };
+            name,
+            current: parseFloat(current),
+            lowest: parseFloat(lowest),
+            roundsPlayed: rounds.length,
+            rounds,
+            member
+          };
+
         });
 
         updateTable();
 
       } catch(err) {
+
         console.error('fetchData error:', err);
+
         document.querySelector('#handicapTable tbody').innerHTML =
           `<tr><td colspan="5">Unable to load data: ${err.message}</td></tr>`;
       }
     }
 
     /* ── Render ── */
+
+    function getVisiblePlayers() {
+
+      if (showAll) {
+        return [...allPlayers];
+      }
+
+      return allPlayers.filter(p =>
+        ['yes', 'true', '✅'].includes(p.member)
+      );
+    }
+
     function updateTable() {
-      const visiblePlayers = showAll
-        ? allPlayers
-        allPlayers.filter(p =>
-  ['yes','true','✅','member'].includes(p.member)
-);
-      renderTable(visiblePlayers);
+      renderTable(getVisiblePlayers());
     }
 
     function renderTable(players) {
+
       const tableBody = document.querySelector('#handicapTable tbody');
+
       tableBody.innerHTML = '';
+
       players.forEach(p => {
+
         const tr = document.createElement('tr');
+
         tr.innerHTML = `
           <td>${p.name}</td>
           <td>${p.current.toFixed(1)}</td>
           <td>${p.lowest.toFixed(1)}</td>
           <td>${p.roundsPlayed}</td>
-          <td><button class="button is-small is-info open-modal" data-name="${p.name}">View</button></td>`;
+          <td>
+            <button class="button is-small is-info open-modal" data-name="${p.name}">
+              View
+            </button>
+          </td>
+        `;
+
         tableBody.appendChild(tr);
+
       });
+
       document.querySelectorAll('.open-modal').forEach(btn => {
+
         btn.addEventListener('click', e => {
-          const name   = e.target.dataset.name;
+
+          const name = e.target.dataset.name;
           const player = players.find(p => p.name === name);
+
           openModal(name, player.rounds);
+
         });
+
       });
+
     }
 
     /* ── Modal ── */
+
     function openModal(name, rounds) {
+
       document.getElementById('modalPlayerName').textContent = name;
 
       const handicaps = rounds.map(r => ({
@@ -273,86 +344,162 @@ if (!players[name]) {
         hcap: ((r.score - getParForCompetition(r.competition)) * 0.93).toFixed(1),
         position: r.Position ? String(r.Position).trim() : ''
       }));
-      const best3Hcap = [...handicaps].sort((a, b) => a.hcap - b.hcap).slice(0, 3).map(r => r.hcap);
+
+      const best3Hcap = [...handicaps]
+        .sort((a, b) => a.hcap - b.hcap)
+        .slice(0, 3)
+        .map(r => r.hcap);
 
       document.getElementById('modalContent').innerHTML = `
         <table class="table is-fullwidth is-narrow">
-          <thead><tr><th>Date</th><th>Competition</th><th>Score</th><th>Par</th><th>Handicap</th><th>Result</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Competition</th>
+              <th>Score</th>
+              <th>Par</th>
+              <th>Handicap</th>
+              <th>Result</th>
+            </tr>
+          </thead>
           <tbody>
             ${handicaps.map(r => {
+
               const d = parseDateStr(r.date);
-              const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB') : '';
+
+              const dateStr =
+                !isNaN(d.getTime())
+                  ? d.toLocaleDateString('en-GB')
+                  : '';
+
               const icons = [];
+
               if (best3Hcap.includes(r.hcap)) icons.push('✅');
               if (r.position && /^1(st)?$/i.test(r.position)) icons.push('🏆');
-              return `<tr class="${best3Hcap.includes(r.hcap) ? 'best-round' : ''}">
-                <td>${dateStr}</td>
-                <td>${r.competition}</td>
-                <td>${r.score}</td>
-                <td>${getParForCompetition(r.competition)}</td>
-                <td>${r.hcap}</td>
-                <td>${icons.join(' ')}</td>
-              </tr>`;
+
+              return `
+                <tr class="${best3Hcap.includes(r.hcap) ? 'best-round' : ''}">
+                  <td>${dateStr}</td>
+                  <td>${r.competition}</td>
+                  <td>${r.score}</td>
+                  <td>${getParForCompetition(r.competition)}</td>
+                  <td>${r.hcap}</td>
+                  <td>${icons.join(' ')}</td>
+                </tr>
+              `;
+
             }).join('')}
           </tbody>
-        </table>`;
+        </table>
+      `;
 
       const ctx = document.getElementById('handicapChart').getContext('2d');
-      if (window.hcapChart) window.hcapChart.destroy();
+
+      if (window.hcapChart) {
+        window.hcapChart.destroy();
+      }
+
       window.hcapChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: rounds.map(r => { const d = parseDateStr(r.date); return !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB') : ''; }),
+          labels: rounds.map(r => {
+
+            const d = parseDateStr(r.date);
+
+            return !isNaN(d.getTime())
+              ? d.toLocaleDateString('en-GB')
+              : '';
+
+          }),
           datasets: [{
             label: 'Handicap per Round',
             data: handicaps.map(r => parseFloat(r.hcap)),
             borderColor: '#3273dc',
-            backgroundColor: handicaps.map(h => best3Hcap.includes(h.hcap) ? '#f6e58d99' : '#3273dc33'),
+            backgroundColor: handicaps.map(h =>
+              best3Hcap.includes(h.hcap)
+                ? '#f6e58d99'
+                : '#3273dc33'
+            ),
             fill: true,
             tension: 0.3
           }]
         },
-        options: { scales: { y: { beginAtZero: false, reverse: true } } }
+        options: {
+          scales: {
+            y: {
+              beginAtZero: false,
+              reverse: true
+            }
+          }
+        }
       });
 
       document.getElementById('modal').showModal();
+
     }
 
     /* ── Sorting ── */
+
     let sortDir = {};
+
     document.querySelectorAll('.sortable').forEach(th => {
+
       th.addEventListener('click', () => {
+
         const key = th.dataset.sort;
+
         sortDir[key] = !sortDir[key];
-        const visiblePlayers = showAll
-          ? [...allPlayers]
-          allPlayers.filter(p =>
-  ['yes','true','✅','member'].includes(p.member)
-);
+
+        const visiblePlayers = getVisiblePlayers();
+
         visiblePlayers.sort((a, b) => {
-          if (key === 'name') return sortDir[key] ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-          return sortDir[key] ? a[key] - b[key] : b[key] - a[key];
+
+          if (key === 'name') {
+            return sortDir[key]
+              ? a.name.localeCompare(b.name)
+              : b.name.localeCompare(a.name);
+          }
+
+          return sortDir[key]
+            ? a[key] - b[key]
+            : b[key] - a[key];
+
         });
+
         renderTable(visiblePlayers);
+
       });
+
     });
 
     /* ── Admin ── */
+
     document.getElementById('adminLogin').addEventListener('click', () => {
+
       const entered = document.getElementById('adminPassword').value.trim();
+
       if (entered === 'golfadmin') {
+
         document.getElementById('adminPassword').style.display = 'none';
-        document.getElementById('adminLogin').style.display   = 'none';
-        document.getElementById('adminToggle').style.display  = 'block';
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminToggle').style.display = 'block';
+
         alert('Admin mode unlocked ✅');
+
       } else {
+
         alert('Incorrect password ❌');
+
       }
+
     });
 
     document.getElementById('showAll').addEventListener('change', e => {
+
       showAll = e.target.checked;
+
       updateTable();
+
     });
 
     document.getElementById('closeModal').addEventListener('click', () => {
@@ -360,7 +507,9 @@ if (!players[name]) {
     });
 
     /* ── Init ── */
+
     fetchData();
+
   </script>
 </body>
 </html>
