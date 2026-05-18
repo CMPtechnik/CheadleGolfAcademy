@@ -94,11 +94,6 @@
 </div>
 
 <script>
-    // Redirect straight to home if already logged in
-    if (localStorage.getItem('auth') === 'true') {
-        window.location.replace('home.html');
-    }
-
     function login() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
