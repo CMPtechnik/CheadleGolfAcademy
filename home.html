@@ -554,10 +554,8 @@
       const nextText = document.getElementById('nextCompetitionText').innerText;
       const msgs = [
         '📅 New Competition Added **All Members Day** | See upcoming fixtures in the Calendar',
-        '📈 Series Tables now available — check your standings',
+        '📈 Series Tables Updated — check your standings',
         (nextText && nextText !== 'TBD') ? `📅 Next: ${nextText}` : null,
-        '🏆 Tap any player name to view their stats',
-        '⛳ Good luck in the next competition!',
         '🌤️ Weather forecast shown for next competition day',
       ].filter(Boolean);
       const track = document.getElementById('tickerTrack');
