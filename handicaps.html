@@ -313,6 +313,60 @@
 
   return [...activePlayers, ...inactivePlayers];
 }
+
+<script>
+function updateTable() {
+
+  const visiblePlayers = getVisiblePlayers();
+
+  renderTable(visiblePlayers);
+
+}
+
+function renderTable(players) {
+
+  const tableBody = document.querySelector('#handicapTable tbody');
+
+  tableBody.innerHTML = '';
+
+  players.forEach(p => {
+
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td>${p.name}</td>
+      <td>${p.current.toFixed(1)}</td>
+      <td>${p.lowest.toFixed(1)}</td>
+      <td>${p.roundsPlayed}</td>
+      <td>
+        <button class="button is-small is-info open-modal" data-name="${p.name}">
+          View
+        </button>
+      </td>
+    `;
+
+    tableBody.appendChild(tr);
+
+  });
+
+  document.querySelectorAll('.open-modal').forEach(btn => {
+
+    btn.addEventListener('click', e => {
+
+      const name = e.target.dataset.name;
+
+      const player = players.find(p => p.name === name);
+
+      if (player) {
+        openModal(name, player.rounds);
+      }
+
+    });
+
+  });
+
+}
+</script>
     /* ── Modal ── */
 
     function openModal(name, rounds) {
