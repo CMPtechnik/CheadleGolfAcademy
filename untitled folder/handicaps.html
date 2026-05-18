@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Junior Handicaps – Cheadle Golf Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <style>
+    body { padding: 20px; }
+    table { width: 100%; }
+    dialog::backdrop { background: rgba(0,0,0,0.5); }
+    .modal-content { padding: 20px; max-width: 800px; width: 95%; }
+    .best-round { background-color: #ffeaa7; font-weight: bold; }
+    .sortable:hover { cursor: pointer; text-decoration: underline; }
+    #adminSection { text-align:center; margin:20px 0; }
+    #adminSection input { padding:0.4rem; border-radius:6px; border:1px solid #ccc; }
+    @media screen and (max-width: 768px) {
+      .modal-content { width: 95%; padding: 10px; }
+    }
+    /* ================= SHARED HEADER STYLE ================= */
+:root{
+  --primary:#00c896;
+  --primary-dark:#008f6a;
+  --radius:14px;
+  --shadow:0 10px 25px rgba(0,0,0,0.12);
+}
+
+.app-header{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  padding:1.6rem 1rem 2.4rem;
+  text-align:center;
+  border-bottom-left-radius:24px;
+  border-bottom-right-radius:24px;
+  box-shadow:0 12px 30px rgba(0,0,0,0.18);
+}
+
+.app-header h1{
+  margin:0;
+  font-size:1.7rem;
+  font-weight:900;
+}
+
+.app-header .sub{
+  margin-top:0.4rem;
+  font-weight:700;
+  opacity:0.9;
+}
+
+/* ================= TOP ACTION BAR ================= */
+.top-bar{
+  margin:-1.6rem auto 1rem;
+  max-width:1100px;
+  padding:1rem;
+  text-align:center;
+}
+
+.btn-primary{
+  padding:0.55rem 1.1rem;
+  border-radius:999px;
+  border:none;
+  font-weight:900;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+}
+  </style>
+</head>
+<header class="app-header">
+  <h1>Junior Handicap Tracker</h1>
+  <div class="sub">
+    Cheadle Golf Club Junior Section · Progress &amp; Leveler (Non-WHS)
+  </div>
+</header>
+
+<div class="top-bar">
+  <a href="home.html">
+    <button class="btn-primary">🏠 Home</button>
+  </a>
+</div>
+<body>
+  <section class="section">
+    <div class="container">
+      <center><p class="mb-4">Click on a player’s <strong>View button</strong> to see per-round details and chart.</p></center>
+      <b><center>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</center></b>
+      <br><center>⬅️➡️ Scroll to view full table on mobile</center>
+      <table class="table is-striped is-fullwidth" id="handicapTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="name">Player ⬍</th>
+            <th class="sortable" data-sort="current">Current Handicap ⬍</th>
+            <th class="sortable" data-sort="lowest">Lowest Handicap ⬍</th>
+            <th class="sortable" data-sort="roundsPlayed">Rounds Played ⬍</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 🔒 Admin control -->
+  <div id="adminSection">
+    <input type="password" id="adminPassword" placeholder="Enter admin password...">
+    <button id="adminLogin" class="button is-small is-primary">Unlock</button>
+    <div id="adminToggle" style="display:none;margin-top:0.8rem;">
+      <label style="font-weight:bold;">
+        <input type="checkbox" id="showAll"> Show inactive members
+      </label>
+    </div>
+  </div>
+
+
+  <section class="section">
+    <div class="container">
+      <h2 class="title is-5 mt-6">How are handicaps calculated?</h2>
+      <div class="content box" style="background:#f5f5f5;">
+        <p>
+          Handicaps are based on the average of a player's <strong>best 3 gross scores</strong>, relative to par, from recent rounds.
+          <br />
+          <strong>Formula:</strong> <code>(Gross Score − Par) × 0.93</code>
+        </p>
+        <ul>
+          <li>🏌️‍♂️ <strong>Junior Competition</strong>: Par 32</li>
+          <li>🏌️ <strong>Junior Sixes Competition</strong>: Par 22</li>
+          <li>⛳ <strong>Bruntwood 9</strong>: Par 27</li>
+          <li>⛳ <strong>Bruntwood 18</strong>: Par 54</li>
+        </ul>
+        <p>
+          Handicaps are shown to 1 decimal place and updated after each new round. The best 3 scores are used to calculate the current handicap. (Playing 9 holes off Yellow Tees)
+        </p>
+        <p>
+          <b>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</b>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal -->
+  <dialog id="modal">
+    <div class="modal-content box">
+      <button class="delete is-pulled-right" id="closeModal"></button>
+      <h2 class="title is-4" id="modalPlayerName"></h2>
+      <div id="modalContent" class="mb-4"></div>
+      <canvas id="handicapChart" height="200"></canvas>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    function parseDateStr(s) {
+      if (!s) return new Date('Invalid');
+      if (!isNaN(s) && Number(s) > 20000 && Number(s) < 80000) return new Date((Number(s) - 25569) * 86400 * 1000);
+      if (typeof s === 'string' && s.includes('/')) {
+        const [d, m, y] = s.split(/[\/\-]/).map(v => parseInt(v));
+        return new Date(y, m - 1, d);
+      }
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? new Date('Invalid') : d;
+    }
+
+    const getParForCompetition = (name) => {
+      if (!name) return 32;
+      if (name.includes("Sixes")) return 22;
+      if (name.includes("Bruntwood 9")) return 27;
+      if (name.includes("Bruntwood 18")) return 54;
+      return 32;
+    };
+
+    let allPlayers = [];
+    let showAll = false;
+
+    async function fetchData() {
+      const res = await fetch("https://raw.githubusercontent.com/CMPtechnik/cheadlegolfacademy/main/data/leaguedata.xlsx?v=" + Date.now());
+      const ab = await res.arrayBuffer();
+      const wb = XLSX.read(ab, { type: "array" });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(sheet);
+
+      const players = {};
+      data.forEach(row => {
+        const name = row.Name;
+        const score = parseFloat(row.Score);
+        const comp = row.Competition;
+        const date = row.Date;
+        const active = row.Active || row.Status || ""; // NEW: active flag column
+        if (!name || isNaN(score)) return;
+        if (!players[name]) players[name] = { rounds: [], active };
+        const pos = row.Position || row.Result || row.Place || "";
+        players[name].rounds.push({ score, competition: comp, date, Position: pos });
+      });
+
+      allPlayers = Object.keys(players).map(name => {
+        const rounds = players[name].rounds;
+        const active = (players[name].active || "").toString().trim().toLowerCase();
+        const handicaps = rounds.map(r => (r.score - getParForCompetition(r.competition)) * 0.93);
+        const best3 = [...handicaps].sort((a, b) => a - b).slice(0, 3);
+        const current = (best3.reduce((a, b) => a + b, 0) / best3.length).toFixed(1);
+        const lowest = Math.min(...handicaps).toFixed(1);
+        return { name, current: parseFloat(current), lowest: parseFloat(lowest), roundsPlayed: rounds.length, rounds, active };
+      });
+
+      updateTable();
+    }
+
+    function updateTable() {
+      const visiblePlayers = showAll
+        ? allPlayers
+        : allPlayers.filter(p => ["yes", "true", "✅", "active"].includes(p.active));
+
+      renderTable(visiblePlayers);
+    }
+
+    function renderTable(players) {
+      const tableBody = document.querySelector("#handicapTable tbody");
+      tableBody.innerHTML = "";
+
+      players.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.name}</td>
+          <td>${p.current.toFixed(1)}</td>
+          <td>${p.lowest.toFixed(1)}</td>
+          <td>${p.roundsPlayed}</td>
+          <td><button class="button is-small is-info open-modal" data-name="${p.name}">View</button></td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      document.querySelectorAll(".open-modal").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const name = e.target.dataset.name;
+          const player = players.find(p => p.name === name);
+          openModal(name, player.rounds);
+        });
+      });
+    }
+
+    function openModal(name, rounds) {
+      const modal = document.getElementById("modal");
+      document.getElementById("modalPlayerName").textContent = name;
+
+      const handicaps = rounds.map(r => ({
+        ...r,
+        hcap: ((r.score - getParForCompetition(r.competition)) * 0.93).toFixed(1),
+        position: r.Position ? String(r.Position).trim() : ""
+      }));
+      const best3Hcap = [...handicaps].sort((a, b) => a.hcap - b.hcap).slice(0, 3).map(r => r.hcap);
+
+      const content = document.getElementById("modalContent");
+      content.innerHTML = `
+        <table class="table is-fullwidth is-narrow">
+          <thead><tr><th>Date</th><th>Competition</th><th>Score</th><th>Par</th><th>Handicap</th><th>Result</th></tr></thead>
+          <tbody>
+            ${handicaps.map(r => {
+              const d = parseDateStr(r.date);
+              const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString("en-GB") : '';
+              let icons = [];
+              if (best3Hcap.includes(r.hcap)) icons.push("✅");
+              if (r.position && /^1(st)?$/i.test(r.position)) icons.push("🏆");
+              return `
+                <tr class="${best3Hcap.includes(r.hcap) ? 'best-round' : ''}">
+                  <td>${dateStr}</td>
+                  <td>${r.competition}</td>
+                  <td>${r.score}</td>
+                  <td>${getParForCompetition(r.competition)}</td>
+                  <td>${r.hcap}</td>
+                  <td>${icons.join(" ")}</td>
+                </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+
+      const ctx = document.getElementById("handicapChart").getContext("2d");
+      if (window.hcapChart) window.hcapChart.destroy();
+      window.hcapChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: rounds.map(r => {
+            const d = parseDateStr(r.date);
+            return !isNaN(d.getTime()) ? d.toLocaleDateString("en-GB") : '';
+          }),
+          datasets: [{
+            label: 'Handicap per Round',
+            data: handicaps.map(r => parseFloat(r.hcap)),
+            borderColor: '#3273dc',
+            backgroundColor: handicaps.map(h => best3Hcap.includes(h.hcap) ? '#f6e58d99' : '#3273dc33'),
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: { scales: { y: { beginAtZero: false, reverse: true } } }
+      });
+
+      modal.showModal();
+    }
+
+    document.getElementById("closeModal").addEventListener("click", () => {
+      document.getElementById("modal").close();
+    });
+
+    document.getElementById("adminLogin").addEventListener("click", () => {
+      const entered = document.getElementById("adminPassword").value.trim();
+      if (entered === "golfadmin") {
+        document.getElementById("adminPassword").style.display = "none";
+        document.getElementById("adminLogin").style.display = "none";
+        document.getElementById("adminToggle").style.display = "block";
+        alert("Admin mode unlocked ✅");
+      } else {
+        alert("Incorrect password ❌");
+      }
+    });
+
+    document.getElementById("showAll").addEventListener("change", e => {
+      showAll = e.target.checked;
+      updateTable();
+    });
+
+    fetchData();
+  </script>
+</body>
+</html>

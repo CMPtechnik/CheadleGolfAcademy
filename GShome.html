@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cheadle Juniors</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cheadle Juniors">
+  <meta name="theme-color" content="#00c896" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary:#00c896; --primary-dark:#008f6a; --accent:#eafff8;
+      --text:#0f172a; --bg:#f8fafc; --card:#ffffff;
+      --border:rgba(0,0,0,0.08); --hover:rgba(0,0,0,0.04);
+      --radius:14px;
+      --shadow-1:0 10px 25px rgba(0,0,0,0.08);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.10);
+      --shadow-3:0 30px 80px rgba(0,0,0,0.25);
+    }
+    body {
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+      margin:0;
+      background:
+        radial-gradient(1200px 600px at 10% -10%,#d1fae5,transparent),
+        radial-gradient(800px 400px at 90% 10%,#ccfbf1,transparent),
+        var(--bg);
+      color:var(--text);
+    }
+    .dark-mode {
+      --bg:#020617; --text:#e5e7eb; --card:#0b1220;
+      --accent:rgba(15,118,110,0.25); --border:rgba(255,255,255,0.12);
+      --hover:rgba(255,255,255,0.06);
+      --shadow-1:0 10px 25px rgba(0,0,0,0.35);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.45);
+      --shadow-3:0 30px 80px rgba(0,0,0,0.60);
+    }
+    header {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; padding:1.5rem 1rem 2.75rem; text-align:center;
+      position:relative; border-bottom-left-radius:24px; border-bottom-right-radius:24px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.15); overflow:hidden;
+    }
+    header::after {
+      content:""; position:absolute; inset:-120px -120px auto auto;
+      width:280px; height:280px; background:rgba(255,255,255,0.20);
+      border-radius:999px; transform:rotate(15deg); pointer-events:none;
+    }
+    header img { max-height:220px; filter:drop-shadow(0 10px 20px rgba(0,0,0,0.28)); position:relative; z-index:2; }
+    #darkModeToggle { position:absolute; top:14px; right:16px; cursor:pointer; font-size:1.6rem; user-select:none; z-index:3; }
+
+    /* Ticker */
+    .ticker-wrap {
+      background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+      overflow:hidden; white-space:nowrap; position:relative; z-index:4;
+      border-bottom:1px solid rgba(255,255,255,0.15); padding:0.55rem 0;
+    }
+    .ticker-track { display:inline-flex; animation:ticker-scroll 35s linear infinite; will-change:transform; }
+    .ticker-track:hover { animation-play-state:paused; }
+    .ticker-item {
+      color:white; font-weight:800; font-size:0.88rem;
+      padding:0 2.5rem; display:inline-flex; align-items:center; gap:0.5rem; letter-spacing:0.02em;
+    }
+    .ticker-item::after { content:"⛳"; margin-left:1.5rem; opacity:0.7; }
+    @keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    .info-links {
+      position:relative; z-index:5; margin:0.75rem auto 1rem;
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:0.75rem; max-width:980px; padding:0 1rem;
+    }
+    .info-btn {
+      background:var(--card); color:var(--text); padding:0.95rem 1rem;
+      border-radius:var(--radius); text-decoration:none; font-weight:900;
+      box-shadow:var(--shadow-1); display:inline-flex; align-items:center;
+      justify-content:center; gap:0.4rem; border:1px solid var(--border);
+      transition:transform 0.15s,box-shadow 0.15s;
+    }
+    .info-btn:hover { transform:translateY(-3px); box-shadow:var(--shadow-2); }
+    .hint { text-align:center; margin:1rem auto 0.5rem; opacity:0.85; font-weight:700; }
+    main { max-width:1100px; margin:auto; padding:1rem; }
+    .season-card {
+      margin:1rem auto; max-width:980px; background:var(--card);
+      border:1px solid var(--border); box-shadow:var(--shadow-1);
+      border-radius:var(--radius); padding:0.9rem 1rem;
+      display:flex; gap:0.8rem; align-items:center; justify-content:center; flex-wrap:wrap;
+    }
+    .season-card label { font-weight:900; }
+    select {
+      padding:0.65rem 1rem; border-radius:999px; border:1px solid var(--border);
+      background:var(--card); color:var(--text); font-weight:800;
+    }
+    table {
+      width:100%; border-collapse:separate; border-spacing:0;
+      background:var(--card); box-shadow:var(--shadow-2);
+      border-radius:var(--radius); overflow:hidden; border:1px solid var(--border);
+    }
+    th,td { padding:14px; text-align:center; border-bottom:1px solid var(--border); }
+    th {
+      background:var(--accent); position:sticky; top:0; z-index:1;
+      font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:900;
+    }
+    tbody tr:nth-child(even) { background:rgba(0,0,0,0.015); }
+    .dark-mode tbody tr:nth-child(even) { background:rgba(255,255,255,0.03); }
+    tbody tr:hover { background:var(--hover); }
+    a { color:var(--primary-dark); text-decoration:none; font-weight:900; }
+    .trophy { position:relative; display:inline-block; cursor:pointer; user-select:none; }
+    .tooltip-bubble {
+      display:none; position:absolute; bottom:120%; left:50%;
+      transform:translateX(-50%); background:rgba(0,0,0,0.92); color:white;
+      padding:7px 10px; border-radius:10px; font-size:0.78rem;
+      white-space:nowrap; z-index:1000; box-shadow:0 12px 22px rgba(0,0,0,0.25);
+    }
+    .trophy.show-tooltip .tooltip-bubble { display:block; }
+    #nextCompetition {
+      text-align:center; padding:1rem; font-size:1rem; background:var(--card);
+      margin:1rem auto 0.75rem; max-width:980px; border-radius:var(--radius);
+      box-shadow:var(--shadow-1); border:1px solid var(--border);
+    }
+    #weatherDetails { display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin-top:0.6rem; }
+    .modal {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6);
+      justify-content:center; align-items:center; z-index:1000; padding:1rem;
+    }
+    .modal-content {
+      background:var(--card); color:var(--text); width:min(92vw,650px);
+      max-height:85vh; padding:1rem; border-radius:18px; overflow:hidden;
+      box-shadow:var(--shadow-3); border:1px solid var(--border); display:flex; flex-direction:column;
+    }
+    .close-btn { align-self:flex-end; font-size:28px; cursor:pointer; line-height:1; }
+    .tabs { text-align:center; margin:1rem 0 0.75rem; display:flex; justify-content:center; flex-wrap:wrap; gap:0.45rem; }
+    .tabs button {
+      padding:0.55rem 1.15rem; border:none; border-radius:999px;
+      background:rgba(99,102,241,0.14); color:var(--text); font-weight:900; cursor:pointer;
+    }
+    .tabs button.active { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; }
+    #scoreChart,#positionChart { height:320px !important; margin-bottom:0.75rem; }
+    #scoreList,#positionList {
+      margin:0.25rem 0 0; padding-left:1.1rem; max-height:180px; overflow:auto;
+      border-top:1px solid var(--border); padding-top:0.5rem;
+    }
+    .info-bar {
+      background:var(--card); max-width:980px; margin:0.75rem auto 0.25rem;
+      border-radius:var(--radius); border:1px solid var(--border);
+      box-shadow:var(--shadow-1); padding:0.6rem 0.9rem; text-align:center; font-size:0.95rem; font-weight:800;
+    }
+    .info-bar h4 { margin:0; font-weight:900; }
+    .footer { text-align:center; padding:1rem 0 1.5rem; opacity:0.92; }
+    .footer img { vertical-align:middle; }
+    @media screen and (max-width:768px) {
+      table { display:block; overflow-x:auto; white-space:nowrap; }
+      header img { max-height:180px; }
+    }
+
+    /* ── Noticeboard ── */
+    .notice-board {
+      max-width:980px; margin:1rem auto 1.25rem; padding:1.4rem;
+      border-radius:18px; position:relative;
+      display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:1rem;
+      border:10px solid #8b5a2b; box-shadow:var(--shadow-2);
+      background:
+        radial-gradient(circle at 20% 30%,rgba(90,45,10,0.25) 0 2px,transparent 3px),
+        radial-gradient(circle at 70% 60%,rgba(120,70,20,0.22) 0 2px,transparent 3px),
+        radial-gradient(circle at 40% 80%,rgba(80,40,10,0.18) 0 1px,transparent 3px),
+        linear-gradient(135deg,#c68642,#b87333 45%,#d29b62);
+      background-size:38px 38px,46px 46px,30px 30px,cover;
+    }
+    .notice-board::before {
+      content:""; position:absolute; inset:0; border-radius:8px;
+      pointer-events:none; box-shadow:inset 0 0 45px rgba(80,35,5,0.35);
+    }
+    .notice-note {
+      position:relative; z-index:2; min-height:110px; padding:1rem;
+      border-radius:6px; color:#1f2937;
+      box-shadow:0 12px 20px rgba(0,0,0,0.18),inset 0 0 0 1px rgba(255,255,255,0.45);
+      transform:rotate(-1.2deg);
+    }
+    .notice-note:nth-child(3) { transform:rotate(1.4deg); }
+    .notice-note:nth-child(4) { transform:rotate(-0.6deg); }
+    .notice-note h3,.notice-note h4 { margin:0 0 0.45rem; font-weight:950; }
+    .notice-note p { margin:0; font-weight:750; line-height:1.35; }
+    .note-yellow { background:linear-gradient(135deg,#fff7ad,#fde68a); }
+    .note-blue   { background:linear-gradient(135deg,#dbeafe,#bfdbfe); }
+    .note-green  { background:linear-gradient(135deg,#dcfce7,#bbf7d0); }
+    .pin {
+      width:22px; height:22px; border-radius:999px;
+      background:radial-gradient(circle at 35% 35%,#fff,#ef4444 35%,#991b1b 75%);
+      position:absolute; top:12px; z-index:5; box-shadow:0 4px 8px rgba(0,0,0,0.35);
+    }
+    .pin-left { left:22px; }
+    .pin-right { right:22px; }
+    .dark-mode .notice-board { border-color:#6b3f1d; filter:saturate(0.9) brightness(0.9); }
+    @media screen and (max-width:768px) {
+      .notice-board { grid-template-columns:1fr; padding:1rem; border-width:8px; }
+      .notice-note { transform:rotate(0deg) !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logowhite.png" alt="Cheadle Juniors Logo" />
+    <span id="darkModeToggle" onclick="toggleDarkMode()">🌗</span>
+    <span id="logoutBtn" onclick="logout()" style="position:absolute;top:14px;left:16px;cursor:pointer;font-size:0.85rem;font-weight:900;color:rgba(255,255,255,0.85);background:rgba(0,0,0,0.2);padding:0.35rem 0.75rem;border-radius:999px;z-index:3;user-select:none;">🚪 Logout</span>
+  </header>
+
+  <div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <div class="info-links">
+    <a href="results.html" class="info-btn">📊 Results</a>
+    <a href="calendar.html" class="info-btn">📅 Calendar</a>
+    <a href="seriesresults.html" class="info-btn">📈 Series Tables</a>
+    <a href="handicaps.html" class="info-btn">🏌️ CGC Handicaps</a>
+  </div>
+
+  <div class="hint">⬅️➡️ Scroll to view full table</div>
+  <div class="hint">Tap a player name to view stats</div>
+
+  <div class="notice-board">
+    <div class="pin pin-left"></div>
+    <div class="pin pin-right"></div>
+
+    <div class="notice-note note-yellow">
+      <h3>🏆 Junior Sixes League Noticeboard</h3>
+      <p>We came 4th in the first fixture at Styal
+        <ol>
+          <li>Styal 126 🏆</li>
+          <li>Tytherington 123</li>
+          <li>Heaton Moor 119</li>
+          <li>Cheadle 118</li>
+          <li>Mottram 112</li>
+        </ol>
+      </p>
+    </div>
+
+    <div class="notice-note note-blue">
+      <h4>📅 Next Up</h4>
+      <p>Summer Series Round 1 Sunday June 14th Starts at 13:00<br><br>Please arrive 15 mins before competition start time</p>
+    </div>
+
+    <div class="notice-note note-green">
+      <h4>⛳ Tip</h4>
+      <p>Toms Group Lessons Every Sunday 10am.</p>
+    </div>
+  </div>
+
+  <main>
+    <div class="season-card">
+      <label for="seasonSelect">Season</label>
+      <select id="seasonSelect"><option value="">Loading...</option></select>
+    </div>
+    <table id="league-table">
+      <thead>
+        <tr>
+          <th>Rank</th><th>Name</th><th>Games</th>
+          <th>Win %</th><th>Total Points</th><th>Wins</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <div id="nextCompetition">
+    Next Competition: <span id="nextCompetitionText">TBD</span>
+    <div id="weatherDetails">Loading weather...</div>
+  </div>
+
+  <div class="modal" id="scoreModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modalTitle" style="margin-top:0;"></h2>
+      <div class="tabs">
+        <button id="tabNet" onclick="showTab('net')" class="active">Scores</button>
+        <button id="tabPositions" onclick="showTab('positions')">Competition History</button>
+        <button id="tabHistory" onclick="showTab('history')">Results History</button>
+      </div>
+      <canvas id="scoreChart"></canvas>
+      <canvas id="positionChart" style="display:none;"></canvas>
+      <ul id="scoreList"></ul>
+      <ul id="positionList" style="display:none;"></ul>
+    </div>
+  </div>
+
+  <!-- ── Shared Google Sheets helpers ── -->
+  <script>
+    const SHEET_ID    = '1mU0_DlUn7cv8henOOHFAnF5dVhMHYmT3eYgrNjniHrs';
+    const API_KEY     = 'AIzaSyBTJleDGs7X9184N15_Dm5352WNtWupnYw';
+    const SHEETS_BASE = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
+
+    async function fetchSheet(range) {
+      const res = await fetch(`${SHEETS_BASE}/${encodeURIComponent(range)}?key=${API_KEY}`);
+      if (!res.ok) throw new Error(`Sheets API ${res.status}`);
+      return (await res.json()).values || [];
+    }
+
+    function rowsToObjects(rows) {
+      if (!rows.length) return [];
+      const headers = rows[0];
+      return rows.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
+        return obj;
+      });
+    }
+
+    function parseDateStr(value) {
+      if (!value) return null;
+      if (value instanceof Date && !isNaN(value)) return value;
+      if (Number.isFinite(value))
+        return new Date(new Date(1899,11,30).getTime() + value * 86400000);
+      const text = String(value).trim();
+      const slash = text.match(/^\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\s*$/);
+      if (slash) {
+        let y = parseInt(slash[3],10); if (y<100) y+=2000;
+        return new Date(y, parseInt(slash[2],10)-1, parseInt(slash[1],10));
+      }
+      const d = new Date(text);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function escapeHtml(v) {
+      return String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+
+  <!-- ── League logic ── -->
+  <script>
+    let history = [];
+    let selectedYear = null;
+    let currentSeason = null;
+    let playerNamesByIndex = [];
+    let scoreChartInstance = null;
+    let positionChartInstance = null;
+
+    function normalise(v) { return String(v||'').trim().toLowerCase(); }
+    function cleanName(v) { return String(v||'').trim(); }
+    function getYearFromEntry(e) { const d=parseDateStr(e.Date); return d?d.getFullYear():null; }
+    function getEffectiveScore(e) {
+      const g=parseFloat(e.Score), h=parseFloat(e['Playing Handicap']||0);
+      return isNaN(g)?NaN:(h>0?g-h:g);
+    }
+    function getPoints(e) { return parseFloat(e.Points)||0; }
+
+    async function loadData() {
+      try {
+        // Settings
+        const settingsRows = await fetchSheet('Settings!A1:B20');
+        settingsRows.forEach(row => {
+          if (!row[0]) return;
+          const key = String(row[0]).trim().toLowerCase();
+          if (key.includes('next competition') && row[1])
+            document.getElementById('nextCompetitionText').innerText = row[1];
+          if (key.includes('current season') && row[1]) {
+            const s = parseInt(row[1],10); if (!isNaN(s)) currentSeason = s;
+          }
+        });
+
+        // Data — skip rows where Active = 'no'
+        const dataRows = await fetchSheet('Sheet1!A1:K2000');
+        history = rowsToObjects(dataRows).filter(r => String(r.Active||'').toLowerCase() !== 'no');
+
+        populateSeasonDropdown();
+        updateInfoBar();
+        updateLeague();
+        buildTicker();
+
+      } catch(err) {
+        console.error('Load error:', err);
+        document.querySelector('#league-table tbody').innerHTML =
+          `<tr><td colspan="6">Unable to load data: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    function populateSeasonDropdown() {
+      const years = [...new Set(history.map(getYearFromEntry).filter(Boolean))].sort((a,b)=>b-a);
+      const dd = document.getElementById('seasonSelect');
+      if (!years.length) { dd.innerHTML='<option>No seasons</option>'; return; }
+      dd.innerHTML = years.map(y=>`<option value="${y}">${y} Season</option>`).join('');
+      const thisYear = new Date().getFullYear();
+      selectedYear = years.includes(thisYear) ? thisYear
+        : (currentSeason && years.includes(currentSeason)) ? currentSeason : years[0];
+      dd.value = selectedYear;
+      dd.onchange = function() { selectedYear=parseInt(this.value,10); updateLeague(); };
+    }
+
+    function updateInfoBar() {
+      try {
+        const valid = history.map(e=>({e,d:parseDateStr(e.Date)})).filter(x=>x.d).sort((a,b)=>b.d-a.d);
+        if (!valid.length) return;
+        const {e,d} = valid[0];
+        const el = document.querySelector('.info-bar h4');
+        if (el) el.innerHTML =
+          `<span style="color:#ff2d55;font-weight:900;">Last Update — ${d.toLocaleDateString('en-GB')}</span>
+           <span style="opacity:0.7;"> | </span>Last Competition: ${escapeHtml(e.Title||e.Competition||'')}`;
+      } catch(err) { console.error('InfoBar error:',err); }
+    }
+
+    function updateLeague() {
+      const filtered = history.filter(e=>getYearFromEntry(e)===selectedYear);
+      const playerStats={}, rounds={};
+
+      filtered.forEach(entry => {
+        const name = cleanName(entry.Name);
+        const comp = cleanName(entry.Title||entry.Competition||'Unknown');
+        const eff  = getEffectiveScore(entry);
+        if (!name||isNaN(eff)) return;
+        if (!playerStats[name]) playerStats[name]={name,games:0,points:0,wins:0,wonCompetitions:[]};
+        playerStats[name].games++;
+        playerStats[name].points += getPoints(entry);
+        if (!rounds[comp]) rounds[comp]=[];
+        rounds[comp].push({name,effectiveScore:eff});
+      });
+
+      Object.entries(rounds).forEach(([comp,players])=>{
+        players.sort((a,b)=>a.effectiveScore-b.effectiveScore);
+        const winner=players[0]; if (!winner) return;
+        const match=Object.keys(playerStats).find(n=>normalise(n)===normalise(winner.name));
+        if (match) { playerStats[match].wins++; playerStats[match].wonCompetitions.push(comp); }
+      });
+
+      const players = Object.values(playerStats)
+        .map(p=>({...p,winPct:p.games?((p.wins/p.games)*100).toFixed(1):'0.0'}))
+        .sort((a,b)=>{
+          if (b.points!==a.points) return b.points-a.points;
+          if (b.wins!==a.wins) return b.wins-a.wins;
+          if (parseFloat(b.winPct)!==parseFloat(a.winPct)) return parseFloat(b.winPct)-parseFloat(a.winPct);
+          return a.name.localeCompare(b.name);
+        });
+
+      renderTable(players);
+    }
+
+    function renderTable(players) {
+      const tbody = document.querySelector('#league-table tbody');
+      tbody.innerHTML = ''; playerNamesByIndex = [];
+      if (!players.length) { tbody.innerHTML=`<tr><td colspan="6">No results for this season.</td></tr>`; return; }
+      players.forEach((player,index)=>{
+        playerNamesByIndex[index]=player.name;
+        const trophies = player.wins>0
+          ? `<span class="trophy" onclick="toggleTooltip(this)">
+               ${'🏆'.repeat(player.wins)}
+               <span class="tooltip-bubble">${player.wonCompetitions.map(escapeHtml).join(', ')}</span>
+             </span>` : '';
+        tbody.innerHTML+=`
+          <tr>
+            <td>${index+1}</td>
+            <td><a href="#" class="player-link" data-player-index="${index}">${escapeHtml(player.name)}</a></td>
+            <td>${player.games}</td><td>${player.winPct}%</td><td>${player.points}</td><td>${trophies}</td>
+          </tr>`;
+      });
+    }
+
+    document.addEventListener('click', function(event) {
+      const link = event.target.closest('.player-link');
+      if (link) {
+        event.preventDefault();
+        const name = playerNamesByIndex[parseInt(link.dataset.playerIndex,10)];
+        if (name) showPlayerModal(name); return;
+      }
+      if (!event.target.closest('.trophy'))
+        document.querySelectorAll('.trophy.show-tooltip').forEach(el=>el.classList.remove('show-tooltip'));
+    });
+
+    function showPlayerModal(playerName) {
+      const scores = history
+        .filter(e=>normalise(e.Name)===normalise(playerName)&&getYearFromEntry(e)===selectedYear)
+        .map(e=>({
+          competition:e.Title||e.Competition||'Unknown',
+          gross:parseFloat(e.Score), effectiveScore:getEffectiveScore(e),
+          position:parseInt(e.Position,10), points:getPoints(e), date:e.Date
+        }))
+        .filter(s=>!isNaN(s.gross))
+        .sort((a,b)=>(parseDateStr(a.date)||0)-(parseDateStr(b.date)||0));
+
+      document.getElementById('modalTitle').innerText=`${playerName}'s Score History`;
+      const sl=document.getElementById('scoreList'), pl=document.getElementById('positionList');
+      sl.innerHTML=''; pl.innerHTML='';
+      if (!scores.length) {
+        sl.innerHTML=`<li>No scores in ${selectedYear}.</li>`;
+        pl.innerHTML=`<li>No competition history found.</li>`;
+      }
+      scores.forEach(s=>{
+        const trophy=s.position===1?' 🏆':'';
+        const posText=isNaN(s.position)?'-':s.position;
+        sl.innerHTML+=`<li>${escapeHtml(s.competition)}: Gross ${s.gross}, Table Score ${s.effectiveScore}${trophy}</li>`;
+        pl.innerHTML+=`<li>${escapeHtml(s.competition)}: Finished ${posText}, Points ${s.points}${trophy}</li>`;
+      });
+      document.getElementById('scoreModal').style.display='flex';
+      setTimeout(()=>{ drawCharts(scores); showTab('net'); },100);
+    }
+
+    function drawCharts(scores) {
+      const labels=scores.map(s=>s.competition);
+      if (scoreChartInstance) scoreChartInstance.destroy();
+      if (positionChartInstance) positionChartInstance.destroy();
+      scoreChartInstance = new Chart(document.getElementById('scoreChart'),{
+        type:'line',
+        data:{labels,datasets:[
+          {label:'Gross Score',data:scores.map(s=>s.gross),fill:false,tension:0.25},
+          {label:'Par 64',data:new Array(labels.length).fill(64),borderDash:[6,6],fill:false,tension:0}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false}
+      });
+      positionChartInstance = new Chart(document.getElementById('positionChart'),{
+        type:'line',
+        data:{labels,datasets:[{label:'Finishing Position',data:scores.map(s=>isNaN(s.position)?null:s.position),fill:false,tension:0.25}]},
+        options:{responsive:true,maintainAspectRatio:false,scales:{y:{reverse:true,ticks:{precision:0}}}}
+      });
+    }
+
+    function showTab(tab) {
+      const sc=document.getElementById('scoreChart'),pc=document.getElementById('positionChart');
+      const sl=document.getElementById('scoreList'),pl=document.getElementById('positionList');
+      ['tabNet','tabPositions','tabHistory'].forEach(id=>document.getElementById(id).classList.remove('active'));
+      if (tab==='net') {
+        document.getElementById('tabNet').classList.add('active');
+        sc.style.display='block';pc.style.display='none';sl.style.display='block';pl.style.display='none';
+        if (scoreChartInstance) scoreChartInstance.resize();
+      } else if (tab==='positions') {
+        document.getElementById('tabPositions').classList.add('active');
+        sc.style.display='none';pc.style.display='block';sl.style.display='none';pl.style.display='block';
+        if (positionChartInstance) positionChartInstance.resize();
+      } else {
+        document.getElementById('tabHistory').classList.add('active');
+        sc.style.display='none';pc.style.display='none';sl.style.display='block';pl.style.display='block';
+      }
+    }
+
+    function closeModal() { document.getElementById('scoreModal').style.display='none'; }
+    function toggleTooltip(el) {
+      document.querySelectorAll('.trophy.show-tooltip').forEach(t=>{ if(t!==el) t.classList.remove('show-tooltip'); });
+      el.classList.toggle('show-tooltip');
+    }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+    function logout() {
+      localStorage.removeItem('auth');
+      window.location.href = 'index.html';
+    }
+
+    // ── Auth guard — redirect to login if not authenticated ──
+    if (localStorage.getItem('auth') !== 'true') {
+      window.location.replace('index.html');
+    } else {
+      loadData();
+    }
+  </script>
+
+  <!-- ── Ticker ── -->
+  <script>
+    function buildTicker() {
+      const nextText = document.getElementById('nextCompetitionText').innerText;
+      const msgs = [
+        '📅 New Competition Added **All Members Day** | See upcoming fixtures in the Calendar',
+        '📈 Series Tables now available — check your standings',
+        (nextText && nextText !== 'TBD') ? `📅 Next: ${nextText}` : null,
+        '🏆 Tap any player name to view their stats',
+        '⛳ Good luck in the next competition!',
+        '🌤️ Weather forecast shown for next competition day',
+      ].filter(Boolean);
+      const track = document.getElementById('tickerTrack');
+      const doubled = [...msgs,...msgs];
+      track.innerHTML = doubled.map(m=>`<span class="ticker-item">${m}</span>`).join('');
+      track.style.animationDuration = Math.max(20, track.scrollWidth/2/60) + 's';
+    }
+  </script>
+
+  <!-- ── Weather ── -->
+  <script>
+    const WEATHER_API_KEY = 'e583bd0c194bbfeb3deb92f6bfdad11a';
+
+    function extractDateFromText(text) {
+      const slash = text.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+      if (slash) return new Date(`${slash[3]}-${slash[2]}-${slash[1]}`);
+      const word = text.match(/\b(\d{1,2})\s([A-Za-z]+)\s?(\d{4})?/);
+      if (word) return new Date(`${word[1]} ${word[2]} ${word[3]||new Date().getFullYear()}`);
+      return null;
+    }
+
+    function windDirection(deg) { return ['N','NE','E','SE','S','SW','W','NW'][Math.round(deg/45)%8]; }
+
+    function fetchWeather(nextCompText) {
+      const compDate = extractDateFromText(nextCompText);
+      if (!compDate) { document.getElementById('weatherDetails').innerHTML='<div>No competition date found.</div>'; return; }
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?q=Cheadle,UK&appid=${WEATHER_API_KEY}&units=metric`)
+        .then(r=>r.json())
+        .then(data=>{
+          const forecasts=(data.list||[]).filter(item=>{
+            const fd=new Date(item.dt_txt);
+            return fd.getDate()===compDate.getDate()&&fd.getMonth()===compDate.getMonth()&&fd.getFullYear()===compDate.getFullYear();
+          });
+          const forecast=forecasts.find(f=>f.dt_txt.includes('12:00:00'))||forecasts.find(f=>f.dt_txt.includes('20:00:00'))||forecasts[0];
+          const container=document.getElementById('weatherDetails');
+          if (forecast&&forecast.weather&&forecast.weather[0]) {
+            const mph=(forecast.wind.speed*2.23694).toFixed(1);
+            container.innerHTML=`
+              <img src="https://openweathermap.org/img/wn/${forecast.weather[0].icon}@4x.png" style="height:70px;filter:drop-shadow(0 0 3px rgba(0,0,0,0.35));">
+              <div style="font-weight:900;">${forecast.weather[0].main} <span style="opacity:0.8;">(${forecast.weather[0].description})</span></div>
+              <div>Temp: <strong>${Math.round(forecast.main.temp)}°C</strong></div>
+              <div>Wind: <strong>${mph} mph</strong> (${windDirection(forecast.wind.deg)}) <span style="transform:rotate(${forecast.wind.deg}deg);display:inline-block;">⬆️</span></div>`;
+          } else {
+            container.innerHTML='<div>No forecast available yet for this date.</div>';
+          }
+        })
+        .catch(()=>{ document.getElementById('weatherDetails').innerHTML='<div>Unable to load weather.</div>'; });
+    }
+
+    const nextCompEl=document.getElementById('nextCompetitionText');
+    const observer=new MutationObserver(()=>{
+      if (nextCompEl.innerText&&nextCompEl.innerText!=='TBD') { fetchWeather(nextCompEl.innerText); observer.disconnect(); }
+    });
+    observer.observe(nextCompEl,{childList:true,subtree:true});
+  </script>
+
+  <div class="info-bar"><h4><span style="color:#ff2d55;">Loading update...</span></h4></div>
+
+  <div class="footer">
+    <div style="margin:0.75rem 0;">
+      <img src="logocja.png" alt="CJA Logo" style="height:64px;margin-right:10px;" />
+      <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo" width="80" height="80"/>
+    </div>
+    <div style="font-weight:900;">Build v2.0.1 | Google Sheets Edition</div>
+    <div style="margin-top:0.5rem;font-size:0.85rem;opacity:0.8;">
+      👥 Visits: <strong id="visitCount">—</strong>
+    </div>
+    <div style="margin-top:0.35rem;"><a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a></div>
+  </div>
+
+  <script>
+    // ── Visitor counter (localStorage, per device) ──
+    (function() {
+      const key = 'cja_visit_count';
+      const count = parseInt(localStorage.getItem(key) || '0', 10) + 1;
+      localStorage.setItem(key, count);
+      const el = document.getElementById('visitCount');
+      if (el) el.textContent = count.toLocaleString();
+    })();
+  </script>
+</body>
+</html>

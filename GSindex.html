@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheadle Junior Academy Login</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0b3d2e, #145a3c);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background: white;
+            padding: 35px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            width: 320px;
+            text-align: center;
+        }
+        .logo-img {
+            max-width: 120px;
+            margin-bottom: 8px;
+        }
+        .academy {
+            font-size: 13px;
+            color: #caa64b;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #0b3d2e;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #caa64b;
+            box-shadow: 0 0 0 2px rgba(202,166,75,0.2);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #caa64b;
+            color: #0b3d2e;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #b8933f; }
+        .error {
+            color: #d32f2f;
+            font-size: 13px;
+            display: none;
+            margin-bottom: 10px;
+            background: #fdecea;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .footer {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <img src="logologin.png" alt="Cheadle Golf Club Logo" class="logo-img">
+    <div class="academy">JUNIOR ACADEMY</div>
+    <h2>Login</h2>
+    <div class="error" id="errorMsg">❌ Invalid username or password</div>
+    <input type="text" id="username" placeholder="Username" onkeydown="if(event.key==='Enter')login()">
+    <input type="password" id="password" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()">Login</button>
+    <div class="footer">Powered by ForeThought</div>
+</div>
+
+<script>
+    // Redirect straight to home if already logged in
+    if (localStorage.getItem('auth') === 'true') {
+        window.location.replace('home.html');
+    }
+
+    function login() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        const validUser = "Juniors";
+        const validPass = "Cheadle2026";
+
+        if (username === validUser && password === validPass) {
+            localStorage.setItem('auth', 'true');
+            window.location.href = 'home.html';
+        } else {
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('password').value = '';
+            document.getElementById('password').focus();
+        }
+    }
+</script>
+
+</body>
+</html>
