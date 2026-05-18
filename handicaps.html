@@ -191,7 +191,7 @@
           const score  = parseFloat(row.Score);
           const comp   = row.Competition || row.Title || '';
           const date   = row.Date;
-          const active = row.Active || '';
+          const active = row.Member || '';
           if (!name || isNaN(score)) return;
           if (!players[name]) players[name] = { rounds: [], active };
           players[name].rounds.push({
