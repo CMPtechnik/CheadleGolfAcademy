@@ -359,7 +359,7 @@
 
         // Data — skip rows where Active = 'no'
         const dataRows = await fetchSheet('Sheet1!A1:K2000');
-        history = rowsToObjects(dataRows).filter(r => String(r.Active||'').toLowerCase() !== 'no');
+        history = rowsToObjects(dataRows);
 
         populateSeasonDropdown();
         updateInfoBar();

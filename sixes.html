@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cheadle Juniors — Sixes League</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cheadle Juniors">
+  <meta name="theme-color" content="#00c896" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary:#00c896; --primary-dark:#008f6a; --accent:#eafff8;
+      --text:#0f172a; --bg:#f8fafc; --card:#ffffff;
+      --border:rgba(0,0,0,0.08); --hover:rgba(0,0,0,0.04);
+      --radius:14px;
+      --shadow-1:0 10px 25px rgba(0,0,0,0.08);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.10);
+      --shadow-3:0 30px 80px rgba(0,0,0,0.25);
+    }
+    body {
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+      margin:0;
+      background:
+        radial-gradient(1200px 600px at 10% -10%,#d1fae5,transparent),
+        radial-gradient(800px 400px at 90% 10%,#ccfbf1,transparent),
+        var(--bg);
+      color:var(--text);
+    }
+    .dark-mode {
+      --bg:#020617; --text:#e5e7eb; --card:#0b1220;
+      --accent:rgba(15,118,110,0.25); --border:rgba(255,255,255,0.12);
+      --hover:rgba(255,255,255,0.06);
+      --shadow-1:0 10px 25px rgba(0,0,0,0.35);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.45);
+      --shadow-3:0 30px 80px rgba(0,0,0,0.60);
+    }
+
+    /* Header */
+    header {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; padding:1.5rem 1rem 2.75rem; text-align:center;
+      position:relative; border-bottom-left-radius:24px; border-bottom-right-radius:24px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.15); overflow:hidden;
+    }
+    header::after {
+      content:""; position:absolute; inset:-120px -120px auto auto;
+      width:280px; height:280px; background:rgba(255,255,255,0.20);
+      border-radius:999px; transform:rotate(15deg); pointer-events:none;
+    }
+    header img { max-height:200px; filter:drop-shadow(0 10px 20px rgba(0,0,0,0.28)); position:relative; z-index:2; }
+    header h1 { margin:0.5rem 0 0; font-size:1.4rem; font-weight:900; position:relative; z-index:2; letter-spacing:0.03em; }
+    #darkModeToggle { position:absolute; top:14px; right:16px; cursor:pointer; font-size:1.6rem; user-select:none; z-index:3; }
+    #logoutBtn {
+      position:absolute; top:14px; left:16px; cursor:pointer; font-size:0.85rem;
+      font-weight:900; color:rgba(255,255,255,0.85); background:rgba(0,0,0,0.2);
+      padding:0.35rem 0.75rem; border-radius:999px; z-index:3; user-select:none;
+    }
+
+    /* Ticker */
+    .ticker-wrap {
+      background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+      overflow:hidden; white-space:nowrap; position:relative; z-index:4;
+      border-bottom:1px solid rgba(255,255,255,0.15); padding:0.55rem 0;
+    }
+    .ticker-track { display:inline-flex; animation:ticker-scroll 35s linear infinite; will-change:transform; }
+    .ticker-track:hover { animation-play-state:paused; }
+    .ticker-item {
+      color:white; font-weight:800; font-size:0.88rem;
+      padding:0 2.5rem; display:inline-flex; align-items:center; gap:0.5rem; letter-spacing:0.02em;
+    }
+    .ticker-item::after { content:"⛳"; margin-left:1.5rem; opacity:0.7; }
+    @keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    /* Nav */
+    .info-links {
+      position:relative; z-index:5; margin:0.75rem auto 1rem;
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+      gap:0.75rem; max-width:980px; padding:0 1rem;
+    }
+    .info-btn {
+      background:var(--card); color:var(--text); padding:0.95rem 1rem;
+      border-radius:var(--radius); text-decoration:none; font-weight:900;
+      box-shadow:var(--shadow-1); display:inline-flex; align-items:center;
+      justify-content:center; gap:0.4rem; border:1px solid var(--border);
+      transition:transform 0.15s,box-shadow 0.15s;
+    }
+    .info-btn:hover { transform:translateY(-3px); box-shadow:var(--shadow-2); }
+    .info-btn.active-page {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; border-color:transparent;
+    }
+
+    /* Season selector */
+    .season-card {
+      margin:1rem auto; max-width:980px; background:var(--card);
+      border:1px solid var(--border); box-shadow:var(--shadow-1);
+      border-radius:var(--radius); padding:0.9rem 1rem;
+      display:flex; gap:0.8rem; align-items:center; justify-content:center; flex-wrap:wrap;
+    }
+    .season-card label { font-weight:900; }
+    select {
+      padding:0.65rem 1rem; border-radius:999px; border:1px solid var(--border);
+      background:var(--card); color:var(--text); font-weight:800;
+    }
+
+    main { max-width:1100px; margin:auto; padding:0 1rem 1rem; }
+    .section-title {
+      max-width:980px; margin:1.25rem auto 0.6rem;
+      font-size:1.1rem; font-weight:900; letter-spacing:0.02em;
+    }
+
+    /* Hero stats */
+    .standing-hero {
+      max-width:980px; margin:0 auto 1rem; padding:1.4rem 1.5rem;
+      background:var(--card); border:1px solid var(--border); border-radius:18px;
+      box-shadow:var(--shadow-2); display:grid;
+      grid-template-columns:repeat(4,1fr); gap:1rem; text-align:center;
+    }
+    .stat-block { display:flex; flex-direction:column; gap:0.2rem; }
+    .stat-value {
+      font-size:2.4rem; font-weight:900; line-height:1;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .stat-value.big { font-size:3rem; }
+    .stat-label { font-size:0.78rem; text-transform:uppercase; letter-spacing:0.07em; font-weight:800; opacity:0.65; }
+
+    /* Tables */
+    table {
+      width:100%; border-collapse:separate; border-spacing:0;
+      background:var(--card); box-shadow:var(--shadow-2);
+      border-radius:var(--radius); overflow:hidden; border:1px solid var(--border);
+      margin-bottom:1rem;
+    }
+    th,td { padding:13px 14px; text-align:center; border-bottom:1px solid var(--border); }
+    th {
+      background:var(--accent); position:sticky; top:0; z-index:1;
+      font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:900;
+    }
+    tbody tr:nth-child(even) { background:rgba(0,0,0,0.015); }
+    .dark-mode tbody tr:nth-child(even) { background:rgba(255,255,255,0.03); }
+    tbody tr:hover { background:var(--hover); }
+    tr.our-team td { background:rgba(0,200,150,0.1) !important; font-weight:900; }
+
+    /* Position badges */
+    .pos-badge {
+      display:inline-block; width:28px; height:28px; border-radius:999px;
+      line-height:28px; font-weight:900; font-size:0.85rem;
+      background:var(--accent); color:var(--primary-dark);
+    }
+    .pos-1 { background:linear-gradient(135deg,#fde68a,#f59e0b); color:#78350f; }
+    .pos-2 { background:linear-gradient(135deg,#e2e8f0,#cbd5e1); color:#1e293b; }
+    .pos-3 { background:linear-gradient(135deg,#fed7aa,#f97316); color:#7c2d12; }
+
+    /* Fixture cards */
+    .fixtures-grid {
+      max-width:980px; margin:0 auto;
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1rem;
+    }
+    .fixture-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow:var(--shadow-1); overflow:hidden;
+    }
+    .fixture-header {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; padding:0.85rem 1rem;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .fixture-card.upcoming .fixture-header { background:linear-gradient(135deg,#64748b,#475569); }
+    .fh-num   { font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; opacity:0.8; }
+    .fh-venue { font-size:1rem; font-weight:900; margin:0.15rem 0; }
+    .fh-date  { font-size:0.78rem; opacity:0.85; font-weight:700; }
+    .fh-icon  { font-size:1.8rem; }
+    .fixture-body { padding:0.35rem 0; }
+
+    /* Team rows inside fixture card */
+    .fixture-row {
+      display:grid; grid-template-columns:32px 1fr 52px 44px;
+      align-items:center; gap:0.5rem; padding:0.55rem 1rem;
+      border-bottom:1px solid var(--border); transition:background 0.1s;
+    }
+    .fixture-row:last-child { border-bottom:none; }
+    .fixture-row:hover { background:var(--hover); }
+    .fixture-row.cheadle { background:rgba(0,200,150,0.09); }
+    .fixture-row.cheadle:hover { background:rgba(0,200,150,0.16); }
+    .fr-pos   { text-align:center; }
+    .fr-team  { font-size:0.88rem; font-weight:700; }
+    .fixture-row.cheadle .fr-team { font-weight:900; color:var(--primary-dark); }
+    .fr-score { text-align:right; font-size:1.05rem; font-weight:900; color:var(--primary-dark); }
+    .fr-score.tbc { color:var(--border); font-size:0.8rem; font-weight:700; }
+    .fr-pts {
+      text-align:right; font-size:0.78rem; font-weight:800;
+      color:white; background:var(--primary-dark);
+      border-radius:999px; padding:0.15rem 0.45rem; white-space:nowrap;
+    }
+    .fr-pts.tbc { background:var(--border); color:transparent; }
+
+    /* Column headers inside fixture card */
+    .fixture-col-headers {
+      display:grid; grid-template-columns:32px 1fr 52px 44px;
+      gap:0.5rem; padding:0.3rem 1rem;
+      border-bottom:1px solid var(--border);
+      font-size:0.68rem; font-weight:900; text-transform:uppercase;
+      letter-spacing:0.06em; opacity:0.45;
+    }
+
+    /* Chart */
+    .chart-card {
+      max-width:980px; margin:1rem auto; background:var(--card);
+      border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow:var(--shadow-1); padding:1.1rem;
+    }
+    .chart-card h3 { margin:0 0 0.75rem; font-weight:900; font-size:1rem; }
+    #sixesChart    { height:280px !important; }
+    #pointsChart   { height:280px !important; }
+
+    /* Info bar */
+    .info-bar {
+      background:var(--card); max-width:980px; margin:0.75rem auto 0.25rem;
+      border-radius:var(--radius); border:1px solid var(--border);
+      box-shadow:var(--shadow-1); padding:0.6rem 0.9rem; text-align:center; font-size:0.95rem; font-weight:800;
+    }
+    .info-bar h4 { margin:0; font-weight:900; }
+
+    .footer { text-align:center; padding:1rem 0 1.5rem; opacity:0.92; }
+    .footer img { vertical-align:middle; }
+    .loading-state { text-align:center; padding:3rem 1rem; opacity:0.6; font-weight:800; }
+
+    @media (max-width:768px) {
+      table { display:block; overflow-x:auto; white-space:nowrap; }
+      header img { max-height:160px; }
+      .standing-hero { grid-template-columns:1fr 1fr; }
+      .fixtures-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="logowhite.png" alt="Cheadle Juniors Logo" />
+    <h1>⛳ Junior Sixes League</h1>
+    <span id="darkModeToggle" onclick="toggleDarkMode()">🌗</span>
+    <span id="logoutBtn" onclick="logout()">🚪 Logout</span>
+  </header>
+
+  <div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <div class="info-links">
+    <a href="home.html"          class="info-btn">🏠 Home</a>
+    <a href="results.html"       class="info-btn">📊 Results</a>
+    <a href="calendar.html"      class="info-btn">📅 Calendar</a>
+    <a href="sixes.html"         class="info-btn active-page">🤝 Sixes</a>
+    <a href="seriesresults.html" class="info-btn">📈 Series</a>
+    <a href="handicaps.html"     class="info-btn">🏌️ Handicaps</a>
+  </div>
+
+  <div class="season-card">
+    <label for="seasonSelect">Season</label>
+    <select id="seasonSelect"><option value="">Loading…</option></select>
+  </div>
+
+  <!-- Hero stats for Cheadle -->
+  <div class="standing-hero">
+    <div class="stat-block">
+      <div class="stat-value big" id="heroPosition">—</div>
+      <div class="stat-label">League Position</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-value" id="heroPoints">—</div>
+      <div class="stat-label">Total Points</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-value" id="heroBest">—</div>
+      <div class="stat-label">Best Finish</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-value" id="heroPlayed">—</div>
+      <div class="stat-label">Fixtures Played</div>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- Overall league standings — auto calculated -->
+    <div class="section-title">🏆 League Standings</div>
+    <div id="leagueTableWrap"><div class="loading-state">Loading…</div></div>
+
+    <!-- Points progression chart -->
+    <div class="chart-card">
+      <h3>📈 Cumulative Points After Each Fixture</h3>
+      <canvas id="pointsChart"></canvas>
+    </div>
+
+    <!-- Score comparison chart -->
+    <div class="chart-card">
+      <h3>📊 Scores Per Fixture</h3>
+      <canvas id="sixesChart"></canvas>
+    </div>
+
+    <!-- Individual fixture result cards -->
+    <div class="section-title">📋 Fixture Results</div>
+    <div class="fixtures-grid" id="fixturesGrid">
+      <div class="loading-state">Loading…</div>
+    </div>
+
+  </main>
+
+  <div class="info-bar"><h4 id="infoBarText"><span style="color:#ff2d55;">Loading…</span></h4></div>
+
+  <div class="footer">
+    <div style="margin:0.75rem 0;">
+      <img src="logocja.png" alt="CJA Logo" style="height:64px;margin-right:10px;" />
+      <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo" width="80" height="80"/>
+    </div>
+    <div style="font-weight:900;">Build v2.0.1 | Sixes League</div>
+    <div style="margin-top:0.35rem;"><a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a></div>
+  </div>
+
+  <script>
+    // ── Auth ──
+    if (localStorage.getItem('auth') !== 'true') window.location.replace('index.html');
+    function logout()         { localStorage.removeItem('auth'); window.location.href='index.html'; }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+    // ── Google Sheets — single "Sixes" tab ──
+    const SHEET_ID    = '1mU0_DlUn7cv8henOOHFAnF5dVhMHYmT3eYgrNjniHrs';
+    const API_KEY     = 'AIzaSyBTJleDGs7X9184N15_Dm5352WNtWupnYw';
+    const RANGE       = 'Sixes!A1:Z2000';
+    const SHEETS_URL  = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(RANGE)}?key=${API_KEY}`;
+
+    // ── State ──
+    let allRows      = [];   // all data rows from sheet
+    let selectedYear = null;
+    let scoresChart  = null;
+    let pointsChart  = null;
+
+    // ── Boot ──
+    async function loadData() {
+      try {
+        const res = await fetch(SHEETS_URL);
+        if (!res.ok) throw new Error(`Google Sheets API error ${res.status}: ${res.statusText}`);
+        const json = await res.json();
+        const rows = json.values || [];
+        if (rows.length < 2) throw new Error('No data found in the Sixes sheet.');
+        allRows = rowsToObjects(rows);
+        populateSeasonDropdown();
+        render();
+        buildTicker();
+      } catch(err) {
+        console.error(err);
+        const msg = `<div class="loading-state" style="color:#ef4444;">
+          ⚠️ ${escapeHtml(err.message)}<br>
+          <small style="opacity:0.7;">Check the sheet is named <strong>Sixes</strong> and is publicly viewable.</small>
+        </div>`;
+        document.getElementById('leagueTableWrap').innerHTML  = msg;
+        document.getElementById('fixturesGrid').innerHTML     = '';
+        document.getElementById('infoBarText').innerHTML      = '<span style="color:#ef4444;">Unable to load data</span>';
+      }
+    }
+
+    function rowsToObjects(rows) {
+      const headers = rows[0].map(h => String(h).trim());
+      return rows.slice(1)
+        .filter(row => row.some(c => String(c).trim() !== ''))
+        .map(row => {
+          const obj = {};
+          headers.forEach((h,i) => { obj[h] = row[i] !== undefined ? String(row[i]).trim() : ''; });
+          return obj;
+        });
+    }
+
+    function escapeHtml(v) {
+      return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    const isCJA = name => /cheadle/i.test(String(name));
+
+    // ── Season dropdown ──
+    function populateSeasonDropdown() {
+      const years = [...new Set(allRows.map(r => r.Year).filter(Boolean))].sort((a,b) => b-a);
+      const dd = document.getElementById('seasonSelect');
+      if (!years.length) { dd.innerHTML='<option>No data yet</option>'; return; }
+      dd.innerHTML = years.map(y => `<option value="${y}">${y} Season</option>`).join('');
+      selectedYear = years[0];
+      dd.value = selectedYear;
+      dd.onchange = function() { selectedYear = this.value; render(); };
+    }
+
+    // ── Main render ──
+    function render() {
+      const rows   = allRows.filter(r => r.Year === selectedYear);
+      const groups = groupByFixture(rows);          // array of fixture objects
+      const table  = buildStandings(rows, groups);  // computed league table
+
+      renderHero(table);
+      renderLeagueTable(table, groups);
+      renderFixtureCards(groups);
+      renderScoresChart(groups);
+      renderPointsChart(table, groups);
+      renderInfoBar(groups);
+    }
+
+    // ── Group rows into fixture objects ──
+    function groupByFixture(rows) {
+      const map = {};
+      rows.forEach(r => {
+        const num = String(r.FixtureNumber || '?').trim();
+        if (!map[num]) {
+          map[num] = {
+            fixtureNumber: num,
+            date:  r.Date  || '',
+            venue: r.Venue || '',
+            teams: []
+          };
+        }
+        if (r.Team) {
+          map[num].teams.push({
+            team:     r.Team,
+            score:    r.Score            !== '' ? parseFloat(r.Score)            : null,
+            position: r.FixturePosition  !== '' ? parseInt(r.FixturePosition)    : null,
+            points:   r.FixturePoints    !== '' ? parseFloat(r.FixturePoints)    : null,
+          });
+        }
+      });
+
+      // Sort teams within each fixture by position, then score desc
+      Object.values(map).forEach(g => {
+        // Auto-derive position from score if not set
+        const scored = g.teams.filter(t => t.score !== null);
+        if (scored.length && scored.every(t => t.position === null)) {
+          [...scored].sort((a,b) => b.score - a.score).forEach((t,i) => t.position = i+1);
+        }
+        g.teams.sort((a,b) => {
+          if (a.position !== null && b.position !== null) return a.position - b.position;
+          if (a.score !== null && b.score !== null)       return b.score - a.score;
+          if (a.score !== null) return -1;
+          return 1;
+        });
+        g.isPlayed = g.teams.some(t => t.score !== null);
+      });
+
+      return Object.values(map).sort((a,b) => parseInt(a.fixtureNumber) - parseInt(b.fixtureNumber));
+    }
+
+    // ── Build overall standings by summing FixturePoints per team ──
+    function buildStandings(rows, groups) {
+      const totals = {};
+
+      // Collect all team names first (so unplayed fixtures still show teams)
+      rows.forEach(r => {
+        if (r.Team && !totals[r.Team]) {
+          totals[r.Team] = { team: r.Team, points: 0, played: 0, bestFinish: null };
+        }
+      });
+
+      // Sum points and track stats from played fixtures
+      groups.forEach(g => {
+        if (!g.isPlayed) return;
+        g.teams.forEach(t => {
+          if (!t.team || t.points === null) return;
+          if (!totals[t.team]) totals[t.team] = { team:t.team, points:0, played:0, bestFinish:null };
+          totals[t.team].points += t.points;
+          totals[t.team].played += 1;
+          if (t.position !== null) {
+            const bf = totals[t.team].bestFinish;
+            totals[t.team].bestFinish = bf === null ? t.position : Math.min(bf, t.position);
+          }
+        });
+      });
+
+      // Sort by points desc, then best finish asc
+      return Object.values(totals)
+        .sort((a,b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          const bf = (a.bestFinish??99) - (b.bestFinish??99);
+          return bf;
+        })
+        .map((t,i) => ({ ...t, position: i+1 }));
+    }
+
+    // ── Hero stats for Cheadle ──
+    function renderHero(table) {
+      const cj = table.find(t => isCJA(t.team));
+      document.getElementById('heroPosition').textContent = cj ? ordinal(cj.position)       : '—';
+      document.getElementById('heroPoints').textContent   = cj ? cj.points                  : '—';
+      document.getElementById('heroBest').textContent     = cj && cj.bestFinish ? ordinal(cj.bestFinish) : '—';
+      document.getElementById('heroPlayed').textContent   = cj ? cj.played                  : '—';
+    }
+
+    function ordinal(n) {
+      if (!n || isNaN(n)) return '—';
+      const s=['th','st','nd','rd'], v=n%100;
+      return n+(s[(v-20)%10]||s[v]||s[0]);
+    }
+
+    // ── League table ──
+    function renderLeagueTable(table, groups) {
+      const wrap = document.getElementById('leagueTableWrap');
+      if (!table.length) {
+        wrap.innerHTML = '<div class="loading-state">No data for this season yet.</div>'; return;
+      }
+
+      // Build per-fixture point columns for the table header
+      const playedGroups = groups.filter(g => g.isPlayed);
+
+      let headerCols = playedGroups.map(g =>
+        `<th>F${escapeHtml(g.fixtureNumber)}<br><small style="opacity:0.6;font-weight:700;">${escapeHtml(g.venue||'')}</small></th>`
+      ).join('');
+
+      let html = `<table>
+        <thead><tr>
+          <th>Pos</th>
+          <th style="text-align:left">Team</th>
+          ${headerCols}
+          <th>Played</th>
+          <th>Total Pts</th>
+        </tr></thead><tbody>`;
+
+      table.forEach(row => {
+        const pos  = row.position;
+        const cls  = pos===1?'pos-1':pos===2?'pos-2':pos===3?'pos-3':'';
+        const ours = isCJA(row.team);
+
+        // Points per fixture for this team
+        const fixtureCols = playedGroups.map(g => {
+          const t = g.teams.find(t => t.team === row.team);
+          if (!t || t.points === null) return `<td style="opacity:0.3;">—</td>`;
+          const posCls = t.position===1?'pos-1':t.position===2?'pos-2':t.position===3?'pos-3':'';
+          return `<td>
+            <span class="pos-badge ${posCls}" title="${ordinal(t.position)} place">${t.points}pt</span>
+          </td>`;
+        }).join('');
+
+        html += `<tr class="${ours?'our-team':''}">
+          <td><span class="pos-badge ${cls}">${pos}</span></td>
+          <td style="text-align:left">${ours?'⭐ ':''}${escapeHtml(row.team)}</td>
+          ${fixtureCols}
+          <td>${row.played}</td>
+          <td><strong>${row.points}</strong></td>
+        </tr>`;
+      });
+
+      wrap.innerHTML = html + '</tbody></table>';
+    }
+
+    // ── Fixture cards ──
+    function renderFixtureCards(groups) {
+      const grid = document.getElementById('fixturesGrid');
+      if (!groups.length) {
+        grid.innerHTML = '<div class="loading-state">No fixtures for this season yet.</div>'; return;
+      }
+
+      grid.innerHTML = groups.map(g => {
+        // Always show 5 slots
+        const slots = [...g.teams];
+        while (slots.length < 5) slots.push({ team:null, score:null, position:null, points:null });
+
+        const colHeaders = `<div class="fixture-col-headers">
+          <div></div><div>Team</div><div style="text-align:right">Score</div><div style="text-align:right">Pts</div>
+        </div>`;
+
+        const rows = slots.map((t, idx) => {
+          if (!t.team) {
+            return `<div class="fixture-row" style="opacity:0.25;">
+              <div class="fr-pos"><span class="pos-badge">${idx+1}</span></div>
+              <div class="fr-team" style="font-style:italic;">TBC</div>
+              <span class="fr-score tbc">—</span>
+              <span class="fr-pts tbc">—</span>
+            </div>`;
+          }
+          const ours    = isCJA(t.team);
+          const posCls  = t.position===1?'pos-1':t.position===2?'pos-2':t.position===3?'pos-3':'';
+          const posHtml = t.position != null
+            ? `<span class="pos-badge ${posCls}">${t.position}</span>`
+            : `<span class="pos-badge" style="opacity:0.3;">—</span>`;
+          const scoreHtml = t.score != null
+            ? `<span class="fr-score">${t.score}</span>`
+            : `<span class="fr-score tbc">TBC</span>`;
+          const ptsHtml = t.points != null
+            ? `<span class="fr-pts">${t.points}pt</span>`
+            : `<span class="fr-pts tbc"></span>`;
+
+          return `<div class="fixture-row ${ours?'cheadle':''}">
+            <div class="fr-pos">${posHtml}</div>
+            <div class="fr-team">${escapeHtml(t.team)}</div>
+            ${scoreHtml}
+            ${ptsHtml}
+          </div>`;
+        }).join('');
+
+        return `<div class="fixture-card ${g.isPlayed?'':'upcoming'}">
+          <div class="fixture-header">
+            <div>
+              <div class="fh-num">Fixture ${escapeHtml(g.fixtureNumber)}</div>
+              <div class="fh-venue">📍 ${escapeHtml(g.venue||'Venue TBC')}</div>
+              <div class="fh-date">📅 ${g.date ? formatDate(g.date) : 'Date TBC'}</div>
+            </div>
+            <div class="fh-icon">${g.isPlayed ? '🏆' : '🕐'}</div>
+          </div>
+          <div class="fixture-body">
+            ${colHeaders}
+            ${rows}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Scores chart — all 5 teams per fixture ──
+    function renderScoresChart(groups) {
+      const played = groups.filter(g => g.isPlayed);
+      if (scoresChart) scoresChart.destroy();
+      if (!played.length) return;
+
+      // Get all unique team names
+      const teams = [...new Set(played.flatMap(g => g.teams.map(t => t.team).filter(Boolean)))];
+      const labels = played.map(g => `F${g.fixtureNumber} ${g.venue||''}`);
+
+      const colours = [
+        'rgba(0,200,150,0.85)',
+        'rgba(99,102,241,0.75)',
+        'rgba(245,158,11,0.75)',
+        'rgba(239,68,68,0.75)',
+        'rgba(14,165,233,0.75)',
+      ];
+
+      const datasets = teams.map((team, i) => ({
+        label: team,
+        data: played.map(g => {
+          const t = g.teams.find(t => t.team === team);
+          return t?.score ?? null;
+        }),
+        backgroundColor: colours[i % colours.length],
+        borderRadius: 5,
+      }));
+
+      scoresChart = new Chart(document.getElementById('sixesChart'), {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position:'top' } },
+          scales: { y: { beginAtZero: false, ticks: { precision:0 } } }
+        }
+      });
+    }
+
+    // ── Cumulative points chart — all 5 teams over fixtures ──
+    function renderPointsChart(table, groups) {
+      const played = groups.filter(g => g.isPlayed);
+      if (pointsChart) pointsChart.destroy();
+      if (!played.length) return;
+
+      const teams  = table.map(t => t.team);
+      const labels = played.map(g => `F${g.fixtureNumber} ${g.venue||''}`);
+
+      const colours = [
+        'rgba(0,200,150,1)',
+        'rgba(99,102,241,0.9)',
+        'rgba(245,158,11,0.9)',
+        'rgba(239,68,68,0.9)',
+        'rgba(14,165,233,0.9)',
+      ];
+
+      const datasets = teams.map((team, i) => {
+        let running = 0;
+        const data = played.map(g => {
+          const t = g.teams.find(t => t.team === team);
+          if (t?.points != null) running += t.points;
+          return running;
+        });
+        return {
+          label: team,
+          data,
+          borderColor: colours[i % colours.length],
+          backgroundColor: colours[i % colours.length].replace(/[\d.]+\)$/, '0.1)'),
+          tension: 0.3,
+          fill: false,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          borderWidth: isCJA(team) ? 3 : 2,
+        };
+      });
+
+      pointsChart = new Chart(document.getElementById('pointsChart'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position:'top' } },
+          scales: { y: { beginAtZero: true, ticks: { precision:0 } } }
+        }
+      });
+    }
+
+    // ── Info bar ──
+    function renderInfoBar(groups) {
+      const played = groups.filter(g => g.isPlayed);
+      const el = document.getElementById('infoBarText');
+      if (!played.length) {
+        el.innerHTML = `<span style="color:#ff2d55;">No results yet for ${selectedYear}</span>`; return;
+      }
+      const last = played[played.length - 1];
+      const cjt  = last.teams.find(t => isCJA(t.team));
+      el.innerHTML = `<span style="color:#ff2d55;font-weight:900;">Last Fixture</span>
+        <span style="opacity:0.7;"> | </span>
+        ${escapeHtml(last.venue||'Unknown')} —
+        Cheadle scored <strong>${cjt?.score??'—'}</strong>,
+        finished <strong>${cjt?.position ? ordinal(cjt.position) : '—'}</strong>
+        (${cjt?.points??'—'} pts)`;
+    }
+
+    // ── Ticker ──
+    function buildTicker() {
+      const msgs = [
+        '🤝 Junior Sixes League — 5 teams, points for position',
+        '📅 New Competition Added **All Members Day** | See Calendar for details',
+        '📈 Series Tables now available — check your standings',
+        '⛳ Good luck in the next Sixes fixture!',
+        '🏠 Head back to Home to view the full individual league table',
+      ];
+      const track = document.getElementById('tickerTrack');
+      const doubled = [...msgs,...msgs];
+      track.innerHTML = doubled.map(m=>`<span class="ticker-item">${m}</span>`).join('');
+      track.style.animationDuration = Math.max(20, track.scrollWidth/2/60)+'s';
+    }
+
+    // ── Date helpers ──
+    function parseDate(val) {
+      if (!val) return null;
+      const s = String(val).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+      if (s) { let y=parseInt(s[3]); if(y<100)y+=2000; return new Date(y,parseInt(s[2])-1,parseInt(s[1])); }
+      const d = new Date(val); return isNaN(d)?null:d;
+    }
+    function formatDate(val) {
+      const d = parseDate(val);
+      if (!d) return escapeHtml(val);
+      return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+    }
+
+    loadData();
+  </script>
+
+</body>
+</html>
