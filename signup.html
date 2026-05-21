@@ -165,6 +165,7 @@
       padding:0.75rem; border-radius:10px; border:1.5px solid var(--border);
       background:var(--bg); color:var(--text); font-weight:900; font-size:0.9rem;
       cursor:pointer; text-align:center; transition:all 0.15s; user-select:none;
+      font-family:inherit; width:100%; -webkit-appearance:none; appearance:none;
     }
     .toggle-btn.selected {
       background:linear-gradient(135deg,var(--primary),var(--primary-dark));
@@ -270,10 +271,6 @@
         <select id="competitionSelect" onchange="onCompChange()">
           <option value="">— Select a competition —</option>
 
-          <optgroup label="🌱 Spring Series">
-            <option value="Spring Series – April 12th|April 12th 2026|13:00–14:00|Cheadle Golf Club|Spring Series">Spring Series – April 12th 2026</option>
-            <option value="Spring Series – May 10th|May 10th 2026|13:00–14:00|Cheadle Golf Club|Spring Series">Spring Series – May 10th 2026</option>
-          </optgroup>
 
           <optgroup label="☀️ Summer Series">
             <option value="Summer Series – June 14th|June 14th 2026|13:00–14:00|Cheadle Golf Club|Summer Series">Summer Series – June 14th 2026</option>
@@ -288,17 +285,6 @@
             <option value="Autumn Series – November 8th|November 8th 2026|13:00–14:00|Cheadle Golf Club|Autumn Series">Autumn Series – November 8th 2026</option>
           </optgroup>
 
-          <optgroup label="🏌️ Golf Sixes Matches">
-            <option value="Sixes – Styal Golf Club (May 11th)|Monday May 11th 2026|17:00|Styal Golf Club|Sixes">Sixes – Mon May 11th @ Styal Golf Club</option>
-            <option value="Sixes – Tytherington Club (May 20th)|Wednesday May 20th 2026|17:00|Tytherington Club|Sixes">Sixes – Wed May 20th @ Tytherington Club</option>
-            <option value="Sixes – Mottram Hall (May 31st)|Sunday May 31st 2026|16:00|Mottram Hall Golf Club|Sixes">Sixes – Sun May 31st @ Mottram Hall</option>
-            <option value="Sixes – Cheadle Golf Club (June 8th)|Monday June 8th 2026|17:30|Cheadle Golf Club|Sixes">Sixes – Mon June 8th @ Cheadle Golf Club</option>
-            <option value="Sixes – Bruntwood Park (June 28th)|Sunday June 28th 2026|17:00|Bruntwood Park Pitch and Putt|Sixes">Sixes – Sun June 28th @ Bruntwood Park</option>
-            <option value="Sixes – Heaton Moor (July 12th)|Sunday July 12th 2026|17:00|Heaton Moor Golf Club|Sixes">Sixes – Sun July 12th @ Heaton Moor</option>
-            <option value="Sixes – Styal Golf Club (Sept 14th)|Monday September 14th 2026|17:00|Styal Golf Club|Sixes">Sixes – Mon Sept 14th @ Styal Golf Club</option>
-            <option value="Sixes – Tytherington Club (Sept 23rd)|Wednesday September 23rd 2026|17:00|Tytherington Club|Sixes">Sixes – Wed Sept 23rd @ Tytherington Club</option>
-            <option value="Sixes – Heaton Moor Finals Day (Sept 27th)|Sunday September 27th 2026|16:00|Heaton Moor Golf Club|Sixes">Sixes – Sun Sept 27th @ Heaton Moor 🎉 FINALS DAY</option>
-          </optgroup>
 
           <optgroup label="⛳ Inter Club">
             <option value="Inter Club – Bramhall Golf Club|TBC|TBC|Bramhall Golf Club|Inter Club">Inter Club – Bramhall Golf Club (Date TBC)</option>
@@ -320,8 +306,8 @@
       <div style="margin-bottom:1.25rem;">
         <div class="toggle-label">Age Group <span class="req">*</span></div>
         <div class="toggle-group">
-          <div class="toggle-btn" id="btnSixes" onclick="selectGroup('Sixes')">🏌️ Sixes</div>
-          <div class="toggle-btn" id="btnNines" onclick="selectGroup('9s')">⛳ 9's</div>
+          <button type="button" class="toggle-btn" id="btnSixes" onclick="selectGroup('Sixes')">🏌️ Sixes</button>
+          <button type="button" class="toggle-btn" id="btnNines" onclick="selectGroup('9s')">⛳ 9's</button>
         </div>
       </div>
 
@@ -405,7 +391,7 @@
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
 
     // ── IMPORTANT: Replace this URL with your deployed Apps Script Web App URL ──
-  https://script.google.com/macros/s/AKfycbxX86c686DQl0aDoMOeEVvQZNMHYPIuOtaXtv5fEjvNw20IDrqLmCo8IoMyT7d_YXAI/exec
+      https://script.google.com/macros/s/AKfycbxX86c686DQl0aDoMOeEVvQZNMHYPIuOtaXtv5fEjvNw20IDrqLmCo8IoMyT7d_YXAI/exec
 
     // ── Selected age group ──
     let selectedGroup = null;
