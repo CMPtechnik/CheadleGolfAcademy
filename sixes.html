@@ -636,13 +636,20 @@
         borderRadius: 5,
       }));
 
+      // Calculate Y axis range from actual scores for full bar visibility
+      const allScores = played.flatMap(g => g.teams.map(t => t.score).filter(s => s !== null));
+      const minScore  = allScores.length ? Math.min(...allScores) : 0;
+      const maxScore  = allScores.length ? Math.max(...allScores) : 130;
+      const yMin      = Math.floor(minScore / 10) * 10 - 10;
+      const yMax      = Math.ceil(maxScore  / 10) * 10 + 5;
+
       scoresChart = new Chart(document.getElementById('sixesChart'), {
         type: 'bar',
         data: { labels, datasets },
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: { legend: { position:'top' } },
-          scales: { y: { beginAtZero: false, ticks: { precision:0 } } }
+          scales: { y: { min: yMin, max: yMax, ticks: { precision:0 } } }
         }
       });
     }

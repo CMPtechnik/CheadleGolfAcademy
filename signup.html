@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cheadle Juniors — Sign Up</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cheadle Juniors">
+  <meta name="theme-color" content="#00c896" />
+  <style>
+    :root {
+      --primary:#00c896; --primary-dark:#008f6a; --accent:#eafff8;
+      --text:#0f172a; --bg:#f8fafc; --card:#ffffff;
+      --border:rgba(0,0,0,0.08); --hover:rgba(0,0,0,0.04);
+      --radius:14px;
+      --shadow-1:0 10px 25px rgba(0,0,0,0.08);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.10);
+      --shadow-3:0 30px 80px rgba(0,0,0,0.25);
+    }
+    body {
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+      margin:0;
+      background:
+        radial-gradient(1200px 600px at 10% -10%,#d1fae5,transparent),
+        radial-gradient(800px 400px at 90% 10%,#ccfbf1,transparent),
+        var(--bg);
+      color:var(--text);
+    }
+    .dark-mode {
+      --bg:#020617; --text:#e5e7eb; --card:#0b1220;
+      --accent:rgba(15,118,110,0.25); --border:rgba(255,255,255,0.12);
+      --hover:rgba(255,255,255,0.06);
+      --shadow-1:0 10px 25px rgba(0,0,0,0.35);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.45);
+    }
+
+    /* Header */
+    header {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; padding:1.5rem 1rem 2.75rem; text-align:center;
+      position:relative; border-bottom-left-radius:24px; border-bottom-right-radius:24px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.15); overflow:hidden;
+    }
+    header::after {
+      content:""; position:absolute; inset:-120px -120px auto auto;
+      width:280px; height:280px; background:rgba(255,255,255,0.20);
+      border-radius:999px; transform:rotate(15deg); pointer-events:none;
+    }
+    header img { max-height:180px; filter:drop-shadow(0 10px 20px rgba(0,0,0,0.28)); position:relative; z-index:2; }
+    header h1 { margin:0.5rem 0 0; font-size:1.4rem; font-weight:900; position:relative; z-index:2; letter-spacing:0.03em; }
+    #darkModeToggle { position:absolute; top:14px; right:16px; cursor:pointer; font-size:1.6rem; user-select:none; z-index:3; }
+    #logoutBtn {
+      position:absolute; top:14px; left:16px; cursor:pointer; font-size:0.85rem;
+      font-weight:900; color:rgba(255,255,255,0.85); background:rgba(0,0,0,0.2);
+      padding:0.35rem 0.75rem; border-radius:999px; z-index:3; user-select:none;
+    }
+
+    /* Nav */
+    .info-links {
+      position:relative; z-index:5; margin:0.75rem auto 1rem;
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+      gap:0.75rem; max-width:980px; padding:0 1rem;
+    }
+    .info-btn {
+      background:var(--card); color:var(--text); padding:0.95rem 1rem;
+      border-radius:var(--radius); text-decoration:none; font-weight:900;
+      box-shadow:var(--shadow-1); display:inline-flex; align-items:center;
+      justify-content:center; gap:0.4rem; border:1px solid var(--border);
+      transition:transform 0.15s,box-shadow 0.15s;
+    }
+    .info-btn:hover { transform:translateY(-3px); box-shadow:var(--shadow-2); }
+    .info-btn.active-page {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; border-color:transparent;
+    }
+
+    /* Main form area */
+    main {
+      max-width:640px; margin:0 auto; padding:0 1rem 2rem;
+    }
+
+    .form-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:18px; box-shadow:var(--shadow-2);
+      padding:1.75rem; margin-bottom:1rem;
+    }
+
+    .form-card h2 {
+      margin:0 0 0.25rem; font-size:1.2rem; font-weight:900;
+      color:var(--primary-dark);
+    }
+    .form-card .subtitle {
+      margin:0 0 1.5rem; font-size:0.88rem; opacity:0.65; font-weight:700;
+    }
+
+    .field-group {
+      display:grid; gap:1rem; margin-bottom:1rem;
+    }
+    .field-group.two-col {
+      grid-template-columns:1fr 1fr;
+    }
+
+    .field {
+      display:flex; flex-direction:column; gap:0.4rem;
+    }
+    .field label {
+      font-size:0.8rem; font-weight:900; text-transform:uppercase;
+      letter-spacing:0.06em; opacity:0.7;
+    }
+    .field input,
+    .field select,
+    .field textarea {
+      padding:0.75rem 1rem; border-radius:10px;
+      border:1.5px solid var(--border); background:var(--bg);
+      color:var(--text); font-size:0.95rem; font-weight:700;
+      font-family:inherit; transition:border-color 0.15s, box-shadow 0.15s;
+      width:100%; box-sizing:border-box;
+    }
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline:none;
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(0,200,150,0.15);
+    }
+    .field textarea { resize:vertical; min-height:80px; }
+
+    /* Competition selector */
+    .comp-group {
+      margin-bottom:1.25rem;
+    }
+    .comp-group label {
+      display:block; font-size:0.8rem; font-weight:900;
+      text-transform:uppercase; letter-spacing:0.06em; opacity:0.7; margin-bottom:0.4rem;
+    }
+    .comp-group select {
+      width:100%; padding:0.85rem 1rem; border-radius:10px;
+      border:1.5px solid var(--border); background:var(--bg);
+      color:var(--text); font-size:0.95rem; font-weight:700; font-family:inherit;
+      transition:border-color 0.15s, box-shadow 0.15s;
+    }
+    .comp-group select:focus {
+      outline:none; border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(0,200,150,0.15);
+    }
+
+    /* Competition detail preview */
+    .comp-detail {
+      background:var(--accent); border:1px solid rgba(0,200,150,0.25);
+      border-radius:10px; padding:0.75rem 1rem; margin-top:0.5rem;
+      font-size:0.88rem; font-weight:700; display:none;
+      gap:0.6rem; flex-direction:column;
+    }
+    .comp-detail.visible { display:flex; }
+    .comp-detail .cd-row { display:flex; gap:0.5rem; align-items:center; }
+    .comp-detail .cd-label { opacity:0.65; min-width:80px; font-size:0.8rem; }
+
+    /* Age group toggle */
+    .toggle-group {
+      display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-bottom:1.25rem;
+    }
+    .toggle-btn {
+      padding:0.75rem; border-radius:10px; border:1.5px solid var(--border);
+      background:var(--bg); color:var(--text); font-weight:900; font-size:0.9rem;
+      cursor:pointer; text-align:center; transition:all 0.15s; user-select:none;
+    }
+    .toggle-btn.selected {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; border-color:transparent;
+      box-shadow:0 4px 12px rgba(0,200,150,0.35);
+    }
+    .toggle-label {
+      font-size:0.8rem; font-weight:900; text-transform:uppercase;
+      letter-spacing:0.06em; opacity:0.7; margin-bottom:0.4rem;
+    }
+
+    /* Submit button */
+    .submit-btn {
+      width:100%; padding:1rem; border-radius:12px; border:none;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; font-size:1rem; font-weight:900; cursor:pointer;
+      box-shadow:0 6px 20px rgba(0,200,150,0.4);
+      transition:transform 0.15s, box-shadow 0.15s;
+      margin-top:0.5rem;
+    }
+    .submit-btn:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,200,150,0.5); }
+    .submit-btn:active { transform:translateY(0); }
+    .submit-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+    /* Success screen */
+    .success-screen {
+      display:none; text-align:center; padding:2rem 1rem;
+    }
+    .success-screen.visible { display:block; }
+    .success-icon { font-size:4rem; margin-bottom:1rem; }
+    .success-screen h2 { font-size:1.5rem; font-weight:900; color:var(--primary-dark); margin:0 0 0.5rem; }
+    .success-screen p { opacity:0.75; font-weight:700; margin:0 0 1.5rem; }
+    .success-detail {
+      background:var(--accent); border:1px solid rgba(0,200,150,0.25);
+      border-radius:12px; padding:1rem 1.25rem; text-align:left;
+      font-size:0.9rem; font-weight:700; margin-bottom:1.5rem;
+    }
+    .success-detail div { padding:0.3rem 0; border-bottom:1px solid rgba(0,200,150,0.15); }
+    .success-detail div:last-child { border:none; }
+    .success-detail span { opacity:0.6; display:inline-block; min-width:120px; }
+    .back-btn {
+      display:inline-block; padding:0.75rem 2rem; border-radius:999px;
+      background:var(--card); border:1.5px solid var(--border);
+      color:var(--text); font-weight:900; text-decoration:none;
+      box-shadow:var(--shadow-1); cursor:pointer; font-size:0.95rem;
+    }
+
+    /* Error message */
+    .error-msg {
+      background:#fee2e2; color:#991b1b; border:1px solid #fca5a5;
+      border-radius:10px; padding:0.75rem 1rem; font-size:0.88rem;
+      font-weight:800; margin-bottom:1rem; display:none;
+    }
+    .error-msg.visible { display:block; }
+
+    /* Required asterisk */
+    .req { color:var(--primary-dark); }
+
+    /* Divider */
+    .divider {
+      border:none; border-top:1px solid var(--border); margin:1.25rem 0;
+    }
+
+    .footer { text-align:center; padding:1rem 0 1.5rem; opacity:0.92; }
+    .footer img { vertical-align:middle; }
+
+    @media (max-width:560px) {
+      .field-group.two-col { grid-template-columns:1fr; }
+      .form-card { padding:1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="logowhite.png" alt="Cheadle Juniors Logo" />
+    <h1>✏️ Competition Sign Up</h1>
+    <span id="darkModeToggle" onclick="toggleDarkMode()">🌗</span>
+    <span id="logoutBtn" onclick="logout()">🚪 Logout</span>
+  </header>
+
+  <div class="info-links">
+    <a href="home.html"          class="info-btn">🏠 Home</a>
+    <a href="results.html"       class="info-btn">📊 Results</a>
+    <a href="calendar.html"      class="info-btn">📅 Calendar</a>
+    <a href="sixes.html"         class="info-btn">🤝 Sixes</a>
+    <a href="signup.html"        class="info-btn active-page">✏️ Sign Up</a>
+    <a href="handicaps.html"     class="info-btn">🏌️ Handicaps</a>
+  </div>
+
+  <main>
+
+    <!-- ── Sign up form ── -->
+    <div class="form-card" id="formCard">
+      <h2>📋 Enter a Competition</h2>
+      <p class="subtitle">Fill in the details below to sign your child up for a competition.</p>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <!-- Competition selector -->
+      <div class="comp-group">
+        <label>Competition <span class="req">*</span></label>
+        <select id="competitionSelect" onchange="onCompChange()">
+          <option value="">— Select a competition —</option>
+
+          <optgroup label="🌱 Spring Series">
+            <option value="Spring Series – April 12th|April 12th 2026|13:00–14:00|Cheadle Golf Club|Spring Series">Spring Series – April 12th 2026</option>
+            <option value="Spring Series – May 10th|May 10th 2026|13:00–14:00|Cheadle Golf Club|Spring Series">Spring Series – May 10th 2026</option>
+          </optgroup>
+
+          <optgroup label="☀️ Summer Series">
+            <option value="Summer Series – June 14th|June 14th 2026|13:00–14:00|Cheadle Golf Club|Summer Series">Summer Series – June 14th 2026</option>
+            <option value="Summer Series – July 12th|July 12th 2026|13:00–14:00|Cheadle Golf Club|Summer Series">Summer Series – July 12th 2026</option>
+            <option value="Summer Series – August 9th|August 9th 2026|13:00–14:00|Cheadle Golf Club|Summer Series">Summer Series – August 9th 2026</option>
+            <option value="Summer Series – August 23rd (All Members Day)|August 23rd 2026|TBC|Cheadle Golf Club|Summer Series">Summer Series – August 23rd 2026 (All Members Day)</option>
+          </optgroup>
+
+          <optgroup label="🍂 Autumn Series">
+            <option value="Autumn Series – September 13th|September 13th 2026|13:00–14:00|Cheadle Golf Club|Autumn Series">Autumn Series – September 13th 2026</option>
+            <option value="Autumn Series – October 11th|October 11th 2026|13:00–14:00|Cheadle Golf Club|Autumn Series">Autumn Series – October 11th 2026</option>
+            <option value="Autumn Series – November 8th|November 8th 2026|13:00–14:00|Cheadle Golf Club|Autumn Series">Autumn Series – November 8th 2026</option>
+          </optgroup>
+
+          <optgroup label="🏌️ Golf Sixes Matches">
+            <option value="Sixes – Styal Golf Club (May 11th)|Monday May 11th 2026|17:00|Styal Golf Club|Sixes">Sixes – Mon May 11th @ Styal Golf Club</option>
+            <option value="Sixes – Tytherington Club (May 20th)|Wednesday May 20th 2026|17:00|Tytherington Club|Sixes">Sixes – Wed May 20th @ Tytherington Club</option>
+            <option value="Sixes – Mottram Hall (May 31st)|Sunday May 31st 2026|16:00|Mottram Hall Golf Club|Sixes">Sixes – Sun May 31st @ Mottram Hall</option>
+            <option value="Sixes – Cheadle Golf Club (June 8th)|Monday June 8th 2026|17:30|Cheadle Golf Club|Sixes">Sixes – Mon June 8th @ Cheadle Golf Club</option>
+            <option value="Sixes – Bruntwood Park (June 28th)|Sunday June 28th 2026|17:00|Bruntwood Park Pitch and Putt|Sixes">Sixes – Sun June 28th @ Bruntwood Park</option>
+            <option value="Sixes – Heaton Moor (July 12th)|Sunday July 12th 2026|17:00|Heaton Moor Golf Club|Sixes">Sixes – Sun July 12th @ Heaton Moor</option>
+            <option value="Sixes – Styal Golf Club (Sept 14th)|Monday September 14th 2026|17:00|Styal Golf Club|Sixes">Sixes – Mon Sept 14th @ Styal Golf Club</option>
+            <option value="Sixes – Tytherington Club (Sept 23rd)|Wednesday September 23rd 2026|17:00|Tytherington Club|Sixes">Sixes – Wed Sept 23rd @ Tytherington Club</option>
+            <option value="Sixes – Heaton Moor Finals Day (Sept 27th)|Sunday September 27th 2026|16:00|Heaton Moor Golf Club|Sixes">Sixes – Sun Sept 27th @ Heaton Moor 🎉 FINALS DAY</option>
+          </optgroup>
+
+          <optgroup label="⛳ Inter Club">
+            <option value="Inter Club – Bramhall Golf Club|TBC|TBC|Bramhall Golf Club|Inter Club">Inter Club – Bramhall Golf Club (Date TBC)</option>
+          </optgroup>
+
+        </select>
+
+        <!-- Competition detail preview -->
+        <div class="comp-detail" id="compDetail">
+          <div class="cd-row"><span class="cd-label">📅 Date</span> <strong id="cdDate">—</strong></div>
+          <div class="cd-row"><span class="cd-label">🕐 Time</span> <strong id="cdTime">—</strong></div>
+          <div class="cd-row"><span class="cd-label">📍 Venue</span> <strong id="cdVenue">—</strong></div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Age group -->
+      <div style="margin-bottom:1.25rem;">
+        <div class="toggle-label">Age Group <span class="req">*</span></div>
+        <div class="toggle-group">
+          <div class="toggle-btn" id="btnSixes" onclick="selectGroup('Sixes')">🏌️ Sixes</div>
+          <div class="toggle-btn" id="btnNines" onclick="selectGroup('9s')">⛳ 9's</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Player & parent details -->
+      <div class="field-group two-col">
+        <div class="field">
+          <label>Player First Name <span class="req">*</span></label>
+          <input type="text" id="playerFirst" placeholder="e.g. Jamie" autocomplete="given-name">
+        </div>
+        <div class="field">
+          <label>Player Last Name <span class="req">*</span></label>
+          <input type="text" id="playerLast" placeholder="e.g. Smith" autocomplete="family-name">
+        </div>
+      </div>
+
+      <div class="field-group two-col">
+        <div class="field">
+          <label>Parent / Guardian Name <span class="req">*</span></label>
+          <input type="text" id="parentName" placeholder="e.g. Sarah Smith" autocomplete="name">
+        </div>
+        <div class="field">
+          <label>Relationship</label>
+          <select id="relationship">
+            <option value="Parent">Parent</option>
+            <option value="Guardian">Guardian</option>
+            <option value="Grandparent">Grandparent</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group two-col">
+        <div class="field">
+          <label>Email <span class="req">*</span></label>
+          <input type="email" id="email" placeholder="e.g. sarah@email.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="phone" placeholder="e.g. 07700 900000" autocomplete="tel">
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:1.25rem;">
+        <label>Additional Notes</label>
+        <textarea id="notes" placeholder="Anything else we should know…"></textarea>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="submitSignup()">
+        ✅ Submit Sign Up
+      </button>
+    </div>
+
+    <!-- ── Success screen ── -->
+    <div class="form-card success-screen" id="successScreen">
+      <div class="success-icon">🎉</div>
+      <h2>You're signed up!</h2>
+      <p>We've received the entry — see you on the course!</p>
+      <div class="success-detail" id="successDetail"></div>
+      <button class="back-btn" onclick="resetForm()">✏️ Sign up for another</button>
+      &nbsp;
+      <a class="back-btn" href="home.html">🏠 Back to Home</a>
+    </div>
+
+  </main>
+
+  <div class="footer">
+    <div style="margin:0.75rem 0;">
+      <img src="logocja.png" alt="CJA Logo" style="height:64px;margin-right:10px;" />
+      <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo" width="80" height="80"/>
+    </div>
+    <div style="font-weight:900;">Build v2.0.1 | Competition Sign Up</div>
+    <div style="margin-top:0.35rem;"><a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a></div>
+  </div>
+
+  <script>
+    // ── Auth guard ──
+    if (localStorage.getItem('auth') !== 'true') window.location.replace('index.html');
+    function logout()         { localStorage.removeItem('auth'); window.location.href='index.html'; }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+    // ── IMPORTANT: Replace this URL with your deployed Apps Script Web App URL ──
+  https://script.google.com/macros/s/AKfycbxX86c686DQl0aDoMOeEVvQZNMHYPIuOtaXtv5fEjvNw20IDrqLmCo8IoMyT7d_YXAI/exec
+
+    // ── Selected age group ──
+    let selectedGroup = null;
+
+    function selectGroup(group) {
+      selectedGroup = group;
+      document.getElementById('btnSixes').classList.toggle('selected', group === 'Sixes');
+      document.getElementById('btnNines').classList.toggle('selected', group === '9s');
+    }
+
+    // ── Show competition detail preview ──
+    function onCompChange() {
+      const val = document.getElementById('competitionSelect').value;
+      const detail = document.getElementById('compDetail');
+      if (!val) { detail.classList.remove('visible'); return; }
+      const parts = val.split('|');
+      document.getElementById('cdDate').textContent  = parts[1] || '—';
+      document.getElementById('cdTime').textContent  = parts[2] || '—';
+      document.getElementById('cdVenue').textContent = parts[3] || '—';
+      detail.classList.add('visible');
+    }
+
+    // ── Validation ──
+    function validate() {
+      const errors = [];
+      if (!document.getElementById('competitionSelect').value) errors.push('Please select a competition.');
+      if (!selectedGroup)                                       errors.push('Please select an age group (Sixes or 9\'s).');
+      if (!document.getElementById('playerFirst').value.trim()) errors.push('Player first name is required.');
+      if (!document.getElementById('playerLast').value.trim())  errors.push('Player last name is required.');
+      if (!document.getElementById('parentName').value.trim())  errors.push('Parent / guardian name is required.');
+      const email = document.getElementById('email').value.trim();
+      if (!email)                                               errors.push('Email address is required.');
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))      errors.push('Please enter a valid email address.');
+      return errors;
+    }
+
+    // ── Submit ──
+    async function submitSignup() {
+      const errorEl = document.getElementById('errorMsg');
+      errorEl.classList.remove('visible');
+
+      const errors = validate();
+      if (errors.length) {
+        errorEl.textContent = errors.join(' ');
+        errorEl.classList.add('visible');
+        errorEl.scrollIntoView({ behavior:'smooth', block:'center' });
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Submitting…';
+
+      const compVal   = document.getElementById('competitionSelect').value;
+      const compParts = compVal.split('|');
+      const compName  = compParts[0];
+      const compDate  = compParts[1];
+      const compTime  = compParts[2];
+      const compVenue = compParts[3];
+      const compSeries= compParts[4];
+
+      const payload = {
+        timestamp:    new Date().toLocaleString('en-GB'),
+        competition:  compName,
+        date:         compDate,
+        time:         compTime,
+        venue:        compVenue,
+        series:       compSeries,
+        ageGroup:     selectedGroup,
+        playerFirst:  document.getElementById('playerFirst').value.trim(),
+        playerLast:   document.getElementById('playerLast').value.trim(),
+        playerName:   document.getElementById('playerFirst').value.trim() + ' ' + document.getElementById('playerLast').value.trim(),
+        parentName:   document.getElementById('parentName').value.trim(),
+        relationship: document.getElementById('relationship').value,
+        email:        document.getElementById('email').value.trim(),
+        phone:        document.getElementById('phone').value.trim(),
+        notes:        document.getElementById('notes').value.trim(),
+      };
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode:   'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        showSuccess(payload);
+      } catch(err) {
+        console.error(err);
+        errorEl.textContent = '⚠️ Submission failed — please try again or contact the club directly.';
+        errorEl.classList.add('visible');
+        btn.disabled = false;
+        btn.textContent = '✅ Submit Sign Up';
+      }
+    }
+
+    function showSuccess(p) {
+      document.getElementById('formCard').style.display = 'none';
+      const s = document.getElementById('successScreen');
+      s.classList.add('visible');
+      document.getElementById('successDetail').innerHTML = `
+        <div><span>Player</span> <strong>${p.playerName}</strong></div>
+        <div><span>Age Group</span> <strong>${p.ageGroup}</strong></div>
+        <div><span>Competition</span> <strong>${p.competition}</strong></div>
+        <div><span>Date</span> <strong>${p.date}</strong></div>
+        <div><span>Time</span> <strong>${p.time}</strong></div>
+        <div><span>Venue</span> <strong>${p.venue}</strong></div>
+        <div><span>Contact</span> <strong>${p.email}${p.phone?' | '+p.phone:''}</strong></div>
+      `;
+      s.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    function resetForm() {
+      document.getElementById('formCard').style.display = 'block';
+      document.getElementById('successScreen').classList.remove('visible');
+      document.getElementById('competitionSelect').value = '';
+      document.getElementById('compDetail').classList.remove('visible');
+      document.getElementById('playerFirst').value = '';
+      document.getElementById('playerLast').value  = '';
+      document.getElementById('parentName').value  = '';
+      document.getElementById('email').value       = '';
+      document.getElementById('phone').value       = '';
+      document.getElementById('notes').value       = '';
+      document.getElementById('errorMsg').classList.remove('visible');
+      document.getElementById('submitBtn').disabled    = false;
+      document.getElementById('submitBtn').textContent = '✅ Submit Sign Up';
+      selectedGroup = null;
+      document.getElementById('btnSixes').classList.remove('selected');
+      document.getElementById('btnNines').classList.remove('selected');
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+  </script>
+
+</body>
+</html>
