@@ -272,23 +272,6 @@
           <option value="">— Select a competition —</option>
 
 
-          <optgroup label="🏌️ Golf Sixes Matches">
-            <option value="Sixes – Mottram Hall (May 31st)|Sunday May 31st 2026|16:00|Mottram Hall Golf Club|Sixes">Sixes – Sun May 31st @ Mottram Hall</option>
-            <option value="Sixes – Cheadle Golf Club (June 8th)|Monday June 8th 2026|17:30|Cheadle Golf Club|Sixes">Sixes – Mon June 8th @ Cheadle Golf Club</option>
-            <option value="Sixes – Bruntwood Park (June 28th)|Sunday June 28th 2026|17:00|Bruntwood Park Pitch and Putt|Sixes">Sixes – Sun June 28th @ Bruntwood Park</option>
-            <option value="Sixes – Heaton Moor (July 12th)|Sunday July 12th 2026|17:00|Heaton Moor Golf Club|Sixes">Sixes – Sun July 12th @ Heaton Moor</option>
-            <option value="Sixes – Styal Golf Club (Sept 14th)|Monday September 14th 2026|17:00|Styal Golf Club|Sixes">Sixes – Mon Sept 14th @ Styal Golf Club</option>
-            <option value="Sixes – Tytherington Club (Sept 23rd)|Wednesday September 23rd 2026|17:00|Tytherington Club|Sixes">Sixes – Wed Sept 23rd @ Tytherington Club</option>
-            <option value="Sixes – Heaton Moor Finals Day (Sept 27th)|Sunday September 27th 2026|16:00|Heaton Moor Golf Club|Sixes">Sixes – Sun Sept 27th @ Heaton Moor 🎉 FINALS DAY</option>
-          </optgroup>
-
-          <optgroup label="☀️ Summer Series">
-            <option value="Summer Series – June 14th|June 14th 2026|13:00–14:00|Cheadle Golf Club|Summer Series">Summer Series – June 14th 2026</option>
-            <option value="Summer Series – July 12th|July 12th 2026|13:00–14:00|Cheadle Golf Club|Summer Series">Summer Series – July 12th 2026</option>
-            <option value="Summer Series – August 9th|August 9th 2026|13:00–14:00|Cheadle Golf Club|Summer Series">Summer Series – August 9th 2026</option>
-            <option value="Summer Series – August 23rd (All Members Day)|August 23rd 2026|TBC|Cheadle Golf Club|Summer Series">Summer Series – August 23rd 2026 (All Members Day)</option>
-          </optgroup>
-
           <optgroup label="🍂 Autumn Series">
             <option value="Autumn Series – September 13th|September 13th 2026|13:00–14:00|Cheadle Golf Club|Autumn Series">Autumn Series – September 13th 2026</option>
             <option value="Autumn Series – October 11th|October 11th 2026|13:00–14:00|Cheadle Golf Club|Autumn Series">Autumn Series – October 11th 2026</option>
@@ -400,8 +383,8 @@
     function logout()         { localStorage.removeItem('auth'); window.location.href='index.html'; }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
 
-    // ── Apps Script Web App URL ──
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX86c686DQl0aDoMOeEVvQZNMHYPIuOtaXtv5fEjvNw20IDrqLmCo8IoMyT7d_YXAI/exec';
+    // ── IMPORTANT: Replace this URL with your deployed Apps Script Web App URL ──
+      https://script.google.com/macros/s/AKfycbxX86c686DQl0aDoMOeEVvQZNMHYPIuOtaXtv5fEjvNw20IDrqLmCo8IoMyT7d_YXAI/exec
 
     // ── Selected age group ──
     let selectedGroup = null;
