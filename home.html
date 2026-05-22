@@ -622,21 +622,11 @@
       <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo" width="80" height="80"/>
     </div>
     <div style="font-weight:900;">Build v2.0.1 | Google Sheets Edition</div>
+    <a href="privacy.html">🔒 Privacy Notice</a>
     <div style="margin-top:0.5rem;font-size:0.85rem;opacity:0.8;">
-      👥 Visits: <strong id="visitCount">—</strong>
     </div>
     <div style="margin-top:0.35rem;"><a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a></div>
   </div>
 
-  <script>
-    // ── Visitor counter (localStorage, per device) ──
-    (function() {
-      const key = 'cja_visit_count';
-      const count = parseInt(localStorage.getItem(key) || '0', 10) + 1;
-      localStorage.setItem(key, count);
-      const el = document.getElementById('visitCount');
-      if (el) el.textContent = count.toLocaleString();
-    })();
-  </script>
 </body>
 </html>

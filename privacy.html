@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cheadle Juniors — Privacy Notice</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cheadle Juniors">
+  <meta name="theme-color" content="#00c896" />
+  <style>
+    :root {
+      --primary:#00c896; --primary-dark:#008f6a; --accent:#eafff8;
+      --text:#0f172a; --bg:#f8fafc; --card:#ffffff;
+      --border:rgba(0,0,0,0.08);
+      --radius:14px;
+      --shadow-1:0 10px 25px rgba(0,0,0,0.08);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.10);
+    }
+    body {
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+      margin:0;
+      background:
+        radial-gradient(1200px 600px at 10% -10%,#d1fae5,transparent),
+        radial-gradient(800px 400px at 90% 10%,#ccfbf1,transparent),
+        var(--bg);
+      color:var(--text);
+    }
+    .dark-mode {
+      --bg:#020617; --text:#e5e7eb; --card:#0b1220;
+      --accent:rgba(15,118,110,0.25); --border:rgba(255,255,255,0.12);
+      --shadow-1:0 10px 25px rgba(0,0,0,0.35);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.45);
+    }
+
+    /* Header */
+    header {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; padding:1.5rem 1rem 2.75rem; text-align:center;
+      position:relative; border-bottom-left-radius:24px; border-bottom-right-radius:24px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.15); overflow:hidden;
+    }
+    header::after {
+      content:""; position:absolute; inset:-120px -120px auto auto;
+      width:280px; height:280px; background:rgba(255,255,255,0.20);
+      border-radius:999px; transform:rotate(15deg); pointer-events:none;
+    }
+    header img { max-height:180px; filter:drop-shadow(0 10px 20px rgba(0,0,0,0.28)); position:relative; z-index:2; }
+    header h1 { margin:0.5rem 0 0; font-size:1.4rem; font-weight:900; position:relative; z-index:2; letter-spacing:0.03em; }
+    #darkModeToggle { position:absolute; top:14px; right:16px; cursor:pointer; font-size:1.6rem; user-select:none; z-index:3; }
+    #logoutBtn {
+      position:absolute; top:14px; left:16px; cursor:pointer; font-size:0.85rem;
+      font-weight:900; color:rgba(255,255,255,0.85); background:rgba(0,0,0,0.2);
+      padding:0.35rem 0.75rem; border-radius:999px; z-index:3; user-select:none;
+    }
+
+    /* Nav */
+    .info-links {
+      position:relative; z-index:5; margin:0.75rem auto 1rem;
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:0.75rem; max-width:980px; padding:0 1rem;
+    }
+    .info-btn {
+      background:var(--card); color:var(--text); padding:0.95rem 1rem;
+      border-radius:var(--radius); text-decoration:none; font-weight:900;
+      box-shadow:var(--shadow-1); display:inline-flex; align-items:center;
+      justify-content:center; gap:0.4rem; border:1px solid var(--border);
+      transition:transform 0.15s,box-shadow 0.15s;
+    }
+    .info-btn:hover { transform:translateY(-3px); box-shadow:var(--shadow-2); }
+    .info-btn.active-page {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; border-color:transparent;
+    }
+
+    /* Main content */
+    main {
+      max-width:780px; margin:0 auto; padding:0 1rem 2rem;
+    }
+
+    /* Intro card */
+    .intro-card {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; border-radius:18px; padding:1.5rem 1.75rem;
+      margin-bottom:1.25rem; box-shadow:var(--shadow-2);
+    }
+    .intro-card h2 { margin:0 0 0.5rem; font-size:1.15rem; font-weight:900; }
+    .intro-card p  { margin:0; font-size:0.92rem; line-height:1.6; opacity:0.92; }
+
+    /* Section cards */
+    .section-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow:var(--shadow-1);
+      padding:1.25rem 1.5rem; margin-bottom:1rem;
+      position:relative; overflow:hidden;
+    }
+    .section-card::before {
+      content:""; position:absolute; left:0; top:0; bottom:0;
+      width:4px; background:linear-gradient(180deg,var(--primary),var(--primary-dark));
+    }
+    .section-card h3 {
+      margin:0 0 0.6rem; font-size:1rem; font-weight:900;
+      color:var(--primary-dark); display:flex; align-items:center; gap:0.5rem;
+    }
+    .section-card p, .section-card li {
+      font-size:0.92rem; line-height:1.7; margin:0 0 0.4rem; opacity:0.85;
+    }
+    .section-card ul {
+      margin:0.4rem 0 0; padding-left:1.25rem;
+    }
+    .section-card li { margin-bottom:0.3rem; }
+
+    /* Data table */
+    .data-table {
+      width:100%; border-collapse:collapse; margin-top:0.75rem; font-size:0.88rem;
+    }
+    .data-table th {
+      background:var(--accent); color:var(--primary-dark); font-weight:900;
+      padding:0.6rem 0.75rem; text-align:left; font-size:0.78rem;
+      text-transform:uppercase; letter-spacing:0.05em;
+      border-bottom:2px solid var(--primary);
+    }
+    .data-table td {
+      padding:0.6rem 0.75rem; border-bottom:1px solid var(--border);
+      vertical-align:top; line-height:1.5;
+    }
+    .data-table tr:last-child td { border-bottom:none; }
+    .data-table tr:nth-child(even) td { background:rgba(0,0,0,0.015); }
+    .dark-mode .data-table tr:nth-child(even) td { background:rgba(255,255,255,0.03); }
+
+    /* Contact box */
+    .contact-box {
+      background:var(--accent); border:1px solid rgba(0,200,150,0.3);
+      border-radius:var(--radius); padding:1.1rem 1.4rem; margin-top:0.75rem;
+      font-size:0.92rem; font-weight:700;
+    }
+    .contact-box a { color:var(--primary-dark); font-weight:900; }
+
+    /* Last updated */
+    .last-updated {
+      text-align:center; font-size:0.8rem; opacity:0.5;
+      font-weight:700; margin:1.5rem 0 0.5rem;
+    }
+
+    .footer { text-align:center; padding:1rem 0 1.5rem; opacity:0.92; }
+    .footer img { vertical-align:middle; }
+
+    @media (max-width:600px) {
+      .info-links { grid-template-columns:1fr 1fr; }
+      .data-table { font-size:0.8rem; }
+      .data-table th, .data-table td { padding:0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="logowhite.png" alt="Cheadle Juniors Logo" />
+    <h1>🔒 Privacy Notice</h1>
+    <span id="darkModeToggle" onclick="toggleDarkMode()">🌗</span>
+    <span id="logoutBtn" onclick="logout()">🚪 Logout</span>
+  </header>
+
+  <div class="info-links">
+    <a href="home.html"      class="info-btn">🏠 Home</a>
+    <a href="calendar.html"  class="info-btn">📅 Calendar</a>
+    <a href="signup.html"    class="info-btn">✏️ Sign Up</a>
+  </div>
+
+  <main>
+
+    <div class="intro-card">
+      <h2>Your privacy matters to us</h2>
+      <p>Cheadle Junior Golf Academy is committed to protecting the personal data of our junior members and their families. This notice explains what data we collect, why we collect it, how we store it, and your rights under UK data protection law (UK GDPR).</p>
+    </div>
+
+    <!-- Who we are -->
+    <div class="section-card">
+      <h3>🏌️ Who we are</h3>
+      <p><strong>Data Controller:</strong> Cheadle Junior Golf Academy, operating within Cheadle Golf Club.</p>
+      <p><strong>Contact:</strong> Craig - Junior Organiser / Tom - Professional</p>
+      <p>We are responsible for deciding how and why personal data about you is collected and used.</p>
+    </div>
+
+    <!-- What data we collect -->
+    <div class="section-card">
+      <h3>📋 What data we collect</h3>
+      <p>We only collect data that is necessary to run our junior competitions and communicate with members and parents. The data we collect includes:</p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Why we collect it</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Junior's name</td>
+            <td>To identify the player and record competition entries</td>
+            <td>Competition sign-up form</td>
+          </tr>
+          <tr>
+            <td>Parent / guardian name</td>
+            <td>To know who is responsible for the junior</td>
+            <td>Competition sign-up form</td>
+          </tr>
+          <tr>
+            <td>Email address</td>
+            <td>To confirm sign-ups and send competition updates</td>
+            <td>Competition sign-up form</td>
+          </tr>
+          <tr>
+            <td>Phone number</td>
+            <td>For urgent contact on competition days (optional)</td>
+            <td>Competition sign-up form</td>
+          </tr>
+          <tr>
+            <td>Competition scores & results</td>
+            <td>To maintain league tables and track member progress</td>
+            <td>Recorded by coaching staff</td>
+          </tr>
+          <tr>
+            <td>Handicap information</td>
+            <td>To calculate fair competition results</td>
+            <td>Cheadle Golf Club records</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Legal basis -->
+    <div class="section-card">
+      <h3>⚖️ Our legal basis for processing</h3>
+      <p>We process personal data under the following legal bases:</p>
+      <ul>
+        <li><strong>Legitimate interests</strong> — administering junior golf competitions and communicating with members is a core part of running the junior programme.</li>
+        <li><strong>Consent</strong> — where you have provided information voluntarily via our sign-up form, we treat this as consent to use that data for the purposes stated.</li>
+      </ul>
+    </div>
+
+    <!-- How we store it -->
+    <div class="section-card">
+      <h3>🗄️ How we store your data</h3>
+      <p>All sign-up data is stored securely in a <strong>private Google Sheet</strong> accessible only to Cheadle Golf Club admin staff (Craig). League results and scores are stored in the same Google Sheets environment.</p>
+      <ul>
+        <li>Access is restricted to authorised staff only via password-protected login</li>
+        <li>Data is held on Google's servers, which are covered by Google's own security and compliance standards</li>
+        <li>We do not use any third-party marketing platforms or share data with advertisers</li>
+        <li>This website does not use cookies or tracking technologies</li>
+      </ul>
+    </div>
+
+    <!-- Who we share it with -->
+    <div class="section-card">
+      <h3>🤝 Who we share your data with</h3>
+      <p>We do not sell, rent, or share your personal data with third parties for marketing purposes. Data may be shared only in the following limited circumstances:</p>
+      <ul>
+        <li><strong>Cheadle Golf Club staff</strong> — where necessary to organise competitions or tee times</li>
+        <li><strong>Junior Sixes League organisers</strong> — team names and scores only, no personal contact details</li>
+        <li><strong>Legal obligation</strong> — if required by law or a safeguarding concern arises</li>
+      </ul>
+    </div>
+
+    <!-- How long we keep it -->
+    <div class="section-card">
+      <h3>🗓️ How long we keep your data</h3>
+      <p>We retain personal data for the duration of the current competition season. Sign-up records and contact details are reviewed at the end of each season and deleted if no longer required.</p>
+      <p>Competition results and league tables are retained as part of the club's historical records but contain no personal contact information.</p>
+    </div>
+
+    <!-- Your rights -->
+    <div class="section-card">
+      <h3>✅ Your rights</h3>
+      <p>Under UK GDPR you have the right to:</p>
+      <ul>
+        <li><strong>Access</strong> — request a copy of the personal data we hold about you or your child</li>
+        <li><strong>Correction</strong> — ask us to correct any inaccurate data</li>
+        <li><strong>Erasure</strong> — ask us to delete your data ("right to be forgotten")</li>
+        <li><strong>Restriction</strong> — ask us to limit how we use your data</li>
+        <li><strong>Objection</strong> — object to us processing your data</li>
+        <li><strong>Portability</strong> — request your data in a portable format</li>
+      </ul>
+      <p>To exercise any of these rights, please contact Craig or Tom in the pro shop.</p>
+    </div>
+
+    <!-- Safeguarding -->
+    <div class="section-card">
+      <h3>🛡️ Safeguarding</h3>
+      <p>The welfare of junior members is our priority. Any personal data relating to children is handled with extra care in line with England Golf's safeguarding guidelines. Only authorised staff have access to junior member data.</p>
+    </div>
+
+    <!-- Complaints -->
+    <div class="section-card">
+      <h3>📣 Complaints</h3>
+      <p>If you have concerns about how we handle your data, please speak to us first and we will do our best to resolve it. You also have the right to lodge a complaint with the <strong>Information Commissioner's Office (ICO)</strong>:</p>
+      <div class="contact-box">
+        🌐 <a href="https://ico.org.uk" target="_blank" rel="noopener">ico.org.uk</a> &nbsp;|&nbsp;
+        📞 0303 123 1113
+      </div>
+    </div>
+
+    <!-- Contact us -->
+    <div class="section-card">
+      <h3>📬 Contact us</h3>
+      <p>For any questions about this privacy notice or your personal data, please contact:</p>
+      <div class="contact-box">
+        <strong>Cheadle Golf Club</strong><br>
+ <strong>Junior Organiser</strong><br>
+        Cheadle Golf Club, Cheadle, Cheshire<br>
+        🌐 <a href="https://cheadlegolfacademy.co.uk" target="_blank" rel="noopener">cheadlegolfacademy.co.uk</a>  🌐 <a href="https://cheadlegolf.com" target="_blank" rel="noopener">cheadlegolf.com</a>
+      </div>
+    </div>
+
+    <p class="last-updated">Last updated: May 2026 &nbsp;|&nbsp; Cheadle Junior Golf Academy</p>
+
+  </main>
+
+  <div class="footer">
+    <div style="margin:0.75rem 0;">
+      <img src="logocja.png" alt="CJA Logo" style="height:64px;margin-right:10px;" />
+      <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo" width="80" height="80"/>
+    </div>
+    <div style="font-weight:900;">Build v2.0.1 | Privacy Notice</div>
+    <div style="margin-top:0.35rem;"><a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a></div>
+  </div>
+
+  <script>
+    if (localStorage.getItem('auth') !== 'true') window.location.replace('index.html');
+    function logout()         { localStorage.removeItem('auth'); window.location.href='index.html'; }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+  </script>
+
+</body>
+</html>
