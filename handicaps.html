@@ -3,137 +3,424 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Junior Handicaps – Cheadle Golf Academy</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <title>Junior Handicaps — Cheadle Golf Academy</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="favicon.png" sizes="180x180">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cheadle Juniors">
+  <meta name="theme-color" content="#00c896" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { padding: 20px; }
-    table { width: 100%; }
-    dialog::backdrop { background: rgba(0,0,0,0.5); }
-    .modal-content { padding: 20px; max-width: 800px; width: 95%; }
-    .best-round { background-color: #ffeaa7; font-weight: bold; }
-    .sortable:hover { cursor: pointer; text-decoration: underline; }
-    #adminSection { text-align:center; margin:20px 0; }
-    #adminSection input { padding:0.4rem; border-radius:6px; border:1px solid #ccc; }
-    @media screen and (max-width: 768px) {
-      .modal-content { width: 95%; padding: 10px; }
-    }
-
+    /* ── Design system ── */
     :root {
-      --primary: #00c896;
-      --primary-dark: #008f6a;
-      --radius: 14px;
-      --shadow: 0 10px 25px rgba(0,0,0,0.12);
+      --primary:#00c896; --primary-dark:#008f6a; --accent:#eafff8;
+      --text:#0f172a; --bg:#f8fafc; --card:#ffffff;
+      --border:rgba(0,0,0,0.08); --hover:rgba(0,0,0,0.04);
+      --radius:14px;
+      --shadow-1:0 10px 25px rgba(0,0,0,0.08);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.10);
+      --shadow-3:0 30px 80px rgba(0,0,0,0.25);
+    }
+    body {
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+      margin:0;
+      background:
+        radial-gradient(1200px 600px at 10% -10%,#d1fae5,transparent),
+        radial-gradient(800px 400px at 90% 10%,#ccfbf1,transparent),
+        var(--bg);
+      color:var(--text);
+    }
+    .dark-mode {
+      --bg:#020617; --text:#e5e7eb; --card:#0b1220;
+      --accent:rgba(15,118,110,0.25); --border:rgba(255,255,255,0.12);
+      --hover:rgba(255,255,255,0.06);
+      --shadow-1:0 10px 25px rgba(0,0,0,0.35);
+      --shadow-2:0 20px 40px rgba(0,0,0,0.45);
+      --shadow-3:0 30px 80px rgba(0,0,0,0.60);
     }
 
-    .app-header {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: #fff;
-      padding: 1.6rem 1rem 2.4rem;
-      text-align: center;
-      border-bottom-left-radius: 24px;
-      border-bottom-right-radius: 24px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    /* ── Header ── */
+    header {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; padding:1.5rem 1rem 2.75rem; text-align:center;
+      position:relative; border-bottom-left-radius:24px; border-bottom-right-radius:24px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.15); overflow:hidden;
     }
-    .app-header h1 { margin: 0; font-size: 1.7rem; font-weight: 900; }
-    .app-header .sub { margin-top: 0.4rem; font-weight: 700; opacity: 0.9; }
-
-    .top-bar {
-      margin: -1.6rem auto 1rem;
-      max-width: 1100px;
-      padding: 1rem;
-      text-align: center;
+    header::after {
+      content:""; position:absolute; inset:-120px -120px auto auto;
+      width:280px; height:280px; background:rgba(255,255,255,0.20);
+      border-radius:999px; transform:rotate(15deg); pointer-events:none;
+    }
+    header img { max-height:180px; filter:drop-shadow(0 10px 20px rgba(0,0,0,0.28)); position:relative; z-index:2; }
+    header h1 { margin:0.5rem 0 0; font-size:1.4rem; font-weight:900; position:relative; z-index:2; letter-spacing:0.03em; }
+    header p  { margin:0.3rem 0 0; font-size:0.85rem; opacity:0.85; position:relative; z-index:2; font-weight:700; }
+    #darkModeToggle { position:absolute; top:14px; right:16px; cursor:pointer; font-size:1.6rem; user-select:none; z-index:3; }
+    #logoutBtn {
+      position:absolute; top:14px; left:16px; cursor:pointer; font-size:0.85rem;
+      font-weight:900; color:rgba(255,255,255,0.85); background:rgba(0,0,0,0.2);
+      padding:0.35rem 0.75rem; border-radius:999px; z-index:3; user-select:none;
     }
 
-    .btn-primary {
-      padding: 0.55rem 1.1rem;
-      border-radius: 999px;
-      border: none;
-      font-weight: 900;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: #fff;
-      cursor: pointer;
-      box-shadow: var(--shadow);
+    /* ── Ticker ── */
+    .ticker-wrap {
+      background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+      overflow:hidden; white-space:nowrap; position:relative; z-index:4;
+      border-bottom:1px solid rgba(255,255,255,0.15); padding:0.55rem 0;
+    }
+    .ticker-track { display:inline-flex; animation:ticker-scroll 35s linear infinite; will-change:transform; }
+    .ticker-track:hover { animation-play-state:paused; }
+    .ticker-item {
+      color:white; font-weight:800; font-size:0.88rem;
+      padding:0 2.5rem; display:inline-flex; align-items:center; gap:0.5rem; letter-spacing:0.02em;
+    }
+    .ticker-item::after { content:"⛳"; margin-left:1.5rem; opacity:0.7; }
+    @keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    /* ── Nav ── */
+    .info-links {
+      position:relative; z-index:5; margin:0.75rem auto 1rem;
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:0.75rem; max-width:980px; padding:0 1rem;
+    }
+    .info-btn {
+      background:var(--card); color:var(--text); padding:0.95rem 1rem;
+      border-radius:var(--radius); text-decoration:none; font-weight:900;
+      box-shadow:var(--shadow-1); display:inline-flex; align-items:center;
+      justify-content:center; gap:0.4rem; border:1px solid var(--border);
+      transition:transform 0.15s,box-shadow 0.15s;
+    }
+    .info-btn:hover { transform:translateY(-3px); box-shadow:var(--shadow-2); }
+    .info-btn.active-page {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; border-color:transparent;
+    }
+
+    /* ── Main ── */
+    main { max-width:1100px; margin:auto; padding:0 1rem 2rem; }
+
+    /* ── Info banner ── */
+    .info-banner {
+      max-width:980px; margin:0 auto 1rem; padding:1rem 1.25rem;
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow:var(--shadow-1);
+      font-size:0.88rem; line-height:1.6; font-weight:700;
+    }
+    .info-banner strong { color:var(--primary-dark); }
+    .info-banner .formula {
+      display:inline-block; background:var(--accent); border:1px solid rgba(0,200,150,0.25);
+      border-radius:6px; padding:0.2rem 0.6rem; font-family:monospace; font-size:0.85rem;
+      color:var(--primary-dark); font-weight:900; margin:0.25rem 0;
+    }
+    .par-grid {
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+      gap:0.5rem; margin-top:0.6rem;
+    }
+    .par-chip {
+      background:var(--accent); border:1px solid rgba(0,200,150,0.2);
+      border-radius:8px; padding:0.4rem 0.7rem; font-size:0.82rem; font-weight:800;
+      color:var(--primary-dark);
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      max-width:980px; margin:0 auto 0.75rem;
+      display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;
+    }
+    .search-box {
+      flex:1; min-width:180px; padding:0.65rem 1rem; border-radius:999px;
+      border:1.5px solid var(--border); background:var(--card); color:var(--text);
+      font-size:0.9rem; font-weight:700; font-family:inherit;
+      transition:border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-box:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,200,150,0.15); }
+    .action-btn {
+      padding:0.65rem 1.1rem; border-radius:999px; border:none;
+      font-weight:900; font-size:0.88rem; cursor:pointer; font-family:inherit;
+      transition:transform 0.15s, box-shadow 0.15s;
+      display:inline-flex; align-items:center; gap:0.4rem;
+    }
+    .action-btn:hover { transform:translateY(-2px); box-shadow:var(--shadow-1); }
+    .btn-primary { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; box-shadow:var(--shadow-1); }
+    .btn-secondary { background:var(--card); color:var(--text); border:1.5px solid var(--border); }
+    .btn-print { background:linear-gradient(135deg,#6366f1,#4f46e5); color:white; box-shadow:var(--shadow-1); }
+
+    /* ── Table ── */
+    .table-wrap {
+      max-width:980px; margin:0 auto;
+      overflow-x:auto;
+    }
+    table {
+      width:100%; border-collapse:separate; border-spacing:0;
+      background:var(--card); box-shadow:var(--shadow-2);
+      border-radius:var(--radius); overflow:hidden; border:1px solid var(--border);
+    }
+    th,td { padding:13px 14px; text-align:center; border-bottom:1px solid var(--border); }
+    th {
+      background:var(--accent); position:sticky; top:0; z-index:1;
+      font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:900;
+      cursor:pointer; user-select:none; white-space:nowrap;
+    }
+    th:hover { background:rgba(0,200,150,0.2); }
+    th.sorted-asc::after  { content:" ↑"; color:var(--primary-dark); }
+    th.sorted-desc::after { content:" ↓"; color:var(--primary-dark); }
+    tbody tr:nth-child(even) { background:rgba(0,0,0,0.015); }
+    .dark-mode tbody tr:nth-child(even) { background:rgba(255,255,255,0.03); }
+    tbody tr:hover { background:var(--hover); cursor:pointer; }
+    td.name-cell { text-align:left; font-weight:800; }
+
+    /* Trend badge */
+    .trend { font-size:0.8rem; font-weight:900; padding:0.15rem 0.5rem; border-radius:999px; }
+    .trend-improving { background:#dcfce7; color:#166534; }
+    .trend-worsening { background:#fee2e2; color:#991b1b; }
+    .trend-steady    { background:var(--accent); color:var(--primary-dark); }
+
+    /* Handicap badge */
+    .hcap-badge {
+      display:inline-block; padding:0.2rem 0.6rem; border-radius:999px;
+      font-weight:900; font-size:0.9rem;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white;
+    }
+
+    /* ── Admin panel ── */
+    .admin-panel {
+      max-width:980px; margin:1rem auto 0;
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow:var(--shadow-1);
+      padding:0.85rem 1.1rem; display:flex; align-items:center;
+      gap:0.75rem; flex-wrap:wrap;
+    }
+    .admin-panel label { font-weight:900; font-size:0.88rem; opacity:0.7; }
+    .admin-panel input[type=password] {
+      padding:0.5rem 0.85rem; border-radius:999px; border:1.5px solid var(--border);
+      background:var(--bg); color:var(--text); font-size:0.88rem; font-family:inherit;
+    }
+    .admin-panel input[type=password]:focus { outline:none; border-color:var(--primary); }
+    .admin-toggle { display:flex; align-items:center; gap:0.5rem; font-weight:800; font-size:0.88rem; }
+    .admin-toggle input { accent-color:var(--primary); width:16px; height:16px; cursor:pointer; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.55); z-index:1000;
+      justify-content:center; align-items:center; padding:1rem;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal-box {
+      background:var(--card); color:var(--text);
+      width:min(96vw,700px); max-height:88vh;
+      border-radius:18px; box-shadow:var(--shadow-3);
+      border:1px solid var(--border); display:flex; flex-direction:column;
+      overflow:hidden;
+    }
+    .modal-header {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; padding:1rem 1.25rem;
+      display:flex; justify-content:space-between; align-items:center; flex-shrink:0;
+    }
+    .modal-header h2 { margin:0; font-size:1.2rem; font-weight:900; }
+    .modal-header .modal-stats { display:flex; gap:1rem; margin-top:0.4rem; font-size:0.82rem; opacity:0.9; font-weight:700; }
+    .modal-close {
+      background:rgba(255,255,255,0.2); border:none; color:white;
+      width:32px; height:32px; border-radius:999px; font-size:1.2rem;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:background 0.15s;
+    }
+    .modal-close:hover { background:rgba(255,255,255,0.35); }
+    .modal-body { padding:1rem; overflow-y:auto; flex:1; }
+
+    .modal-tabs { display:flex; gap:0.5rem; margin-bottom:1rem; }
+    .modal-tab {
+      padding:0.45rem 1rem; border-radius:999px; border:none;
+      background:rgba(99,102,241,0.1); color:var(--text);
+      font-weight:900; font-size:0.85rem; cursor:pointer; font-family:inherit;
+      transition:all 0.15s;
+    }
+    .modal-tab.active {
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white;
+    }
+
+    .modal-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+    .modal-table th {
+      background:var(--accent); padding:8px 10px; text-align:left;
+      font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;
+      font-weight:900; color:var(--primary-dark); position:static;
+    }
+    .modal-table td { padding:8px 10px; border-bottom:1px solid var(--border); }
+    .modal-table tr.best-round td { background:rgba(0,200,150,0.08); font-weight:800; }
+    .modal-table tr:last-child td { border-bottom:none; }
+
+    #modalChart { height:220px !important; margin-top:0.5rem; }
+
+    /* ── Print styles ── */
+    @media print {
+      body { background:white !important; }
+      header, .ticker-wrap, .info-links, .toolbar, .admin-panel,
+      .modal-overlay, .info-banner, .footer { display:none !important; }
+      main { padding:0 !important; }
+      .table-wrap { max-width:100%; overflow:visible; }
+      table { box-shadow:none; border:1px solid #ccc; }
+      th { background:#eafff8 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .print-header { display:block !important; }
+      @page { size:A4 portrait; margin:15mm; }
+    }
+
+    .print-header {
+      display:none;
+      text-align:center; margin-bottom:1rem;
+    }
+    .print-header h2 { margin:0; font-size:1.4rem; }
+    .print-header p  { margin:0.3rem 0 0; font-size:0.85rem; color:#475569; }
+
+    /* ── Footer ── */
+    .footer { text-align:center; padding:1rem 0 1.5rem; opacity:0.92; }
+    .footer img { vertical-align:middle; }
+
+    .loading-state { text-align:center; padding:3rem; opacity:0.6; font-weight:800; }
+
+    @media (max-width:600px) {
+      .info-links { grid-template-columns:1fr 1fr; }
+      .toolbar { flex-direction:column; align-items:stretch; }
+      .search-box { min-width:unset; }
     }
   </style>
 </head>
-
-<header class="app-header">
-  <h1>Junior Handicap Tracker</h1>
-  <div class="sub">Cheadle Golf Club Junior Section · Progress &amp; Leveler (Non-WHS)</div>
-</header>
-
-<div class="top-bar">
-  <a href="home.html">
-    <button class="btn-primary">🏠 Home</button>
-  </a>
-</div>
-
 <body>
-  <section class="section">
-    <div class="container">
-      <center><p class="mb-4">Click on a player's <strong>View button</strong> to see per-round details and chart.</p></center>
-      <b><center>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</center></b>
-      <br><center>⬅️➡️ Scroll to view full table on mobile</center>
-      <table class="table is-striped is-fullwidth" id="handicapTable">
+
+  <header>
+    <img src="logowhite.png" alt="Cheadle Juniors Logo" />
+    <h1>🏌️ Junior Handicap Tracker</h1>
+    <p>Cheadle Golf Club · Progress Tracker (Non-WHS)</p>
+    <span id="darkModeToggle" onclick="toggleDarkMode()">🌗</span>
+    <span id="logoutBtn" onclick="logout()">🚪 Logout</span>
+  </header>
+
+  <div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <div class="info-links">
+    <a href="home.html"      class="info-btn">🏠 Home</a>
+    <a href="results.html"   class="info-btn">📊 Results</a>
+    <a href="calendar.html"  class="info-btn">📅 Calendar</a>
+    <a href="sixes.html"     class="info-btn">🤝 Sixes</a>
+    <a href="signup.html"    class="info-btn">✏️ Sign Up</a>
+    <a href="handicaps.html" class="info-btn active-page">🏌️ Handicaps</a>
+  </div>
+
+  <main>
+
+    <!-- Info banner -->
+    <div class="info-banner">
+      <strong>ℹ️ How handicaps are calculated</strong><br>
+      Based on the average of a player's <strong>best 3 gross scores</strong> relative to par.
+      Formula: <span class="formula">(Gross Score − Par) × 0.93</span>
+      <div class="par-grid">
+        <div class="par-chip">🏌️ Junior Competition — Par 32</div>
+        <div class="par-chip">🤝 Junior Sixes — Par 22</div>
+        <div class="par-chip">⛳ Bruntwood 9 — Par 27</div>
+        <div class="par-chip">⛳ Bruntwood 18 — Par 54</div>
+      </div>
+      <div style="margin-top:0.5rem;font-size:0.82rem;opacity:0.7;">
+        This is a Cheadle Golf Club Junior Section internal handicap used as a leveler and progress tracker. It is <strong>not</strong> related to any WHS calculations. Playing 9 holes off Yellow Tees.
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search players…" oninput="filterTable()">
+      <button class="action-btn btn-print" onclick="printHandicaps()">🖨️ Print / Save PDF</button>
+      <button class="action-btn btn-secondary" id="sortRoundsBtn" onclick="sortBy('roundsPlayed')">Rounds ↕</button>
+      <button class="action-btn btn-secondary" id="sortHcapBtn"   onclick="sortBy('current')">Handicap ↕</button>
+    </div>
+
+    <!-- Print header (hidden on screen, shown when printing) -->
+    <div class="print-header">
+      <h2>Cheadle Junior Golf Academy — Handicap List</h2>
+      <p>Printed on <span id="printDate"></span> · Non-WHS internal tracker</p>
+    </div>
+
+    <!-- Handicap table -->
+    <div class="table-wrap">
+      <table id="handicapTable">
         <thead>
           <tr>
-            <th class="sortable" data-sort="name">Player ⬍</th>
-            <th class="sortable" data-sort="current">Current Handicap ⬍</th>
-            <th class="sortable" data-sort="lowest">Lowest Handicap ⬍</th>
-            <th class="sortable" data-sort="roundsPlayed">Rounds Played ⬍</th>
-            <th>Details</th>
+            <th style="text-align:left" onclick="sortBy('rank')">#</th>
+            <th style="text-align:left" onclick="sortBy('name')">Player</th>
+            <th onclick="sortBy('current')">Handicap</th>
+            <th onclick="sortBy('lowest')">Best Ever</th>
+            <th onclick="sortBy('roundsPlayed')">Rounds</th>
+            <th onclick="sortBy('trend')" class="no-print">Trend</th>
+            <th class="no-print">Details</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody id="tableBody">
+          <tr><td colspan="7"><div class="loading-state">Loading handicaps…</div></td></tr>
+        </tbody>
       </table>
     </div>
-  </section>
 
-  <!-- Admin control -->
-  <div id="adminSection">
-    <input type="password" id="adminPassword" placeholder="Enter admin password...">
-    <button id="adminLogin" class="button is-small is-primary">Unlock</button>
-    <div id="adminToggle" style="display:none;margin-top:0.8rem;">
-      <label style="font-weight:bold;">
-        <input type="checkbox" id="showAll"> Show inactive members
-      </label>
+    <!-- Admin panel -->
+    <div class="admin-panel" id="adminPanel">
+      <label>🔐 Admin</label>
+      <input type="password" id="adminPassword" placeholder="Admin password…">
+      <button class="action-btn btn-primary" onclick="tryAdminLogin()">Unlock</button>
+      <div id="adminControls" style="display:none;" class="admin-toggle">
+        <input type="checkbox" id="showAll" onchange="onShowAllChange()">
+        <label for="showAll">Show inactive members</label>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Player detail modal -->
+  <div class="modal-overlay" id="modal" onclick="onModalBackdropClick(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h2 id="modalName">Player</h2>
+          <div class="modal-stats" id="modalStats"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-tabs">
+          <button class="modal-tab active" id="tabChart" onclick="switchTab('chart')">📈 Chart</button>
+          <button class="modal-tab"        id="tabRounds" onclick="switchTab('rounds')">📋 All Rounds</button>
+        </div>
+        <div id="tabChartContent">
+          <canvas id="modalChart"></canvas>
+        </div>
+        <div id="tabRoundsContent" style="display:none;">
+          <table class="modal-table" id="modalTable">
+            <thead>
+              <tr>
+                <th>Date</th><th>Competition</th><th>Score</th>
+                <th>Par</th><th>Handicap</th><th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="modalTableBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
-  <section class="section">
-    <div class="container">
-      <h2 class="title is-5 mt-6">How are handicaps calculated?</h2>
-      <div class="content box" style="background:#f5f5f5;">
-        <p>
-          Handicaps are based on the average of a player's <strong>best 3 gross scores</strong>, relative to par, from recent rounds.
-          <br />
-          <strong>Formula:</strong> <code>(Gross Score − Par) × 0.93</code>
-        </p>
-        <ul>
-          <li>🏌️‍♂️ <strong>Junior Competition</strong>: Par 32</li>
-          <li>🏌️ <strong>Junior Sixes Competition</strong>: Par 22</li>
-          <li>⛳ <strong>Bruntwood 9</strong>: Par 27</li>
-          <li>⛳ <strong>Bruntwood 18</strong>: Par 54</li>
-        </ul>
-        <p>Handicaps are shown to 1 decimal place and updated after each new round. The best 3 scores are used to calculate the current handicap. (Playing 9 holes off Yellow Tees)</p>
-        <p><b>This is a Cheadle Golf Club Junior Section / Junior Academy Handicap used as a leveler and a progress tracker. It is <u>not</u> related to any WHS calculations</b></p>
-      </div>
+  <div class="footer">
+    <div style="margin:0.75rem 0;">
+      <img src="logocja.png" alt="CJA Logo" style="height:64px;margin-right:10px;" />
+      <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo" width="80" height="80"/>
     </div>
-  </section>
-
-  <!-- Modal -->
-  <dialog id="modal">
-    <div class="modal-content box">
-      <button class="delete is-pulled-right" id="closeModal"></button>
-      <h2 class="title is-4" id="modalPlayerName"></h2>
-      <div id="modalContent" class="mb-4"></div>
-      <canvas id="handicapChart" height="200"></canvas>
-    </div>
-  </dialog>
+    <div style="font-weight:900;">Build v2.0.1 | Handicap Tracker</div>
+    <div style="margin-top:0.35rem;"><a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a></div>
+  </div>
 
   <script>
-    /* ── Google Sheets config ── */
+    // ── Auth guard ──
+    if (localStorage.getItem('auth') !== 'true') window.location.replace('index.html');
+    function logout()         { localStorage.removeItem('auth'); window.location.href='index.html'; }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+    // ── Google Sheets ──
     const SHEET_ID    = '1mU0_DlUn7cv8henOOHFAnF5dVhMHYmT3eYgrNjniHrs';
     const API_KEY     = 'AIzaSyBTJleDGs7X9184N15_Dm5352WNtWupnYw';
     const SHEETS_BASE = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
@@ -146,204 +433,319 @@
 
     function rowsToObjects(rows) {
       if (!rows.length) return [];
-      const headers = rows[0];
-      return rows.slice(1).map(row => {
-        const obj = {};
-        headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
-        return obj;
-      });
+      const headers = rows[0].map(h => String(h).trim().replace(/\s+/g,''));
+      return rows.slice(1)
+        .filter(row => row.some(c => String(c).trim()))
+        .map(row => {
+          const obj = {};
+          headers.forEach((h,i) => { obj[h] = row[i] !== undefined ? String(row[i]).trim() : ''; });
+          return obj;
+        });
     }
 
-    /* ── Helpers ── */
     function parseDateStr(s) {
-      if (!s) return new Date('Invalid');
+      if (!s) return null;
       if (!isNaN(s) && Number(s) > 20000 && Number(s) < 80000)
         return new Date((Number(s) - 25569) * 86400 * 1000);
-      if (typeof s === 'string' && (s.includes('/') || s.match(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/))) {
-        const [d, m, y] = s.split(/[\/\-]/).map(v => parseInt(v));
-        return new Date(y < 100 ? y + 2000 : y, m - 1, d);
+      const parts = String(s).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+      if (parts) {
+        let y = parseInt(parts[3]); if (y < 100) y += 2000;
+        return new Date(y, parseInt(parts[2])-1, parseInt(parts[1]));
       }
-      const d = new Date(s);
-      return isNaN(d.getTime()) ? new Date('Invalid') : d;
+      const d = new Date(s); return isNaN(d)?null:d;
     }
 
-    function getParForCompetition(name) {
+    function getParForComp(name) {
       if (!name) return 32;
-      if (name.includes('Sixes')) return 22;
-      if (name.includes('Bruntwood 9')) return 27;
-      if (name.includes('Bruntwood 18')) return 54;
+      const n = name.toLowerCase();
+      if (n.includes('sixes')) return 22;
+      if (n.includes('bruntwood 9')) return 27;
+      if (n.includes('bruntwood 18')) return 54;
       return 32;
     }
 
-    /* ── State ── */
-    let allPlayers = [];
-    let showAll    = false;
+    function isActive(val) {
+      return ['yes','true','✅','active','1'].includes(String(val||'').trim().toLowerCase());
+    }
 
-    /* ── Fetch from Google Sheets ── */
-    async function fetchData() {
+    // ── State ──
+    let allPlayers   = [];
+    let showInactive = false;
+    let currentSort  = { key:'current', dir:'asc' };
+    let searchTerm   = '';
+    let modalChart   = null;
+
+    // ── Load data ──
+    async function loadData() {
       try {
-        const dataRows = await fetchSheet('Sheet1!A1:K2000');
-        const data = rowsToObjects(dataRows);
+        const rows = await fetchSheet('Sheet1!A1:K2000');
+        const data = rowsToObjects(rows);
 
-        const players = {};
+        const map = {};
         data.forEach(row => {
-          const name   = row.Name;
-          const score  = parseFloat(row.Score);
-          const comp   = row.Competition || row.Title || '';
-          const date   = row.Date;
-          const active = row.Active || '';
+          const name  = row.Name;
+          const score = parseFloat(row.Score);
           if (!name || isNaN(score)) return;
-          if (!players[name]) players[name] = { rounds: [], active };
-          players[name].rounds.push({
-            score, competition: comp, date,
-            Position: row.Position || ''
+          if (!map[name]) map[name] = { rounds:[], active: row.Active||'' };
+          map[name].rounds.push({
+            score,
+            competition: row.Competition || row.Title || '',
+            date:        row.Date || '',
+            position:    row.Position || '',
           });
         });
 
-        allPlayers = Object.keys(players).map(name => {
-          const rounds     = players[name].rounds;
-          const active     = String(players[name].active || '').trim().toLowerCase();
-          const handicaps  = rounds.map(r => (r.score - getParForCompetition(r.competition)) * 0.93);
-          const best3      = [...handicaps].sort((a, b) => a - b).slice(0, 3);
-          const current    = (best3.reduce((a, b) => a + b, 0) / best3.length).toFixed(1);
-          const lowest     = Math.min(...handicaps).toFixed(1);
-          return { name, current: parseFloat(current), lowest: parseFloat(lowest), roundsPlayed: rounds.length, rounds, active };
+        allPlayers = Object.keys(map).map(name => {
+          const { rounds, active } = map[name];
+          const hcaps = rounds.map(r => (r.score - getParForComp(r.competition)) * 0.93);
+          const best3 = [...hcaps].sort((a,b)=>a-b).slice(0,3);
+          const current = best3.length ? best3.reduce((a,b)=>a+b,0)/best3.length : 0;
+          const lowest  = hcaps.length ? Math.min(...hcaps) : 0;
+
+          // Trend: compare last 3 rounds avg vs previous 3
+          const recent = hcaps.slice(-3);
+          const prev   = hcaps.slice(-6,-3);
+          let trend = 'steady';
+          if (recent.length >= 2 && prev.length >= 2) {
+            const ra = recent.reduce((a,b)=>a+b,0)/recent.length;
+            const pa = prev.reduce((a,b)=>a+b,0)/prev.length;
+            if (ra < pa - 0.3)      trend = 'improving';
+            else if (ra > pa + 0.3) trend = 'worsening';
+          }
+
+          return { name, current, lowest, roundsPlayed:rounds.length, rounds, active, trend, hcaps };
         });
 
-        updateTable();
+        renderTable();
+        buildTicker();
+        document.getElementById('printDate').textContent = new Date().toLocaleDateString('en-GB');
 
       } catch(err) {
-        console.error('fetchData error:', err);
-        document.querySelector('#handicapTable tbody').innerHTML =
-          `<tr><td colspan="5">Unable to load data: ${err.message}</td></tr>`;
+        console.error(err);
+        document.getElementById('tableBody').innerHTML =
+          `<tr><td colspan="7" style="color:#ef4444;text-align:center;padding:2rem;">
+            ⚠️ Unable to load data: ${err.message}
+          </td></tr>`;
       }
     }
 
-    /* ── Render ── */
-    function updateTable() {
-      const visiblePlayers = showAll
-        ? allPlayers
-        : allPlayers.filter(p => ['yes','true','✅','active'].includes(p.active));
-      renderTable(visiblePlayers);
-    }
+    // ── Render table ──
+    function renderTable() {
+      let players = allPlayers
+        .filter(p => showInactive || isActive(p.active))
+        .filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    function renderTable(players) {
-      const tableBody = document.querySelector('#handicapTable tbody');
-      tableBody.innerHTML = '';
-      players.forEach(p => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${p.name}</td>
-          <td>${p.current.toFixed(1)}</td>
-          <td>${p.lowest.toFixed(1)}</td>
+      // Sort
+      players.sort((a,b) => {
+        let av = a[currentSort.key], bv = b[currentSort.key];
+        if (currentSort.key === 'name' || currentSort.key === 'trend') {
+          av = String(av); bv = String(bv);
+          return currentSort.dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+        }
+        return currentSort.dir === 'asc' ? av - bv : bv - av;
+      });
+
+      const tbody = document.getElementById('tableBody');
+
+      if (!players.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;opacity:0.6;font-weight:800;">No players found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = players.map((p, i) => {
+        const trendHtml = {
+          improving: '<span class="trend trend-improving">↓ Improving</span>',
+          worsening: '<span class="trend trend-worsening">↑ Worsening</span>',
+          steady:    '<span class="trend trend-steady">→ Steady</span>',
+        }[p.trend] || '';
+
+        return `<tr onclick="openModal('${p.name.replace(/'/g,"\\'")}')">
+          <td style="text-align:left;opacity:0.5;font-weight:700;">${i+1}</td>
+          <td class="name-cell">${p.name}</td>
+          <td><span class="hcap-badge">${p.current.toFixed(1)}</span></td>
+          <td style="font-weight:800;color:var(--primary-dark);">${p.lowest.toFixed(1)}</td>
           <td>${p.roundsPlayed}</td>
-          <td><button class="button is-small is-info open-modal" data-name="${p.name}">View</button></td>`;
-        tableBody.appendChild(tr);
-      });
-      document.querySelectorAll('.open-modal').forEach(btn => {
-        btn.addEventListener('click', e => {
-          const name   = e.target.dataset.name;
-          const player = players.find(p => p.name === name);
-          openModal(name, player.rounds);
-        });
-      });
+          <td class="no-print">${trendHtml}</td>
+          <td class="no-print">
+            <button class="action-btn btn-primary" style="padding:0.35rem 0.85rem;font-size:0.8rem;"
+              onclick="event.stopPropagation();openModal('${p.name.replace(/'/g,"\\'")}')">
+              View
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
     }
 
-    /* ── Modal ── */
-    function openModal(name, rounds) {
-      document.getElementById('modalPlayerName').textContent = name;
+    // ── Sort ──
+    function sortBy(key) {
+      if (currentSort.key === key) {
+        currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSort = { key, dir: key === 'name' ? 'asc' : 'asc' };
+      }
+      renderTable();
+    }
 
-      const handicaps = rounds.map(r => ({
+    // ── Search ──
+    function filterTable() {
+      searchTerm = document.getElementById('searchBox').value;
+      renderTable();
+    }
+
+    // ── Admin ──
+    function tryAdminLogin() {
+      const pw = document.getElementById('adminPassword').value.trim();
+      if (pw === 'golfadmin') {
+        document.getElementById('adminPassword').style.display = 'none';
+        document.getElementById('adminPanel').querySelector('.action-btn').style.display = 'none';
+        document.getElementById('adminControls').style.display = 'flex';
+      } else {
+        document.getElementById('adminPassword').style.border = '1.5px solid #ef4444';
+        setTimeout(() => document.getElementById('adminPassword').style.border = '', 1500);
+      }
+    }
+
+    function onShowAllChange() {
+      showInactive = document.getElementById('showAll').checked;
+      renderTable();
+    }
+
+    // ── Modal ──
+    let currentTab = 'chart';
+
+    function openModal(name) {
+      const player = allPlayers.find(p => p.name === name);
+      if (!player) return;
+
+      document.getElementById('modalName').textContent = name;
+      document.getElementById('modalStats').innerHTML =
+        `<span>Current: <strong>${player.current.toFixed(1)}</strong></span>
+         <span>Best: <strong>${player.lowest.toFixed(1)}</strong></span>
+         <span>Rounds: <strong>${player.roundsPlayed}</strong></span>`;
+
+      // Build rounds data
+      const rounds = player.rounds.map((r,i) => ({
         ...r,
-        hcap: ((r.score - getParForCompetition(r.competition)) * 0.93).toFixed(1),
-        position: r.Position ? String(r.Position).trim() : ''
+        hcap:  (r.score - getParForComp(r.competition)) * 0.93,
+        par:   getParForComp(r.competition),
+        dateObj: parseDateStr(r.date),
       }));
-      const best3Hcap = [...handicaps].sort((a, b) => a.hcap - b.hcap).slice(0, 3).map(r => r.hcap);
 
-      document.getElementById('modalContent').innerHTML = `
-        <table class="table is-fullwidth is-narrow">
-          <thead><tr><th>Date</th><th>Competition</th><th>Score</th><th>Par</th><th>Handicap</th><th>Result</th></tr></thead>
-          <tbody>
-            ${handicaps.map(r => {
-              const d = parseDateStr(r.date);
-              const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB') : '';
-              const icons = [];
-              if (best3Hcap.includes(r.hcap)) icons.push('✅');
-              if (r.position && /^1(st)?$/i.test(r.position)) icons.push('🏆');
-              return `<tr class="${best3Hcap.includes(r.hcap) ? 'best-round' : ''}">
-                <td>${dateStr}</td>
-                <td>${r.competition}</td>
-                <td>${r.score}</td>
-                <td>${getParForCompetition(r.competition)}</td>
-                <td>${r.hcap}</td>
-                <td>${icons.join(' ')}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>`;
+      // Best 3 handicaps
+      const sorted3 = [...rounds].sort((a,b)=>a.hcap-b.hcap).slice(0,3);
+      const best3hcaps = sorted3.map(r => parseFloat(r.hcap.toFixed(2)));
 
-      const ctx = document.getElementById('handicapChart').getContext('2d');
-      if (window.hcapChart) window.hcapChart.destroy();
-      window.hcapChart = new Chart(ctx, {
+      // Rounds table
+      document.getElementById('modalTableBody').innerHTML = rounds.map(r => {
+        const isBest = best3hcaps.includes(parseFloat(r.hcap.toFixed(2)));
+        const dateStr = r.dateObj ? r.dateObj.toLocaleDateString('en-GB') : '—';
+        const icons = [];
+        if (isBest) icons.push('✅ Best 3');
+        if (r.position && /^1(st)?$/i.test(String(r.position).trim())) icons.push('🏆');
+        return `<tr class="${isBest?'best-round':''}">
+          <td>${dateStr}</td>
+          <td>${r.competition||'—'}</td>
+          <td>${r.score}</td>
+          <td>${r.par}</td>
+          <td>${r.hcap.toFixed(1)}</td>
+          <td>${icons.join(' ')}</td>
+        </tr>`;
+      }).join('');
+
+      // Chart
+      buildModalChart(rounds, best3hcaps);
+
+      switchTab('chart');
+      document.getElementById('modal').classList.add('open');
+    }
+
+    function buildModalChart(rounds, best3hcaps) {
+      if (modalChart) modalChart.destroy();
+      const labels = rounds.map(r => r.dateObj ? r.dateObj.toLocaleDateString('en-GB') : r.competition||'');
+      const hcapData = rounds.map(r => parseFloat(r.hcap.toFixed(1)));
+      const pointColors = hcapData.map((h,i) =>
+        best3hcaps.includes(parseFloat(rounds[i].hcap.toFixed(2))) ? '#f59e0b' : '#00c896'
+      );
+      const pointSizes = hcapData.map((h,i) =>
+        best3hcaps.includes(parseFloat(rounds[i].hcap.toFixed(2))) ? 8 : 5
+      );
+
+      modalChart = new Chart(document.getElementById('modalChart'), {
         type: 'line',
         data: {
-          labels: rounds.map(r => { const d = parseDateStr(r.date); return !isNaN(d.getTime()) ? d.toLocaleDateString('en-GB') : ''; }),
+          labels,
           datasets: [{
             label: 'Handicap per Round',
-            data: handicaps.map(r => parseFloat(r.hcap)),
-            borderColor: '#3273dc',
-            backgroundColor: handicaps.map(h => best3Hcap.includes(h.hcap) ? '#f6e58d99' : '#3273dc33'),
+            data: hcapData,
+            borderColor: '#00c896',
+            backgroundColor: 'rgba(0,200,150,0.08)',
             fill: true,
-            tension: 0.3
+            tension: 0.3,
+            pointBackgroundColor: pointColors,
+            pointRadius: pointSizes,
+            pointHoverRadius: 8,
           }]
         },
-        options: { scales: { y: { beginAtZero: false, reverse: true } } }
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            y: {
+              reverse: true,
+              title: { display:true, text:'Handicap (lower = better)', font:{weight:'bold'} },
+              ticks: { precision:1 }
+            }
+          },
+          plugins: {
+            legend: { display:false },
+            tooltip: {
+              callbacks: {
+                label: ctx => ` Handicap: ${ctx.parsed.y.toFixed(1)}${best3hcaps.includes(ctx.parsed.y)?'  ⭐ Best 3':''}`
+              }
+            }
+          }
+        }
       });
-
-      document.getElementById('modal').showModal();
     }
 
-    /* ── Sorting ── */
-    let sortDir = {};
-    document.querySelectorAll('.sortable').forEach(th => {
-      th.addEventListener('click', () => {
-        const key = th.dataset.sort;
-        sortDir[key] = !sortDir[key];
-        const visiblePlayers = showAll
-          ? [...allPlayers]
-          : allPlayers.filter(p => ['yes','true','✅','active'].includes(p.active));
-        visiblePlayers.sort((a, b) => {
-          if (key === 'name') return sortDir[key] ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-          return sortDir[key] ? a[key] - b[key] : b[key] - a[key];
-        });
-        renderTable(visiblePlayers);
-      });
-    });
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tabChart').classList.toggle('active', tab==='chart');
+      document.getElementById('tabRounds').classList.toggle('active', tab==='rounds');
+      document.getElementById('tabChartContent').style.display  = tab==='chart'  ? 'block' : 'none';
+      document.getElementById('tabRoundsContent').style.display = tab==='rounds' ? 'block' : 'none';
+      if (tab==='chart' && modalChart) modalChart.resize();
+    }
 
-    /* ── Admin ── */
-    document.getElementById('adminLogin').addEventListener('click', () => {
-      const entered = document.getElementById('adminPassword').value.trim();
-      if (entered === 'golfadmin') {
-        document.getElementById('adminPassword').style.display = 'none';
-        document.getElementById('adminLogin').style.display   = 'none';
-        document.getElementById('adminToggle').style.display  = 'block';
-        alert('Admin mode unlocked ✅');
-      } else {
-        alert('Incorrect password ❌');
-      }
-    });
+    function closeModal() {
+      document.getElementById('modal').classList.remove('open');
+    }
 
-    document.getElementById('showAll').addEventListener('change', e => {
-      showAll = e.target.checked;
-      updateTable();
-    });
+    function onModalBackdropClick(e) {
+      if (e.target === document.getElementById('modal')) closeModal();
+    }
 
-    document.getElementById('closeModal').addEventListener('click', () => {
-      document.getElementById('modal').close();
-    });
+    // ── Print / PDF ──
+    function printHandicaps() {
+      document.getElementById('printDate').textContent = new Date().toLocaleDateString('en-GB');
+      window.print();
+    }
 
-    /* ── Init ── */
-    fetchData();
+    // ── Ticker ──
+    function buildTicker() {
+      const msgs = [
+        '🏌️ Junior Handicap Tracker — tap any player to view their full round history',
+        '📉 Lower handicap = better performance — chart Y axis is reversed',
+        '✅ Yellow highlighted rows show the best 3 rounds used to calculate handicap',
+        '⛳ This is a non-WHS internal tracker for Junior Academy use only',
+      ];
+      const track = document.getElementById('tickerTrack');
+      const doubled = [...msgs,...msgs];
+      track.innerHTML = doubled.map(m=>`<span class="ticker-item">${m}</span>`).join('');
+      track.style.animationDuration = Math.max(20, track.scrollWidth/2/60)+'s';
+    }
+
+    loadData();
   </script>
+
 </body>
 </html>
