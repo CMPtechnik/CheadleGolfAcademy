@@ -8,7 +8,6 @@
   <meta name="theme-color" content="#00c896" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* ── Design system ── */
     :root {
       --primary:#00c896; --primary-dark:#008f6a; --accent:#eafff8;
       --text:#0f172a; --bg:#f8fafc; --card:#ffffff;
@@ -16,21 +15,9 @@
       --radius:14px;
       --shadow-1:0 10px 25px rgba(0,0,0,0.08);
       --shadow-2:0 20px 40px rgba(0,0,0,0.10);
-      --shadow-3:0 30px 80px rgba(0,0,0,0.18);
     }
-    .dark-mode {
-      --bg:#020617; --text:#e5e7eb; --card:#0b1220;
-      --accent:rgba(15,118,110,0.25); --border:rgba(255,255,255,0.12);
-      --hover:rgba(255,255,255,0.06);
-      --shadow-1:0 10px 25px rgba(0,0,0,0.35);
-      --shadow-2:0 20px 40px rgba(0,0,0,0.45);
-      --shadow-3:0 30px 80px rgba(0,0,0,0.60);
-    }
-
-    /* ── Base ── */
-    *, *::before, *::after { box-sizing:border-box; }
     body {
-      margin:0; min-height:100vh;
+      margin:0;
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
       background:
         radial-gradient(1200px 600px at 10% -10%,#d1fae5,transparent),
@@ -38,284 +25,119 @@
         var(--bg);
       color:var(--text);
     }
-
-    /* ── Header ── */
     header {
       background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-      color:#fff; padding:1.5rem 1rem 2.75rem; text-align:center;
-      border-bottom-left-radius:24px; border-bottom-right-radius:24px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.15);
-      position:relative; overflow:hidden;
+      color:#fff; padding:1.6rem 1rem 2.6rem; text-align:center;
+      border-bottom-left-radius:28px; border-bottom-right-radius:28px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.18);
     }
-    header::after {
-      content:""; position:absolute; inset:-120px -120px auto auto;
-      width:280px; height:280px; background:rgba(255,255,255,0.15);
-      border-radius:999px; transform:rotate(15deg); pointer-events:none;
+    header h1 { margin:0; font-size:1.6rem; font-weight:900; }
+    .sub { margin-top:0.4rem; font-weight:700; opacity:0.9; }
+    .controls {
+      margin:-1.8rem auto 1.2rem; max-width:1100px; padding:1rem;
+      background:var(--card); border-radius:var(--radius);
+      box-shadow:var(--shadow-2); border:1px solid var(--border);
+      display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;
     }
-    header img { max-height:160px; filter:drop-shadow(0 8px 16px rgba(0,0,0,0.25)); position:relative; z-index:2; }
-    header h1 { margin:0.5rem 0 0; font-size:1.5rem; font-weight:900; position:relative; z-index:2; letter-spacing:0.02em; }
-    .sub { margin-top:0.3rem; font-weight:700; opacity:0.85; font-size:0.88rem; position:relative; z-index:2; }
-
-    /* ── Nav ── */
-    .nav-links {
-      position:relative; z-index:5; margin:0.75rem auto 0;
-      display:grid; grid-template-columns:repeat(3,1fr);
-      gap:0.6rem; max-width:980px; padding:0 1rem;
+    .controls label { font-weight:800; }
+    select, input[type="checkbox"] {
+      padding:0.55rem 0.9rem; border-radius:999px;
+      border:1px solid var(--border); background:#fff; font-weight:700;
     }
-    .nav-btn {
-      background:var(--card); color:var(--text); padding:0.85rem 0.75rem;
-      border-radius:var(--radius); text-decoration:none; font-weight:900; font-size:0.88rem;
-      box-shadow:var(--shadow-1); display:inline-flex; align-items:center;
-      justify-content:center; gap:0.35rem; border:1px solid var(--border);
-      transition:transform 0.15s, box-shadow 0.15s;
+    button {
+      padding:0.55rem 0.95rem; border-radius:999px;
+      border:none; font-weight:900; cursor:pointer;
     }
-    .nav-btn:hover { transform:translateY(-2px); box-shadow:var(--shadow-2); }
-    .nav-btn.active {
+    .btn-primary {
       background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-      color:white; border-color:transparent;
+      color:#fff; box-shadow:var(--shadow-1);
     }
-
-    /* ── Controls card ── */
-    .controls-card {
-      max-width:980px; margin:1rem auto;
-      background:var(--card); border:1px solid var(--border);
-      border-radius:18px; box-shadow:var(--shadow-2);
-      padding:1.25rem 1.4rem;
-    }
-    .controls-row {
-      display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-      gap:1rem; align-items:end; margin-bottom:1rem;
-    }
-    .controls-row:last-child { margin-bottom:0; }
-    .field { display:flex; flex-direction:column; gap:0.35rem; }
-    .field label {
-      font-size:0.75rem; font-weight:900; text-transform:uppercase;
-      letter-spacing:0.07em; opacity:0.6;
-    }
-    .field select {
-      padding:0.65rem 1rem; border-radius:10px;
-      border:1.5px solid var(--border); background:var(--bg);
-      color:var(--text); font-weight:800; font-size:0.9rem; font-family:inherit;
-      transition:border-color 0.15s, box-shadow 0.15s; cursor:pointer;
-    }
-    .field select:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,200,150,0.15); }
-    .include-toggle {
-      display:flex; align-items:center; gap:0.5rem;
-      font-weight:800; font-size:0.88rem; padding-bottom:0.4rem;
-      cursor:pointer; user-select:none;
-    }
-    .include-toggle input { accent-color:var(--primary); width:16px; height:16px; cursor:pointer; }
-
-    /* Action buttons row */
-    .actions-row {
-      display:flex; gap:0.6rem; flex-wrap:wrap;
-      padding-top:1rem; border-top:1px solid var(--border);
-      margin-top:0.25rem;
-    }
-    .act-btn {
-      padding:0.55rem 1rem; border-radius:999px; border:none;
-      font-weight:900; font-size:0.85rem; cursor:pointer; font-family:inherit;
-      transition:transform 0.15s, box-shadow 0.15s;
-      display:inline-flex; align-items:center; gap:0.35rem;
-    }
-    .act-btn:hover { transform:translateY(-1px); box-shadow:var(--shadow-1); }
-    .act-btn-primary { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; box-shadow:var(--shadow-1); }
-    .act-btn-secondary { background:var(--bg); color:var(--text); border:1.5px solid var(--border); }
-
-    /* ── Summary banner ── */
-    .summary-banner {
-      max-width:980px; margin:0 auto 0.75rem;
-      background:var(--card); border:1px solid var(--border);
-      border-radius:var(--radius); box-shadow:var(--shadow-1);
-      padding:0.75rem 1.1rem; font-size:0.92rem; font-weight:800;
-      display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;
-    }
-    .summary-banner .winner-tag {
-      background:linear-gradient(135deg,#fde68a,#f59e0b);
-      color:#78350f; border-radius:999px; padding:0.2rem 0.75rem;
-      font-weight:900; font-size:0.85rem; display:inline-flex; align-items:center; gap:0.3rem;
-    }
-
-    /* ── Main / table ── */
-    main { max-width:980px; margin:0 auto; padding:0 1rem 2rem; }
+    .btn-primary:hover { transform:translateY(-1px); }
+    .right { margin-left:auto; display:flex; gap:0.5rem; flex-wrap:wrap; }
+    main { max-width:1100px; margin:auto; padding:1rem; }
     table {
       width:100%; border-collapse:separate; border-spacing:0;
       background:var(--card); border-radius:var(--radius);
       overflow:hidden; box-shadow:var(--shadow-2); border:1px solid var(--border);
     }
-    th,td { padding:13px 14px; text-align:center; border-bottom:1px solid var(--border); }
-    th {
-      background:var(--accent); text-transform:uppercase; font-size:0.75rem;
-      letter-spacing:0.06em; font-weight:900; position:sticky; top:0; z-index:1;
-    }
-    td:nth-child(2) { text-align:left; font-weight:800; }
-    td:nth-child(3) { text-align:left; font-size:0.88rem; opacity:0.75; }
-    tbody tr:hover { background:var(--hover); cursor:pointer; }
-    .dark-mode tbody tr:nth-child(even) { background:rgba(255,255,255,0.02); }
-
-    /* Winner row */
-    .winner {
-      background:linear-gradient(90deg,rgba(245,158,11,0.08),transparent) !important;
-      border-left:4px solid #f59e0b;
-    }
-    .winner td:nth-child(2)::before { content:"🏆 "; }
-    .rank-badge {
-      display:inline-block; width:28px; height:28px; border-radius:999px;
-      line-height:28px; font-weight:900; font-size:0.85rem; text-align:center;
-      background:var(--accent); color:var(--primary-dark);
-    }
-    .rank-1 { background:linear-gradient(135deg,#fde68a,#f59e0b); color:#78350f; }
-    .rank-2 { background:linear-gradient(135deg,#e2e8f0,#cbd5e1); color:#1e293b; }
-    .rank-3 { background:linear-gradient(135deg,#fed7aa,#f97316); color:#7c2d12; }
-
+    th,td { padding:12px; text-align:center; border-bottom:1px solid var(--border); }
+    th { background:var(--accent); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.05em; font-weight:900; }
+    tbody tr:hover { background:var(--hover); }
+    .winner { background:linear-gradient(90deg,#fff6d8,#ffffff); border-left:5px solid gold; }
+    .small { font-size:0.95rem; margin:0.5rem 0 0.5rem 1rem; color:#475569; }
     a { color:var(--primary-dark); text-decoration:none; font-weight:900; }
-    a:hover { text-decoration:underline; }
-
-    /* ── Modal ── */
     .modal-backdrop {
-      position:fixed; inset:0; background:rgba(0,0,0,0.55);
-      display:none; align-items:center; justify-content:center; z-index:1000; padding:1rem;
+      position:fixed; inset:0; background:rgba(0,0,0,0.5);
+      display:none; align-items:center; justify-content:center; z-index:1000;
     }
     .modal {
-      background:var(--card); color:var(--text); padding:0; border-radius:18px;
+      background:#fff; padding:16px; border-radius:16px;
       width:min(92vw,820px); max-height:min(90vh,760px);
-      overflow:hidden; box-shadow:var(--shadow-3);
-      border:1px solid var(--border); display:flex; flex-direction:column;
+      overflow:auto; box-shadow:0 12px 40px rgba(0,0,0,.25);
     }
-    .modal-header {
-      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-      color:white; padding:1rem 1.25rem;
-      display:flex; justify-content:space-between; align-items:center; flex-shrink:0;
-    }
-    .modal-header h3 { margin:0; font-size:1.1rem; font-weight:900; }
-    .close-btn {
-      background:rgba(255,255,255,0.2); border:none; color:white;
-      width:30px; height:30px; border-radius:999px; font-size:1.1rem;
-      cursor:pointer; display:flex; align-items:center; justify-content:center;
-      transition:background 0.15s;
-    }
-    .close-btn:hover { background:rgba(255,255,255,0.35); }
-    #modalBody { overflow:auto; padding:1rem; flex:1; }
-    #modalChart { height:220px !important; }
-
-    /* ── Footer ── */
-    .footer { text-align:center; padding:1rem 0 1.5rem; opacity:0.85; }
-    .footer img { vertical-align:middle; }
-
-    /* ── Loading ── */
-    .loading-state { text-align:center; padding:3rem; opacity:0.6; font-weight:800; }
-
-    /* ── Print ── */
-    @media print {
-      header, .nav-links, .controls-card, .actions-row, .modal-backdrop, .footer { display:none !important; }
-      main { padding:0; }
-      table { box-shadow:none; }
-    }
-
-    /* ── Mobile ── */
+    .close-btn { border:none; background:none; font-size:1.2rem; cursor:pointer; margin-left:auto; display:block; }
+    #modalBody { overflow:auto; margin-top:0.5rem; }
     @media(max-width:768px) {
       table { display:block; overflow-x:auto; white-space:nowrap; }
-      .nav-links { grid-template-columns:1fr 1fr; }
-      .controls-row { grid-template-columns:1fr; }
+      .controls { flex-direction:column; align-items:stretch; }
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="logowhite.png" alt="Cheadle Juniors" />
-    <h1>📈 Season Series Results</h1>
+    <h1>Season Series Results — Cheadle Juniors</h1>
     <div class="sub">Spring: Apr &amp; May · Summer: Jun, Jul, Aug · Autumn: Sep, Oct, Nov</div>
-    <span id="darkModeToggle" onclick="document.body.classList.toggle('dark-mode')" style="position:absolute;top:14px;right:16px;cursor:pointer;font-size:1.6rem;user-select:none;z-index:3;">🌗</span>
-    <span id="logoutBtn" onclick="localStorage.removeItem('auth');window.location.href='index.html'" style="position:absolute;top:14px;left:16px;cursor:pointer;font-size:0.85rem;font-weight:900;color:rgba(255,255,255,0.85);background:rgba(0,0,0,0.2);padding:0.35rem 0.75rem;border-radius:999px;z-index:3;user-select:none;">🚪 Logout</span>
   </header>
 
-  <!-- Nav -->
-  <div class="nav-links">
-    <a href="home.html"          class="nav-btn">🏠 Home</a>
-    <a href="results.html"       class="nav-btn">📊 Results</a>
-    <a href="calendar.html"      class="nav-btn">📅 Calendar</a>
-    <a href="sixes.html"         class="nav-btn">🤝 Sixes</a>
-    <a href="signup.html"        class="nav-btn">✏️ Sign Up</a>
-    <a href="seriesresults.html" class="nav-btn active">📈 Series</a>
-  </div>
-
-  <!-- Controls -->
-  <div class="controls-card">
-    <div class="controls-row">
-      <div class="field">
-        <label>Year</label>
-        <select id="yearSelect"></select>
-      </div>
-      <div class="field">
-        <label>Series</label>
-        <select id="seriesSelect">
-          <option value="spring">🌱 Spring (Apr &amp; May)</option>
-          <option value="summer">☀️ Summer (Jun, Jul, Aug)</option>
-          <option value="autumn">🍂 Autumn (Sep, Oct, Nov)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Category</label>
-        <select id="categorySelect">
-          <option value="9hole">⛳ 9 Hole</option>
-          <option value="sixes">🏌️ Sixes</option>
-          <option value="beginners">🌱 Sixes Beginners</option>
-        </select>
-      </div>
-      <div class="field" style="justify-content:flex-end;">
-        <label class="include-toggle">
-          <input type="checkbox" id="includeAllToggle" />
-          Show all players
-        </label>
-      </div>
+  <div class="controls">
+    <div>
+      <label for="yearSelect"><strong>Year</strong></label><br/>
+      <select id="yearSelect"></select>
     </div>
-    <div class="actions-row">
-      <button id="refreshBtn" class="act-btn act-btn-primary">🔁 Refresh</button>
-      <button id="exportBtn"  class="act-btn act-btn-secondary">📁 Export CSV</button>
-      <button id="printBtn"   class="act-btn act-btn-secondary">🖨️ Print</button>
+    <div>
+      <label for="seriesSelect"><strong>Series</strong></label><br/>
+      <select id="seriesSelect">
+        <option value="spring">Spring (Apr &amp; May)</option>
+        <option value="summer">Summer (Jun, Jul, Aug)</option>
+        <option value="autumn">Autumn (Sep, Oct, Nov)</option>
+      </select>
+    </div>
+    <div>
+      <input type="checkbox" id="includeAllToggle" />
+      <label for="includeAllToggle">Include all players (not just qualifiers)</label>
+    </div>
+    <div class="right">
+      <a href="home.html"><button class="btn-primary">🏠 Home</button></a>
+      <button id="refreshBtn" class="btn-primary">🔁 Refresh</button>
+      <button id="exportBtn" class="btn-primary">📁 Export CSV</button>
+      <button id="printBtn" class="btn-primary">🖨️ Print</button>
     </div>
   </div>
 
-  <!-- Summary banner -->
-  <div class="summary-banner" id="summary"></div>
+  <div id="summary" class="small"></div>
 
   <main>
     <table id="resultsTable">
       <thead>
         <tr>
-          <th style="width:52px">Rank</th>
-          <th style="text-align:left">Player</th>
+          <th>Rank</th>
+          <th>Player</th>
           <th style="text-align:left">Month Breakdown</th>
-          <th>Total Pts</th>
+          <th>Total Points</th>
           <th>Qualifies</th>
         </tr>
       </thead>
-      <tbody id="resultsTbody">
-        <tr><td colspan="5"><div class="loading-state">Loading series data…</div></td></tr>
-      </tbody>
+      <tbody id="resultsTbody"></tbody>
     </table>
   </main>
 
   <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
     <div class="modal">
-      <div class="modal-header">
-        <h3 id="modalTitle">Player Details</h3>
-        <button class="close-btn" id="modalClose">✕</button>
-      </div>
-      <div id="modalBody">
-        <canvas id="modalChart" height="220" style="margin-bottom:1rem"></canvas>
-      </div>
+      <button class="close-btn" id="modalClose">&times;</button>
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+      <canvas id="modalChart" height="240" style="margin-top:10px"></canvas>
     </div>
-  </div>
-
-  <!-- Footer -->
-  <div class="footer">
-    <div style="margin:0.75rem 0;">
-      <img src="logocja.png" alt="CJA Logo" style="height:56px;margin-right:8px;" />
-      <img src="https://cheadlegolf.com/wp-content/uploads/2016/08/CGC-logo-HR-02.png" alt="CGC Logo" width="70" height="70"/>
-    </div>
-    <div style="font-weight:900;font-size:0.88rem;">Build v2.0.1 | Series Results</div>
-    <div style="margin-top:0.35rem;font-size:0.85rem;"><a href="https://www.theapplegeek.co.uk" target="_blank" rel="noopener">The Apple Geek Data Solutions</a></div>
   </div>
 
   <!-- ── Google Sheets helpers ── -->
@@ -371,7 +193,6 @@
 
     const yearSelect       = document.getElementById('yearSelect');
     const seriesSelect     = document.getElementById('seriesSelect');
-    const categorySelect   = document.getElementById('categorySelect');
     const includeAllToggle = document.getElementById('includeAllToggle');
     const resultsTbody     = document.getElementById('resultsTbody');
     const summary          = document.getElementById('summary');
@@ -476,19 +297,7 @@
 
       summary.textContent = `Calculating ${series.charAt(0).toUpperCase()+series.slice(1)} series for ${year}…`;
 
-      // Category filter based on Competition name keywords
-      const category = categorySelect.value;
-      function matchesCategory(r) {
-        const comp = String(r.Competition || r.Title || '').toLowerCase();
-        if (category === '9hole')    return comp.includes('9 hole') || comp.includes('9hole') || comp.includes('-9 hole') || comp.includes('- 9 hole');
-        if (category === 'beginners') return comp.includes('beginner');
-        if (category === 'sixes')    return comp.includes('sixes') && !comp.includes('beginner');
-        return true;
-      }
-
-      const categoryLabels = { '9hole': '⛳ 9 Hole', 'sixes': '🏌️ Sixes', 'beginners': '🌱 Sixes Beginners' };
-
-      const seasonRows = allRows.filter(r=>{ const d=parseDateStr(r.Date); return d&&d.getFullYear()===year&&months.includes(d.getMonth()+1)&&matchesCategory(r); });
+      const seasonRows = allRows.filter(r=>{ const d=parseDateStr(r.Date); return d&&d.getFullYear()===year&&months.includes(d.getMonth()+1); });
 
       const byPlayer = {};
       seasonRows.forEach(r=>{
@@ -514,9 +323,8 @@
 
       resultsTbody.innerHTML='';
       if (!shown.length) {
-        const catLbl = { '9hole':'9 Hole', 'sixes':'Sixes', 'beginners':'Sixes Beginners' }[categorySelect.value] || '';
-        resultsTbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:2rem;opacity:0.6;font-weight:800;">No entries for ${year} ${series} ${catLbl} series.</td></tr>`;
-        summary.textContent=`Series: ${series.toUpperCase()} • Category: ${catLbl} • Year: ${year} • Qualifying: 0`;
+        resultsTbody.innerHTML=`<tr><td colspan="5">No entries for ${year} ${series} series.</td></tr>`;
+        summary.textContent=`Series: ${series.toUpperCase()} • Year: ${year} • Qualifying: 0`;
         return;
       }
 
@@ -540,13 +348,11 @@
         const isWinner=winners.some(w=>w.name===p.name);
         if (isWinner) tr.classList.add('winner');
         const breakdown=months.map((m,i)=>`${monthNames[i]}: ${p.perMonthPoints[m]||0}`).join(' | ');
-        const rankNum = idx+1;
-        const rankCls = rankNum===1?'rank-1':rankNum===2?'rank-2':rankNum===3?'rank-3':'';
         tr.innerHTML=`
-          <td><span class="rank-badge ${rankCls}">${rankNum}</span></td>
+          <td>${idx+1}</td>
           <td><a href="#" class="player-link" data-name="${escapeHtml(p.name)}">${escapeHtml(p.name)}</a></td>
-          <td>${escapeHtml(breakdown)}</td>
-          <td><strong>${p.total}</strong></td>
+          <td style="text-align:left">${escapeHtml(breakdown)}</td>
+          <td>${p.total}</td>
           <td>${p.qualifies?'✅':'—'}</td>`;
         resultsTbody.appendChild(tr);
       });
@@ -556,15 +362,10 @@
         a.addEventListener('click',ev=>{ ev.preventDefault(); const p=shown.find(x=>x.name===a.dataset.name); if(p) openPlayerModal(p,year,series,months); });
       });
 
-      const catLabel = { '9hole':'⛳ 9 Hole', 'sixes':'🏌️ Sixes', 'beginners':'🌱 Sixes Beginners' }[categorySelect.value] || '';
-      const seriesLabel = {'spring':'🌱 Spring','summer':'☀️ Summer','autumn':'🍂 Autumn'}[series]||series;
-      let summaryHTML = `<span>${seriesLabel}</span> <span style="opacity:0.3">|</span> <span>${catLabel}</span> <span style="opacity:0.3">|</span> <span><strong>${year}</strong></span> <span style="opacity:0.3">|</span> <span>Qualifying: <strong>${qualifying.length}</strong></span>`;
-      if (winners.length) {
-        summaryHTML += ` <span style="opacity:0.3">|</span> <span class="winner-tag">🏆 ${winners.map(w=>escapeHtml(w.name)).join(', ')} — ${winners[0].total} pts</span>`;
-      } else {
-        summaryHTML += ` <span style="opacity:0.5;font-size:0.85rem;">No qualifying winner yet</span>`;
-      }
-      summary.innerHTML = summaryHTML;
+      let summaryText=`Series: <strong>${series.toUpperCase()}</strong> • Year: <strong>${year}</strong> • Qualifying: <strong>${qualifying.length}</strong>`;
+      if (winners.length) summaryText+=` • Winner${winners.length>1?'s':''}: <strong>${winners.map(w=>escapeHtml(w.name)).join(', ')}</strong> — ${winners[0].total} pts 🏆`;
+      else summaryText+=` • No qualifying winner`;
+      summary.innerHTML=summaryText;
     }
 
     function openPlayerModal(playerObj, year, series, months) {
@@ -630,14 +431,11 @@
     document.getElementById('refreshBtn').addEventListener('click',buildSeriesTable);
     yearSelect.addEventListener('change',buildSeriesTable);
     seriesSelect.addEventListener('change',buildSeriesTable);
-    categorySelect.addEventListener('change',buildSeriesTable);
     includeAllToggle.addEventListener('change',buildSeriesTable);
 
     modalClose.addEventListener('click',()=>{ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); if(modalChart){ modalChart.destroy(); modalChart=null; } });
     modalBackdrop.addEventListener('click',e=>{ if(e.target===modalBackdrop){ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); if(modalChart){ modalChart.destroy(); modalChart=null; } } });
 
-    // Auth guard
-    if (localStorage.getItem('auth') !== 'true') window.location.replace('index.html');
     init();
   </script>
 </body>
