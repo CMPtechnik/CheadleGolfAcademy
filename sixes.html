@@ -147,8 +147,9 @@
 
     /* Position badges */
     .pos-badge {
-      display:inline-block; width:28px; height:28px; border-radius:999px;
-      line-height:28px; font-weight:900; font-size:0.85rem;
+      display:inline-flex; align-items:center; justify-content:center;
+      min-width:28px; height:28px; border-radius:999px; padding:0 6px;
+      font-weight:900; font-size:0.85rem; white-space:nowrap;
       background:var(--accent); color:var(--primary-dark);
     }
     .pos-1 { background:linear-gradient(135deg,#fde68a,#f59e0b); color:#78350f; }
@@ -249,7 +250,7 @@
   <div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"></div></div>
 
   <div class="info-links">
-    <a href="home.html"          class="info-btn">🏠 Home</a>
+    <a href="index.html"         class="info-btn">🏠 Home</a>
     <a href="results.html"       class="info-btn">📊 Results</a>
     <a href="calendar.html"      class="info-btn">📅 Calendar</a>
     <a href="sixes.html"         class="info-btn active-page">⓺ Sixes</a>
@@ -472,13 +473,14 @@
       });
 
       // Sort by points desc, then best finish asc
+      const rh = v => Math.round(v * 10) / 10;
       return Object.values(totals)
         .sort((a,b) => {
-          if (b.points !== a.points) return b.points - a.points;
+          if (rh(b.points) !== rh(a.points)) return rh(b.points) - rh(a.points);
           const bf = (a.bestFinish??99) - (b.bestFinish??99);
           return bf;
         })
-        .map((t,i) => ({ ...t, position: i+1 }));
+        .map((t,i) => ({ ...t, position: i+1, points: rh(t.points) }));
     }
 
     // ── Hero stats for Cheadle ──
