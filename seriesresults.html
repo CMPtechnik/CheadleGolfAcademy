@@ -402,7 +402,7 @@
 
         // Data
         const dataRows = await fetchSheet('Sheet1!A1:K2000');
-        allRows = rowsToObjects(dataRows).filter(r=>String(r.Active||'').toLowerCase()!=='no');
+        allRows = rowsToObjects(dataRows); // all rows included — Active flag not relevant for series standings
 
         availableYears = [...new Set(allRows.map(r=>{ const d=parseDateStr(r.Date); return d?d.getFullYear():null; }).filter(Boolean))].sort((a,b)=>b-a);
 
@@ -452,8 +452,10 @@
       return aBetter-bBetter;
     }
 
+    function roundHalf(v) { return Math.round(v * 10) / 10; }
+
     function comparePlayers(a, b, months) {
-      if (b.total!==a.total) return b.total-a.total;
+      if (roundHalf(b.total) !== roundHalf(a.total)) return roundHalf(b.total) - roundHalf(a.total);
       const ms=new Set(months);
       const aW=countWinsInRounds(a.rounds,ms), bW=countWinsInRounds(b.rounds,ms);
       if (bW!==aW) return bW-aW;
@@ -524,8 +526,8 @@
       const qualifying=shown.filter(p=>p.qualifies);
       let winners=[];
       if (qualifying.length) {
-        const topTotal=Math.max(...qualifying.map(p=>p.total||0));
-        let topCandidates=qualifying.filter(p=>p.total===topTotal);
+        const topTotal=Math.max(...qualifying.map(p=>roundHalf(p.total)||0));
+        let topCandidates=qualifying.filter(p=>roundHalf(p.total)===topTotal);
         if (topCandidates.length===1) winners=[topCandidates[0]];
         else {
           topCandidates.sort((a,b)=>comparePlayers(a,b,months));
@@ -539,14 +541,14 @@
         const tr=document.createElement('tr');
         const isWinner=winners.some(w=>w.name===p.name);
         if (isWinner) tr.classList.add('winner');
-        const breakdown=months.map((m,i)=>`${monthNames[i]}: ${p.perMonthPoints[m]||0}`).join(' | ');
+        const breakdown=months.map((m,i)=>`${monthNames[i]}: ${roundHalf(p.perMonthPoints[m]||0)}`).join(' | ');
         const rankNum = idx+1;
         const rankCls = rankNum===1?'rank-1':rankNum===2?'rank-2':rankNum===3?'rank-3':'';
         tr.innerHTML=`
           <td><span class="rank-badge ${rankCls}">${rankNum}</span></td>
           <td><a href="#" class="player-link" data-name="${escapeHtml(p.name)}">${escapeHtml(p.name)}</a></td>
           <td>${escapeHtml(breakdown)}</td>
-          <td><strong>${p.total}</strong></td>
+          <td><strong>${roundHalf(p.total)}</strong></td>
           <td>${p.qualifies?'✅':'—'}</td>`;
         resultsTbody.appendChild(tr);
       });
@@ -560,7 +562,7 @@
       const seriesLabel = {'spring':'🌱 Spring','summer':'☀️ Summer','autumn':'🍂 Autumn'}[series]||series;
       let summaryHTML = `<span>${seriesLabel}</span> <span style="opacity:0.3">|</span> <span>${catLabel}</span> <span style="opacity:0.3">|</span> <span><strong>${year}</strong></span> <span style="opacity:0.3">|</span> <span>Qualifying: <strong>${qualifying.length}</strong></span>`;
       if (winners.length) {
-        summaryHTML += ` <span style="opacity:0.3">|</span> <span class="winner-tag">🏆 ${winners.map(w=>escapeHtml(w.name)).join(', ')} — ${winners[0].total} pts</span>`;
+        summaryHTML += ` <span style="opacity:0.3">|</span> <span class="winner-tag">🏆 ${winners.map(w=>escapeHtml(w.name)).join(', ')} — ${roundHalf(winners[0].total)} pts</span>`;
       } else {
         summaryHTML += ` <span style="opacity:0.5;font-size:0.85rem;">No qualifying winner yet</span>`;
       }
