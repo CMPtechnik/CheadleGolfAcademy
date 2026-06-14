@@ -260,8 +260,19 @@
       .modal-overlay, .info-banner, .footer { display:none !important; }
       main { padding:0 !important; }
       .table-wrap { max-width:100%; overflow:visible; }
-      table { box-shadow:none; border:1px solid #ccc; }
+      table { box-shadow:none; border:1px solid #ccc; width:auto; margin:0 auto; }
+      th, td { padding:8px 14px !important; }
       th { background:#eafff8 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      /* Hide all columns except rank, name, and handicap */
+      th:nth-child(4), td:nth-child(4),  /* Lowest */
+      th:nth-child(5), td:nth-child(5),  /* Rounds */
+      th:nth-child(6), td:nth-child(6),  /* Trend */
+      th:nth-child(7), td:nth-child(7)   /* View */
+      { display:none !important; }
+      /* Hide rank column too for a cleaner look */
+      th:nth-child(1), td:nth-child(1) { display:none !important; }
+      tbody tr:hover { background:none !important; cursor:default; }
+      .hcap-badge { background:none !important; color:#000 !important; font-size:1rem; padding:0; }
       .print-header { display:block !important; }
       @page { size:A4 portrait; margin:15mm; }
     }
